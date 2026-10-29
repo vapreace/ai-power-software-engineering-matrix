@@ -19,13 +19,14 @@ Fase atual: **especificação**. Ainda não existe código e nenhuma tecnologia 
    | Restrições, pressupostos, segurança, decisões pendentes (DP) | `docs/constraints.md` |
 
 2. Identifica os IDs relacionados com a tarefa (ex.: US05, RN11) e usa-os no plano e no relatório final.
-3. Se dois documentos se contradizem, prevalecem as definições e as regras de negócio de `docs/requirements.md`. Reporta o conflito e não o resolvas por iniciativa própria.
+3. Se dois documentos se contradizem numa definição ou numa regra de negócio, aplica `docs/requirements.md`, reporta o conflito e não alteres os outros documentos para o resolver. Em qualquer outro conflito, para e pergunta.
 
 ## Âmbito e decisões
 
-- Implementa apenas o que está documentado. O MVP são os requisitos **Must** (`docs/requirements.md`, secção 8). Requisitos Should, Could e Won't só se implementam com pedido explícito.
-- Não inventes funcionalidades, regras, campos, mensagens ou decisões técnicas. Se faltar informação, para e pergunta.
-- Pressupostos (P) e decisões de análise (D) não são requisitos confirmados. Se a tarefa depender de um deles, indica-o.
+- Implementa apenas o que está documentado. O MVP está definido em `docs/requirements.md`, secção 8.2: requisitos **Must**, regras de negócio (RN), requisitos não funcionais (RNF), de segurança (SEG) e de privacidade (PRIV). Requisitos Should, Could e Won't só se implementam com pedido explícito.
+- Não inventes funcionalidades, regras, campos ou decisões técnicas. Se faltar informação, para e pergunta.
+- Se a especificação não define o texto de uma mensagem, propõe um texto curto e indica-o no relatório.
+- Usa apenas os pressupostos (P) e as decisões (D) já documentados. Um pressuposto ou decisão novo precisa de aprovação antes de ser usado. Se a tarefa depender de um pressuposto, indica-o.
 - Não implementes os itens retirados (`docs/constraints.md`, secção 5.2).
 - Não tomes decisões técnicas pendentes (DP). Apresenta as opções, com vantagens e desvantagens, e espera pela decisão.
 - Altera apenas os ficheiros necessários à tarefa. Se encontrares outros problemas, reporta-os em vez de os corrigir.
@@ -34,7 +35,7 @@ Fase atual: **especificação**. Ainda não existe código e nenhuma tecnologia 
 
 Uma alteração é significativa quando:
 
-- altera mais do que um ficheiro;
+- afeta mais do que uma história;
 - muda comportamento descrito em `docs/user-stories.md`;
 - altera o modelo de dados ou a interface entre componentes.
 
@@ -47,7 +48,7 @@ Pede aprovação antes de executar estas ações, mesmo que façam parte de um p
 - apagar, mover ou renomear ficheiros;
 - alterar os documentos de `docs/` ou este ficheiro;
 - acrescentar ou atualizar dependências;
-- alterar ou apagar dados existentes;
+- alterar ou apagar dados reais ou partilhados (não os dados de teste criados pela própria tarefa);
 - fazer commits, push ou qualquer operação Git que reescreva o histórico;
 - qualquer ação fora do repositório (publicar, fazer deploy, enviar informação).
 
@@ -64,21 +65,21 @@ Pede aprovação antes de executar estas ações, mesmo que façam parte de um p
 Indica sempre:
 
 1. Ficheiros alterados e o motivo, com os IDs relacionados.
-2. Pressupostos assumidos.
+2. Pressupostos e decisões documentados em que te apoiaste (IDs) e mensagens que propuseste.
 3. Verificações feitas e o resultado (comandos executados e o que devolveram).
 4. O que não foi possível verificar, e porquê.
 5. Dúvidas ou conflitos encontrados na documentação.
 
 ## Validação
 
-- Uma história só está concluída quando cumpre a definição de concluído (`docs/user-stories.md`, secção 4).
-- Os comandos de build e de testes ainda não estão definidos (DP01, DP09). Não assumas nenhum até serem acrescentados a este ficheiro.
+- Quando terminares uma história, indica que está "pronta para revisão". Só uma pessoa da equipa a marca como concluída (`docs/user-stories.md`, secção 4).
+- Os comandos de build e de testes ainda não estão definidos (DP01, DP09). Não assumas nenhum. Até lá, descreve no relatório as verificações manuais que fizeste.
 
 ## Estilo
 
 - Escreve a documentação e as respostas em português de Portugal.
-- Segue a estrutura dos documentos existentes: tabelas, IDs com prefixo e origem C, D ou P.
-- Novos IDs seguem as convenções do `README.md`.
+- Segue a estrutura dos documentos existentes: tabelas e IDs com prefixo, segundo as convenções do `README.md`.
+- Nos requisitos, objetivos e pressupostos novos, indica a origem C, D ou P.
 
 ## Manutenção deste ficheiro
 

@@ -16,7 +16,7 @@ A primeira frase é a descrição do cliente. A segunda é um pressuposto ainda 
 
 ## Objetivos principais
 
-Os objetivos 3 e 4 e os papéis de utilizador são propostas da equipa, ainda por validar com o cliente.
+Só a descrição do cliente está confirmada. Os objetivos e os papéis de utilizador são interpretações da equipa, ainda por validar.
 
 1. Cada pessoa sabe que tarefas tem atribuídas e com que prazo.
 2. O gestor de um projeto vê, a qualquer momento, o progresso e as tarefas atrasadas.
@@ -36,13 +36,13 @@ Os objetivos 3 e 4 e os papéis de utilizador são propostas da equipa, ainda po
 
 | Área | Funcionalidades |
 |------|-----------------|
-| Acesso | Entrar e sair. Permissões por papel. Gestão de contas e papéis pelo Administrador. Registo das ações do Administrador. |
-| Equipas | Criar equipas. Adicionar e remover pessoas. |
+| Acesso | Entrar e sair. Permissões por papel. O Administrador cria, edita, desativa e reativa contas e muda papéis. |
+| Equipas | Criar e editar equipas. Adicionar e remover pessoas. |
 | Projetos | Criar e editar projetos. Mudar estado e arquivar. Lista de projetos com filtro por estado. |
 | Tarefas | Criar, editar e apagar. Atribuir responsável. Prazo e prioridade. Mudar estado. Lista com filtros. "As minhas tarefas". |
 | Progresso | Percentagem de tarefas concluídas por projeto. Destaque e contagem de tarefas atrasadas. |
 
-Fora do MVP: quadro, comentários, histórico, pesquisa, avisos, anexos, subtarefas, relatórios, integrações. A lista completa está em [requirements.md, secção 9](docs/requirements.md#9-fora-do-âmbito-inicial).
+Fora do MVP: quadro, comentários, histórico, registo das ações do Administrador, pesquisa, avisos, anexos, subtarefas, relatórios, integrações. A lista completa está em [requirements.md, secção 9](docs/requirements.md#9-fora-do-âmbito-inicial).
 
 ```
  Administrador        Gestor                     Membro                Gestor
@@ -75,7 +75,7 @@ Cada tipo de informação tem **um único documento de referência**, para evita
 | Restrições (R), pressupostos (P), segurança e privacidade, decisões pendentes (DP), limitações (LIM) | [constraints.md](docs/constraints.md) |
 | Instruções para agentes de IA | [AGENTS.md](AGENTS.md) |
 
-Em caso de conflito, prevalecem as definições e regras de negócio de `requirements.md`.
+Este README é só um resumo. Em caso de diferença, prevalece `docs/requirements.md`.
 
 ### Convenções de identificadores
 
@@ -94,6 +94,7 @@ Em caso de conflito, prevalecem as definições e regras de negócio de `require
 | PRIV | Requisito de privacidade | PRIV01 |
 | LIM | Limitação de âmbito | LIM01 |
 | M | Métrica de sucesso | M1 |
+| IA | Regra de desenvolvimento com IA | IA02 |
 
 ## Estado atual do projeto
 
@@ -102,9 +103,9 @@ Em caso de conflito, prevalecem as definições e regras de negócio de `require
 | Análise do problema e perguntas de clarificação | Concluída |
 | Âmbito funcional e MVP | Concluído, por validar com o Product Owner |
 | User Stories e critérios de aceitação | Concluídas (18 histórias), por validar |
-| Documentação de contexto | Concluída (versão 0.2) |
-| Instruções para agentes (AGENTS.md) | Concluído (versão 0.1) |
-| Revisão crítica da documentação | Revisão 1 aplicada. Revisão independente por fazer. |
+| Documentação de contexto | Concluída (versão 0.3) |
+| Instruções para agentes (AGENTS.md) | Concluído, revisto no Exercício 6 |
+| Revisão crítica da documentação | Concluída: revisão 1 e revisão independente (2 agentes) aplicadas |
 | Arquitetura, modelo de dados, API e protótipo | Aula 2 |
 | Implementação | Ainda não iniciada |
 
