@@ -1,12 +1,13 @@
 # Restrições, pressupostos e decisões pendentes
 
-> **Versão:** 0.3 (revisão crítica 2, Ficha PL 01)
+> **Versão:** 0.4 (arquitetura, Ficha PL 02, exercício 1)
 > **Estado:** em validação. Os pressupostos deste documento **não são requisitos confirmados**.
 
 Documentos relacionados:
 
 - [requirements.md](requirements.md): requisitos funcionais e não funcionais, regras de negócio, âmbito do MVP.
 - [user-stories.md](user-stories.md): histórias do MVP e critérios de aceitação.
+- [architecture.md](architecture.md): arquitetura, componentes e decisões técnicas (DA).
 
 ---
 
@@ -47,6 +48,7 @@ A coluna "Origem" indica o tema da pergunta de clarificação (exercício 1) ou 
 | P11 | Os utilizadores não precisam de ver as alterações dos outros em tempo real. | Ex. 1: trabalho em simultâneo | US09, LIM02, LIM11 | É preciso atualização automática das páginas. |
 | P12 | A organização trabalha num único fuso horário. | Ex. 3 | Definição de "data atual", RN13, US10 | A regra de atraso tem de considerar o fuso de cada utilizador. |
 | P13 | Não há projetos confidenciais: o Administrador e o Observador podem ver todos os projetos. | Ex. 6 | requirements.md §3.1, RF03, US15 | É preciso restringir a visibilidade de alguns projetos, também para o Observador. |
+| P14 | O MVP é desenvolvido por uma equipa pequena (a do curso), sem equipas autónomas por área. | Ficha PL 02, ex. 1 | DA01 ([architecture.md](architecture.md)) | Com várias equipas autónomas, é preciso rever a separação em módulos ou serviços. |
 
 ---
 
@@ -106,23 +108,23 @@ Dados pessoais guardados no MVP:
 
 ## 4. Decisões técnicas pendentes
 
-Nenhuma tecnologia foi escolhida. Estas decisões ficam para as fases indicadas.
+As decisões tomadas na Aula 2 estão em [architecture.md, secção 9](architecture.md#9-decisões-técnicas). As restantes ficam para as fases indicadas.
 
 | ID | O que decidir | Quando | Afeta |
 |----|---------------|--------|-------|
-| DP01 | Linguagem e framework (backend e frontend). | Aula 2 | Todo o desenvolvimento |
-| DP02 | Arquitetura da aplicação. | Aula 2 | Todo o desenvolvimento |
-| DP03 | Base de dados e modelo de dados físico. | Aula 2 | Modelo de domínio (requirements.md, secção 4) |
+| DP01 | Linguagem e framework (backend e frontend). | Resolvida: DA02 | Todo o desenvolvimento |
+| DP02 | Arquitetura da aplicação. | Resolvida: DA01, DA06 | Todo o desenvolvimento |
+| DP03 | Base de dados e modelo de dados físico. | Parcial: base de dados em DA03. Modelo físico na Aula 2 (Ficha PL 02, ex. 2) | Modelo de domínio (requirements.md, secção 4) |
 | DP04 | Desenho da API. | Aula 2 | Todas as histórias |
 | DP05 | Protótipo da interface. | Aula 2 | RNF01, todas as histórias |
-| DP06 | Mecanismo de autenticação, regras mínimas da palavra-passe, duração da sessão, expiração por inatividade e mecanismo de SEG09 (limites, duração, desbloqueio). | Aula 2 | RF01, SEG01, SEG07, SEG08, SEG09, PRIV01 |
+| DP06 | Mecanismo de autenticação, regras mínimas da palavra-passe, duração da sessão, expiração por inatividade e mecanismo de SEG09 (limites, duração, desbloqueio). | Parcial: mecanismo em DA04. O resto antes de implementar US01 | RF01, SEG01, SEG07, SEG08, SEG09, PRIV01 |
 | DP07 | Como se dá o acesso inicial a uma conta nova e como se repõe o acesso (palavra-passe esquecida ou conta bloqueada). Tem de estar decidida antes de implementar US02. | Aula 2 | RF02, US02, SEG09 |
 | DP08 | Fuso horário fixo ou configurável pelo Administrador. | Aula 2 | P12, RNF06 |
 | DP09 | Estratégia e ferramentas de testes. | Módulo 4 | RNF07 |
 | DP10 | Ambientes, alojamento e pipeline de integração e entrega contínua. | Módulo 5 | |
 | DP11 | Conformidade com o RGPD: prazos de conservação (incluindo o texto das tarefas), tratamento de contas desativadas, informação aos colaboradores, base legal, e forma de exercer os direitos de acesso e de retificação. | Antes do piloto | PRIV02, RN16, RN28 |
 | DP12 | Requisitos de acessibilidade e disponibilidade (horário, tempo de recuperação). | Antes do piloto | RNF |
-| DP13 | Tratamento de alterações simultâneas: o que acontece quando alguém grava uma tarefa ou um projeto que outra pessoa alterou ou apagou entretanto. | Aula 2 | P11, LIM11 |
+| DP13 | Tratamento de alterações simultâneas: o que acontece quando alguém grava uma tarefa ou um projeto que outra pessoa alterou ou apagou entretanto. | Resolvida: DA05 | P11, LIM11 |
 
 ---
 
@@ -142,7 +144,7 @@ Nenhuma tecnologia foi escolhida. Estas decisões ficam para as fases indicadas.
 | LIM08 | Sem subtarefas, dependências nem registo de tempo. | Planeamento avançado fica fora do MVP. |
 | LIM09 | Um único fuso horário (P12). | Equipas noutros fusos podem ver atrasos com um dia de diferença. |
 | LIM10 | As equipas não se apagam. | Uma equipa que deixou de existir mantém-se na lista. |
-| LIM11 | Sem tratamento de alterações simultâneas até DP13. | Duas pessoas que editem a mesma tarefa ao mesmo tempo podem gravar uma por cima da outra. |
+| LIM11 | Resolvida por DA05 (bloqueio otimista). Mantida para não renumerar. | Quem grava sobre uma versão antiga de uma tarefa ou de um projeto vê a alteração recusada e tem de a repetir. |
 | LIM12 | Uma equipa sem nenhum Gestor não pode ter projetos novos (RN27). | O Administrador tem de adicionar um Gestor à equipa primeiro. |
 
 ### 5.2 Itens retirados

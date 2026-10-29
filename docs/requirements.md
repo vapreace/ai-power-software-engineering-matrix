@@ -1,6 +1,6 @@
 # Requisitos da Matriz
 
-> **Versão:** 0.3 (revisão crítica 2, Ficha PL 01)
+> **Versão:** 0.4 (papel Observador, Ficha PL 02, exercício 1)
 > **Estado:** em validação. Nada deste documento foi ainda confirmado pelo cliente, exceto o que está marcado com origem **C**.
 
 ## Como ler este documento
@@ -26,6 +26,7 @@ Documentos relacionados:
 
 - [user-stories.md](user-stories.md): histórias do MVP e critérios de aceitação.
 - [constraints.md](constraints.md): restrições, pressupostos, segurança e privacidade, decisões técnicas pendentes.
+- [architecture.md](architecture.md): arquitetura, componentes e decisões técnicas (DA).
 
 Em caso de conflito entre documentos, as **definições** (secção 2) e as **regras de negócio** (secção 6) deste ficheiro prevalecem. O conflito deve ser reportado e corrigido.
 
@@ -105,7 +106,7 @@ As definições só explicam o significado dos termos. As regras sobre esses ter
 
 Origem: **D** (os quatro papéis). Só existem utilizadores internos à organização (**D**, apoiada em P06, ver RF38).
 
-**Validar antes da Aula 2:** o papel Observador e o objetivo O3 não vêm do cliente. Se o Product Owner os rejeitar, saem o papel, a US15 e o pressuposto P13, e é preciso rever a matriz de permissões e as regras RN14, RN23 e RN26. A validação deve acontecer antes da Aula 2, porque o modelo de permissões entra na arquitetura.
+**Decisão D (Ficha PL 02):** o papel Observador e o objetivo O3 não vêm do cliente, mas mantêm-se no MVP e na arquitetura. Continuam por validar com o Product Owner. Se forem rejeitados, saem o papel, a US15 e o pressuposto P13, e é preciso rever a matriz de permissões, as regras RN14, RN23 e RN26 e a [arquitetura](architecture.md).
 
 ### 3.1 Matriz de permissões
 
