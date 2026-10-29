@@ -1,6 +1,6 @@
 # Requisitos da Matriz
 
-> **Versão:** 0.5 (modelo de dados, Ficha PL 02, exercício 2)
+> **Versão:** 0.6 (revisão crítica, Ficha PL 02, exercício 5)
 > **Estado:** em validação. Nada deste documento foi ainda confirmado pelo cliente, exceto o que está marcado com origem **C**.
 
 ## Como ler este documento
@@ -123,7 +123,7 @@ Origem: **D** (os quatro papéis). Só existem utilizadores internos à organiza
 | Mudar o estado de uma tarefa | ✔ | ✔ (projetos que gere e tarefas de que é responsável) | ✔ (tarefas de que é responsável) | |
 | Ver projetos e tarefas | Todos | Projetos visíveis | Projetos visíveis | Todos |
 
-Quando o Administrador cria um projeto, indica como gestor um utilizador com papel Gestor que pertença à equipa do projeto (RN21, RN27). Num projeto "Sem gestor", as permissões do gestor passam para o Administrador (RN22).
+Quando o Administrador cria um projeto, indica como gestor um utilizador com papel Gestor e conta ativa que pertença à equipa do projeto (RN21, RN27). Num projeto "Sem gestor", as permissões do gestor passam para o Administrador (RN22).
 
 As permissões aplicam-se dentro dos limites das regras de negócio. Por exemplo, ninguém altera um projeto arquivado (RN09).
 
@@ -190,7 +190,7 @@ Três estados: **Por fazer**, **Em curso**, **Concluída**. Qualquer mudança en
 | ID | Requisito | Justificação | Prior. | Origem |
 |----|-----------|--------------|:------:|:------:|
 | RF01 | Entrar e sair da aplicação com email e palavra-passe. | Sem identificação não há responsáveis nem permissões. | Must | D |
-| RF02 | O Administrador vê a lista de contas, cria contas, edita o nome e o email, muda o papel, desativa e reativa contas, e dá ou repõe o acesso de uma conta (mecanismo em DP07). | Só há utilizadores internos e o controlo é centralizado. | Must | D |
+| RF02 | O Administrador vê a lista de contas, cria contas, edita o nome e o email, muda o papel, desativa e reativa contas, e dá ou repõe o acesso de uma conta (mecanismo em DA25). | Só há utilizadores internos e o controlo é centralizado. | Must | D |
 | RF03 | Cada utilizador só vê e altera o que o seu papel permite (secção 3.1). | Cada equipa só vê os seus projetos. | Must | D |
 | RF04 | Entrar com a conta da empresa. | Menos uma palavra-passe, mas exige integração. | Could | D |
 | RF39 | Registo das ações do Administrador (contas, papéis, equipas, gestores), com autor, ação, data e hora, e forma de o consultar. | Rastreabilidade das ações com mais impacto. Fica fora do MVP porque exige definir quem o consulta e como (RGPD). | Should | D |
@@ -267,7 +267,7 @@ Os IDs não são renumerados. As regras novas são acrescentadas no fim.
 | RN01 | Um projeto pertence a uma só equipa. |
 | RN02 | Um utilizador pode pertencer a várias equipas. |
 | RN03 | O nome de uma equipa é obrigatório e único na organização, sem distinguir maiúsculas (DA10). |
-| RN04 | O email de uma conta é obrigatório e único, sem distinguir maiúsculas (DA10). Nome e papel também são obrigatórios. |
+| RN04 | O email de uma conta é obrigatório e único, sem distinguir maiúsculas (DA10). Tem o formato nome@domínio: um único "@", texto antes e um domínio com pelo menos um ponto depois. Nome e papel também são obrigatórios. |
 | RN05 | Um Gestor só cria projetos nas equipas a que pertence e só altera os projetos de que é gestor (ver também RN21). |
 | RN06 | Projeto: nome, equipa e data de início são obrigatórios. Descrição e data de fim prevista são opcionais. A data de fim prevista não pode ser anterior à data de início. |
 | RN07 | Um projeto novo fica no estado "Ativo". As transições permitidas estão na secção 4.1. |
@@ -284,13 +284,13 @@ Os IDs não são renumerados. As regras novas são acrescentadas no fim.
 | RN18 | Tem de existir sempre pelo menos um Administrador ativo. Não é possível desativar o último nem mudar o seu papel. Um Administrador pode desativar a própria conta se existir outro Administrador ativo. |
 | RN19 | Apagar uma tarefa exige confirmação e é definitivo. |
 | RN20 | Uma tarefa pertence sempre a um projeto. |
-| RN21 | O gestor de um projeto tem de pertencer à equipa do projeto e ter papel Gestor. Só o Administrador muda o gestor de um projeto. A equipa de um projeto não pode ser mudada. |
+| RN21 | O gestor de um projeto tem de ter conta ativa, pertencer à equipa do projeto e ter papel Gestor. Só o Administrador muda o gestor de um projeto. A equipa de um projeto não pode ser mudada. |
 | RN22 | Se o gestor de um projeto deixar de cumprir RN21 (conta desativada, removido da equipa ou papel mudado), o projeto fica "Sem gestor". Até haver novo gestor, só o Administrador edita o projeto e cria, edita, apaga ou atribui as suas tarefas. Os responsáveis continuam a mudar o estado das suas tarefas (RN15). |
 | RN23 | Ao mudar o papel de uma conta: se deixar de ser Gestor, os projetos que gere ficam "Sem gestor" (RN22). Se passar a Observador ou Administrador, deixa de pertencer às suas equipas (RN26) e aplica-se RN17. |
 | RN24 | "As minhas tarefas" ordena por prazo, do mais próximo para o mais distante, com as tarefas sem prazo no fim. Em caso de empate, ordena por prioridade (Alta, Média, Baixa), depois por título, por ordem alfabética sem distinguir maiúsculas nem acentos, e por fim pela ordem de criação. |
 | RN25 | "As minhas tarefas" mostra, por omissão, as tarefas abertas de que o utilizador é responsável em projetos "Ativo". O filtro "Incluir concluídas" acrescenta as tarefas concluídas desses projetos. As tarefas de projetos "Concluído" ou "Arquivado" não aparecem. A lista de projetos esconde, por omissão, os projetos "Arquivado". |
 | RN26 | Só utilizadores com papel Gestor ou Membro pertencem a equipas. Contas desativadas não podem ser adicionadas a equipas. Um Gestor sem equipa não vê nenhum projeto. |
-| RN27 | Quando um Gestor cria um projeto, fica gestor desse projeto. Quando o Administrador cria um projeto, tem de indicar o gestor (RN21). Uma equipa sem nenhum Gestor não pode ter projetos novos. |
+| RN27 | Quando um Gestor cria um projeto, fica gestor desse projeto. Quando o Administrador cria um projeto, tem de indicar o gestor (RN21). Uma equipa sem nenhum Gestor com conta ativa não pode ter projetos novos. |
 | RN28 | O Administrador pode editar o nome e o email de uma conta (o email continua único, RN04) e reativar uma conta desativada. A conta reativada mantém o papel e as equipas. As tarefas que ficaram "Sem responsável" na desativação não voltam a ser atribuídas automaticamente. |
 | RN29 | Comprimentos máximos, depois de ignorar os espaços no início e no fim: nome de pessoa 100, email 254, nome de equipa 100, nome de projeto 100, descrição de projeto 1000 e descrição de tarefa 2000 caracteres. Os nomes não podem ficar vazios. Os caracteres contam-se como na RN11. |
 

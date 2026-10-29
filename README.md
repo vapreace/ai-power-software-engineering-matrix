@@ -2,7 +2,7 @@
 
 Aplicação de gestão de projetos e tarefas para equipas, desenvolvida no curso **AI-Powered Software Engineering: From Mindset to Delivery**.
 
-> Fase atual: **conceção e arquitetura** (Ficha PL 02). Ainda não existe código.
+> Fase atual: **conceção concluída** (Ficha PL 02). A implementação começa na Ficha PL 03. Ainda não existe código.
 
 ---
 
@@ -36,7 +36,7 @@ Só a descrição do cliente está confirmada. Os objetivos e os papéis de util
 
 | Área | Funcionalidades |
 |------|-----------------|
-| Acesso | Entrar e sair. Permissões por papel. O Administrador cria, edita, desativa e reativa contas e muda papéis. |
+| Acesso | Entrar e sair. Permissões por papel. O Administrador cria, edita, desativa e reativa contas, muda papéis e dá ou repõe o acesso. |
 | Equipas | Criar e editar equipas. Adicionar e remover pessoas. |
 | Projetos | Criar e editar projetos. Mudar estado e arquivar. Lista de projetos com filtro por estado. |
 | Tarefas | Criar, editar e apagar. Atribuir responsável. Prazo e prioridade. Mudar estado. Lista com filtros. "As minhas tarefas". |
@@ -112,12 +112,13 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Análise do problema e perguntas de clarificação | Concluída |
 | Âmbito funcional e MVP | Concluído, por validar com o Product Owner |
 | User Stories e critérios de aceitação | Concluídas (18 histórias), por validar |
-| Documentação de contexto | Concluída (versão 0.3) |
-| Instruções para agentes (AGENTS.md) | Concluído, revisto no Exercício 6 |
+| Documentação de contexto | requirements.md 0.6, user-stories.md 0.4, constraints.md 0.8 |
+| Instruções para agentes (AGENTS.md) | Atualizado na Ficha PL 02: fase, stack, documentos e convenções |
 | Revisão crítica da documentação | Concluída: revisão 1 e revisão independente (2 agentes) aplicadas |
-| Arquitetura | Proposta (versão 0.1, Ficha PL 02) |
-| Modelo de dados | Proposta (versão 0.1, Ficha PL 02) |
-| API | Proposta (openapi.yaml 0.1, Ficha PL 02) |
+| Revisão crítica do Architecture Pack | Concluída: revisão 1 e revisão independente aplicadas (Ficha PL 02) |
+| Arquitetura | Proposta (architecture.md 0.5) |
+| Modelo de dados | Proposta (database.md 0.2) |
+| API | Proposta (openapi.yaml 0.2.0) |
 | Protótipo | Wireframe da lista de projetos (Ficha PL 02) |
 | Implementação | Ainda não iniciada |
 

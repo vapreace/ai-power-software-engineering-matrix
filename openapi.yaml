@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Matriz API
-  version: 0.1.0
+  version: 0.2.0
   summary: Contrato REST simplificado do MVP da Matriz (Ficha PL 02, exercício 3).
   description: |
     Contrato da API REST da Matriz. Documenta três operações do MVP.
@@ -12,7 +12,7 @@ info:
     - Regras de negócio, permissões e definições: `docs/requirements.md`.
     - Critérios de aceitação: `docs/user-stories.md`.
     - Modelo de dados e glossário de nomes técnicos: `docs/database.md`.
-    - Convenções da API (DA15 a DA20) e lista de endpoints previstos: `docs/architecture.md`, secção 13.
+    - Convenções da API (DA15 a DA20, DA27) e lista de endpoints previstos: `docs/architecture.md`, secção 13.
 
     Resumo das convenções:
 
@@ -51,7 +51,7 @@ paths:
         - Um Gestor sem equipa recebe uma lista vazia (RN26).
 
         Sem o parâmetro `status`, os projetos `ARCHIVED` não aparecem (RN25).
-        A lista vem ordenada por nome, sem distinguir maiúsculas nem acentos.
+        A lista vem ordenada por nome, sem distinguir maiúsculas nem acentos (DA27).
         Não há paginação no MVP (DA18).
 
         Histórias: US09, US10, US12, US15.
@@ -322,7 +322,7 @@ components:
       description: |
         Cookie de sessão criado ao entrar na aplicação (DA04). É HttpOnly, por
         isso o JavaScript do frontend não o lê: o browser envia-o sozinho.
-        O nome do cookie confirma-se com o resto da DP06.
+        A sessão termina após 30 minutos sem pedidos (DA26).
 
   parameters:
     ProjectId:
@@ -382,7 +382,11 @@ components:
             code: UNAUTHENTICATED
             detail: A sessão terminou. Entre de novo.
     Forbidden:
-      description: O papel de quem faz o pedido não permite a operação, ou o projeto não é visível para essa pessoa (RF03, SEG02).
+      description: |
+        O papel de quem faz o pedido não permite a operação, ou o recurso não é
+        visível para essa pessoa (RF03, SEG02). Nas operações que alteram dados,
+        a mensagem é "Não tem permissão para esta operação.". Nas leituras, é
+        "Não tem acesso a esta página." (DA17).
       content:
         application/problem+json:
           schema:
@@ -592,15 +596,44 @@ components:
           type: integer
         code:
           type: string
-          description: Código estável que o frontend usa para decidir o que fazer.
+          description: |
+            Código estável que o frontend usa para decidir o que fazer (DA16, DA17).
+
+            - 400 `VALIDATION_ERROR`: formato ou valores do pedido (RN04, RN06, RN11, RN13, RN29, DA26).
+            - 401 `UNAUTHENTICATED`: sem sessão válida (SEG01, SEG07, SEG08, DA26).
+            - 401 `INVALID_CREDENTIALS`: email ou palavra-passe incorretos (SEG04).
+            - 401 `ACCOUNT_DEACTIVATED`: conta desativada, com a palavra-passe correta (SEG05).
+            - 403 `FORBIDDEN`: sem permissão ou recurso não visível (SEG02).
+            - 403 `PASSWORD_CHANGE_REQUIRED`: palavra-passe temporária por mudar (DA25).
+            - 404 `NOT_FOUND`: o recurso não existe.
+            - 409 `DUPLICATE_EMAIL` (RN04), `DUPLICATE_TEAM_NAME` (RN03).
+            - 409 `INVALID_TRANSITION` (RN07), `LAST_ADMINISTRATOR` (RN18).
+            - 409 `INVALID_MANAGER` (RN21), `INVALID_ASSIGNEE` (RN14), `INVALID_TEAM_MEMBER` (RN26).
+            - 409 `TEAM_WITHOUT_MANAGER` (RN27), `PROJECT_NOT_ACTIVE` (RN08), `PROJECT_CLOSED` (RN09).
+            - 409 `VERSION_CONFLICT` (DA05).
+            - 429 `TOO_MANY_ATTEMPTS`: demasiadas tentativas de entrada (SEG09, DA26).
+
+            Um código novo entra primeiro nesta lista.
           enum:
             - VALIDATION_ERROR
             - UNAUTHENTICATED
+            - INVALID_CREDENTIALS
+            - ACCOUNT_DEACTIVATED
             - FORBIDDEN
+            - PASSWORD_CHANGE_REQUIRED
             - NOT_FOUND
+            - DUPLICATE_EMAIL
+            - DUPLICATE_TEAM_NAME
+            - INVALID_TRANSITION
+            - LAST_ADMINISTRATOR
+            - INVALID_MANAGER
+            - INVALID_ASSIGNEE
+            - INVALID_TEAM_MEMBER
+            - TEAM_WITHOUT_MANAGER
             - PROJECT_NOT_ACTIVE
             - PROJECT_CLOSED
             - VERSION_CONFLICT
+            - TOO_MANY_ATTEMPTS
         detail:
           type: string
           description: Mensagem em português, para mostrar ao utilizador (RNF02).

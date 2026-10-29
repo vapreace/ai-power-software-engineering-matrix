@@ -1,6 +1,6 @@
 # Modelo de dados da Matriz
 
-> **Versão:** 0.1 (Ficha PL 02, Exercício 2)
+> **Versão:** 0.2 (Ficha PL 02, Exercício 5: revisão crítica)
 > **Estado:** proposta. As decisões deste documento têm origem **D** e têm de ser validadas pelo Product Owner.
 
 Documentos relacionados:
@@ -15,10 +15,10 @@ Este documento descreve o modelo lógico relacional. O SQL e as migrations ficam
 
 ## 1. Princípios
 
-1. Só se guarda o que o MVP precisa. Cada entidade e cada atributo vem do modelo de domínio (requirements.md, secção 4). Os únicos atributos técnicos são o identificador (DA09) e a versão (DA05).
+1. Só se guarda o que o MVP precisa. Cada entidade e cada atributo vem do modelo de domínio (requirements.md, secção 4). Os únicos atributos que não vêm do modelo de domínio são o identificador (DA09), a versão (DA05) e a indicação de palavra-passe temporária (DA25).
 2. Não se guardam valores que se podem calcular (DA12).
 3. A base de dados garante o que depende só de uma linha ou de uma chave. As regras que dependem de outras tabelas ou da data atual ficam no módulo dono (secção 6).
-4. Nada se apaga, exceto tarefas (RN19). Contas, equipas e projetos não têm operação de apagar (RN16, RNF05, LIM10).
+4. Nada se apaga, exceto tarefas (RN19) e a pertença a uma equipa, quando a pessoa sai da equipa (RF06, RN17, RN23). Contas, equipas e projetos não têm operação de apagar (RN16, RNF05, LIM10).
 
 ---
 
@@ -49,7 +49,7 @@ A interface mostra sempre os termos em português (RNF02).
 
 ## 3. Entidades e atributos
 
-Tipos conceptuais: **inteiro** (identificador gerado pela base de dados), **texto**, **data** (dia de calendário, sem hora), **valor de lista** (um dos valores do glossário).
+Tipos conceptuais: **inteiro** (identificador gerado pela base de dados), **texto**, **data** (dia de calendário, sem hora), **valor de lista** (um dos valores do glossário), **booleano** (verdadeiro ou falso).
 
 ### 3.1 `users` (Utilizador)
 
@@ -60,11 +60,12 @@ Módulo dono: Contas. Fonte: RF02, RN04, RN16, RN18, RN28.
 | `id` | inteiro | Sim | Chave primária. | DA09 |
 | `name` | texto | Sim | Até 100 caracteres (RN29). | RN04 |
 | `email` | texto | Sim | Único. Guardado em minúsculas. Até 254 caracteres (RN29). | RN04, DA10 |
-| `password_hash` | texto | Ver DP07 | Só o resultado do hash, nunca a palavra-passe (SEG03). | RF01, SEG03 |
+| `password_hash` | texto | Sim | Hash bcrypt da palavra-passe, nunca a palavra-passe (SEG03, DA26). | RF01, SEG03 |
+| `must_change_password` | booleano | Sim | Verdadeiro quando a palavra-passe é temporária. Valor inicial verdadeiro. | DA25 |
 | `role` | valor de lista | Sim | `ADMINISTRATOR`, `MANAGER`, `MEMBER`, `OBSERVER`. | RN04 |
 | `status` | valor de lista | Sim | `ACTIVE` ou `DEACTIVATED`. Valor inicial `ACTIVE`. | RN16, RN28 |
 
-`password_hash` pode ficar vazio até a pessoa ter acesso, se a DP07 escolher um mecanismo em que a conta nasce sem palavra-passe.
+A conta nasce com uma palavra-passe temporária definida pelo Administrador. Repor o acesso volta a pôr `must_change_password` a verdadeiro (DA25).
 
 ### 3.2 `teams` (Equipa)
 
@@ -144,7 +145,8 @@ erDiagram
         bigint id PK
         text name
         text email UK "em minúsculas"
-        text password_hash "ver DP07"
+        text password_hash "hash bcrypt"
+        boolean must_change_password "palavra-passe temporária"
         text role "ADMINISTRATOR, MANAGER, MEMBER, OBSERVER"
         text status "ACTIVE, DEACTIVATED"
     }
@@ -202,6 +204,7 @@ Os tipos `bigint`, `text` e `date` são os do PostgreSQL. Os limites de comprime
 | RN06 | Nome, equipa e data de início obrigatórios. `expected_end_date` não pode ser anterior a `start_date`. |
 | RN07, RN11, RN12 | Valores iniciais: projeto `ACTIVE`, tarefa `TODO`, prioridade `MEDIUM`. |
 | RN11 | Título com 1 a 200 caracteres. |
+| RN29 | Comprimentos máximos dos nomes, do email e das descrições, como rede de segurança. O módulo dono valida antes (secção 6.2). |
 | RN14 (máximo um responsável), RN21 (máximo um gestor) | Uma só coluna, `assignee_id` e `manager_id`. |
 | RNF05, RN16 | Chaves estrangeiras sem cascata: uma conta referida não pode ser apagada. |
 | Papéis, estados e prioridades | Só aceitam os valores do glossário (DA13). |
@@ -213,10 +216,12 @@ Estas regras dependem de outras tabelas, da data atual ou do utilizador que faz 
 
 | Regra | Módulo | Porque não fica na base de dados |
 |-------|--------|----------------------------------|
-| RN05, RN21, RN27 (gestor pertence à equipa e tem papel Gestor) | Projetos | Depende de `team_members` e de `users`. |
+| RN05, RN21, RN27 (gestor com conta ativa, da equipa e com papel Gestor) | Projetos | Depende de `team_members` e de `users`. |
 | RN07 (transições de estado do projeto) | Projetos | Depende do estado anterior. |
 | RN08, RN09 (projeto fechado não aceita alterações) | Projetos, Tarefas | Depende do estado do projeto. |
+| RN04 (formato do email) | Contas | Validação do pedido, antes de gravar. |
 | RN11 (espaços nas pontas, normalização) | Tarefas | Tratamento do texto antes de gravar (DA11). |
+| RN29 (comprimentos depois de retirar os espaços e normalizar) | Módulo dono de cada campo | O limite conta-se depois do tratamento do texto (DA11). |
 | RN13 (prazo não anterior à data atual) | Tarefas | Depende da data atual e só se aplica quando o prazo muda. |
 | RN14 (responsável ativo, da equipa, Gestor ou Membro) | Tarefas | Depende de `users` e de `team_members`. |
 | RN18 (pelo menos um Administrador ativo) | Contas | Depende das outras contas. |
@@ -237,6 +242,8 @@ Não se guardam. Calculam-se em cada leitura, a partir de `tasks`.
 | Nº de tarefas atrasadas do projeto | Contagem das tarefas atrasadas. | RF28 |
 
 A ordenação de "As minhas tarefas" (RN24) usa, por esta ordem: `due_date` com as tarefas sem prazo no fim, prioridade (`HIGH`, `MEDIUM`, `LOW`), título sem distinguir maiúsculas nem acentos (DA14) e, por fim, `id`.
+
+A lista de projetos é ordenada por nome, com a mesma collation (DA27).
 
 ---
 
@@ -269,7 +276,7 @@ Todas têm origem **D**.
 | DA11 | Os textos são normalizados (Unicode NFC) antes de gravar. Os limites contam códigos Unicode. | Contar caracteres visíveis. | Clarifica RN11. Letras acentuadas e emojis simples contam 1. Emojis compostos (bandeiras, famílias) contam mais (LIM13). |
 | DA12 | Valores calculados não se guardam: progresso, atraso, contagens. "Sem gestor" e "Sem responsável" são o campo vazio. | Guardar totais por projeto. | Sem risco de valores desatualizados. Com o volume de P05 e os índices da secção 8, o cálculo é rápido. |
 | DA13 | Papéis, estados e prioridades guardados como texto, com restrição de valores permitidos. | Tipos `ENUM` do PostgreSQL. | Acrescentar um valor é uma migration simples. |
-| DA14 | A ordem alfabética de RN24 usa uma collation ICU do PostgreSQL que ignora maiúsculas e acentos, aplicada só nessa consulta. | Ordenar no backend. | A ordenação fica na consulta e funciona com paginação. Exige PostgreSQL com suporte ICU, a confirmar na Ficha 03. |
+| DA14 | A ordem alfabética de RN24 e da lista de projetos (DA27) usa uma collation ICU do PostgreSQL que ignora maiúsculas e acentos, aplicada só nessas consultas. | Ordenar no backend. | A ordenação fica na consulta e funciona com paginação. Exige PostgreSQL com suporte ICU, a confirmar na Ficha 03. |
 
 **Comprimentos máximos (RN29).** A especificação só definia o limite do título (RN11). Como SEG06 exige validar limites, os restantes ficaram na RN29:
 
@@ -288,7 +295,7 @@ Os nomes ignoram os espaços nas pontas e não podem ficar vazios, como o títul
 
 ## 10. Privacidade
 
-Os dados pessoais guardados correspondem à tabela de PRIV01 (constraints.md, secção 3.2). O modelo não acrescenta nenhum.
+Os dados pessoais guardados correspondem à tabela de PRIV01 (constraints.md, secção 3.2). O modelo não acrescenta nenhum. Os contadores de tentativas de entrada (DA26) também estão em PRIV01, mas só existem em memória e não fazem parte deste modelo.
 
 | Dado de PRIV01 | Onde |
 |----------------|------|
@@ -305,8 +312,8 @@ Os dados pessoais guardados correspondem à tabela de PRIV01 (constraints.md, se
 
 | Item | Motivo |
 |------|--------|
-| Sessões | Dependem do resto da DP06. Se as sessões ficarem na base de dados, as tabelas são as da biblioteca escolhida. |
-| Dados do limite de tentativas (SEG09) | Dependem da DP06. Se forem guardados, entram em PRIV01. |
+| Sessões | Ficam em memória (DA07, DA26). |
+| Contadores de tentativas (SEG09) | Ficam em memória, até 15 minutos (DA26). Estão em PRIV01. |
 | Comentários, atribuição a várias pessoas, proprietário do projeto | Existem no exemplo da Aula 02, mas não no MVP: comentários são RF19 (Should), uma tarefa tem no máximo um responsável (RN14) e um projeto pertence a uma equipa com um gestor (RN01, RN21). |
 | Histórico e registo de ações | RF20 e RF39, versão 1.1. |
 | Datas de criação e de alteração | Nenhum requisito do MVP as usa. A ordem de criação vem do `id`. |

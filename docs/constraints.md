@@ -1,6 +1,6 @@
 # Restrições, pressupostos e decisões pendentes
 
-> **Versão:** 0.7 (interface, Ficha PL 02, exercício 4)
+> **Versão:** 0.8 (revisão crítica, Ficha PL 02, exercício 5)
 > **Estado:** em validação. Os pressupostos deste documento **não são requisitos confirmados**.
 
 Documentos relacionados:
@@ -69,13 +69,13 @@ Todos os requisitos desta secção são decisões de análise (D) e fazem parte 
 | SEG06 | Todos os dados recebidos são validados (obrigatórios, limites, datas). O texto introduzido pelos utilizadores é sempre tratado como texto e nunca executado. | Teste: títulos e descrições com código ou caracteres especiais aparecem tal como foram escritos. |
 | SEG07 | Ao sair, a sessão termina. | US01, cenário "sair". |
 | SEG08 | Desativar uma conta termina de imediato todas as sessões dessa conta. | US14, cenário "sessão aberta". |
-| SEG09 | A aplicação limita tentativas de entrada falhadas repetidas. O mecanismo é decidido em DP06 e tem de garantir que: (a) a resposta é igual para emails que existem e que não existem; (b) ninguém consegue bloquear indefinidamente a conta de outra pessoa; (c) o Administrador consegue repor o acesso de uma conta. | Cenários a acrescentar a US01 depois de DP06. |
+| SEG09 | A aplicação limita tentativas de entrada falhadas repetidas. O mecanismo está em DA26 ([architecture.md](architecture.md#9-decisões-técnicas)) e garante que: (a) a resposta é igual para emails que existem e que não existem; (b) ninguém consegue bloquear indefinidamente a conta de outra pessoa; (c) o Administrador consegue repor o acesso de uma conta. | US01, cenários de tentativas repetidas. US02, cenário de repor o acesso. |
 
 ### 3.2 Privacidade
 
 | ID | Requisito |
 |----|-----------|
-| PRIV01 | Só se guardam os dados pessoais da tabela seguinte. Qualquer dado pessoal novo (por exemplo, registos de tentativas de entrada exigidos por DP06) tem de ser acrescentado aqui, com a finalidade. |
+| PRIV01 | Só se guardam os dados pessoais da tabela seguinte. Qualquer dado pessoal novo (por exemplo, os contadores de tentativas de entrada de DA26) tem de ser acrescentado aqui, com a finalidade. |
 | PRIV02 | O tratamento de dados pessoais segue o RGPD (P07). As obrigações em aberto estão em DP11. |
 | PRIV03 | Testes, demonstrações e documentação usam apenas dados fictícios. Os emails de exemplo usam o domínio reservado `empresa.example`. |
 
@@ -86,6 +86,7 @@ Dados pessoais guardados no MVP:
 | Nome | Identificar a pessoa na aplicação. |
 | Email | Entrar na aplicação. |
 | Palavra-passe (protegida, SEG03) | Entrar na aplicação. |
+| Email e endereço IP de tentativas de entrada falhadas (só em memória, até 15 minutos, DA26) | Limitar tentativas repetidas (SEG09). |
 | Papel e equipas | Aplicar as permissões. |
 | Responsável de cada tarefa e gestor de cada projeto | Saber quem executa e quem gere o trabalho. |
 | Texto livre de títulos e descrições | Descrever o trabalho. Pode conter dados pessoais escritos pelos utilizadores (ver riscos). |
@@ -109,18 +110,18 @@ Dados pessoais guardados no MVP:
 
 ## 4. Decisões técnicas pendentes
 
-As decisões tomadas na Aula 2 estão em [architecture.md, secção 9](architecture.md#9-decisões-técnicas). As restantes ficam para as fases indicadas.
+As decisões tomadas na Aula 2 estão em [architecture.md](architecture.md) (secções 9 e 13), [database.md](database.md) (secção 9) e [ui/README.md](ui/README.md) (secção 6). As restantes ficam para as fases indicadas.
 
 | ID | O que decidir | Quando | Afeta |
 |----|---------------|--------|-------|
 | DP01 | Linguagem e framework (backend e frontend). | Resolvida: DA02 | Todo o desenvolvimento |
 | DP02 | Arquitetura da aplicação. | Resolvida: DA01, DA06 | Todo o desenvolvimento |
 | DP03 | Base de dados e modelo de dados físico. | Resolvida: DA03 e database.md (DA08 a DA14) | Modelo de domínio (requirements.md, secção 4) |
-| DP04 | Desenho da API. | Parcial: DA15 a DA20 e openapi.yaml. As restantes operações detalham-se na Ficha 03 | Todas as histórias |
+| DP04 | Desenho da API. | Parcial: DA15 a DA20, DA27 e openapi.yaml. As restantes operações detalham-se na Ficha 03 | Todas as histórias |
 | DP05 | Protótipo da interface. | Parcial: DA21 a DA23 e wireframe da lista de projetos (ui/README.md). Os restantes ecrãs na Ficha 03 | RNF01, todas as histórias |
-| DP06 | Mecanismo de autenticação, regras mínimas da palavra-passe, duração da sessão, expiração por inatividade e mecanismo de SEG09 (limites, duração, desbloqueio). | Parcial: mecanismo em DA04. O resto antes de implementar US01 | RF01, SEG01, SEG07, SEG08, SEG09, PRIV01 |
-| DP07 | Como se dá o acesso inicial a uma conta nova e como se repõe o acesso (palavra-passe esquecida ou conta bloqueada). Tem de estar decidida antes de implementar US02. | Aula 2 | RF02, US02, SEG09 |
-| DP08 | Fuso horário fixo ou configurável pelo Administrador. | Aula 2 | P12, RNF06 |
+| DP06 | Mecanismo de autenticação, regras mínimas da palavra-passe, duração da sessão, expiração por inatividade e mecanismo de SEG09 (limites, duração, desbloqueio). | Resolvida: DA04, DA26 | RF01, SEG01, SEG07, SEG08, SEG09, PRIV01 |
+| DP07 | Como se dá o acesso inicial a uma conta nova e como se repõe o acesso (palavra-passe esquecida ou conta bloqueada). Tem de estar decidida antes de implementar US02. | Resolvida: DA25 | RF02, US02, SEG09 |
+| DP08 | Fuso horário fixo ou configurável pelo Administrador. | Resolvida: DA24 | P12, RNF06 |
 | DP09 | Estratégia e ferramentas de testes. | Módulo 4 | RNF07 |
 | DP10 | Ambientes, alojamento e pipeline de integração e entrega contínua. | Módulo 5 | |
 | DP11 | Conformidade com o RGPD: prazos de conservação (incluindo o texto das tarefas), tratamento de contas desativadas, informação aos colaboradores, base legal, e forma de exercer os direitos de acesso e de retificação. | Antes do piloto | PRIV02, RN16, RN28 |
@@ -146,8 +147,9 @@ As decisões tomadas na Aula 2 estão em [architecture.md, secção 9](architect
 | LIM09 | Um único fuso horário (P12). | Equipas noutros fusos podem ver atrasos com um dia de diferença. |
 | LIM10 | As equipas não se apagam. | Uma equipa que deixou de existir mantém-se na lista. |
 | LIM11 | Resolvida por DA05 (bloqueio otimista). Mantida para não renumerar. | Quem grava sobre uma versão antiga de uma tarefa ou de um projeto vê a alteração recusada e tem de a repetir. |
-| LIM12 | Uma equipa sem nenhum Gestor não pode ter projetos novos (RN27). | O Administrador tem de adicionar um Gestor à equipa primeiro. |
+| LIM12 | Uma equipa sem nenhum Gestor com conta ativa não pode ter projetos novos (RN27). | O Administrador tem de adicionar um Gestor à equipa primeiro. |
 | LIM13 | Os limites de texto contam códigos Unicode (DA11). | Emojis compostos (bandeiras, famílias) contam mais do que um carácter: um título com esses emojis chega ao limite mais cedo. |
+| LIM14 | O limite de tentativas de entrada conta por email e endereço IP, só em memória (DA26). | Pessoas que saem pelo mesmo endereço IP partilham o contador de um email. Reiniciar a aplicação limpa os contadores. |
 
 ### 5.2 Itens retirados
 
@@ -161,6 +163,6 @@ Foram considerados durante a análise e retirados. Não devem ser implementados 
 | Tempo máximo para criar um projeto como critério de aceitação | Passou a métrica de sucesso (M2), não é critério de aceitação. | Ex. 3 |
 | Estado de projeto "Planeado" | Nenhuma regra o distinguia de "Ativo". Se o PO quiser uma fase de preparação, a decisão deve ser revista. | Ex. 6, revisão 1 |
 | Registo das ações do Administrador no MVP (SEG10 na versão 0.2) | Ninguém o podia consultar e aumentava os dados pessoais guardados. Passou a RF39, Should. | Ex. 6, revisão 2 |
-| Valores fixos para o bloqueio de tentativas (5 tentativas, 15 minutos) | Permitiam bloquear contas de outras pessoas e revelar emails. O mecanismo passou para DP06, com critérios em SEG09. | Ex. 6, revisão 2 |
+| Valores fixos para o bloqueio de tentativas (5 tentativas, 15 minutos) | Permitiam bloquear contas de outras pessoas e revelar emails. O mecanismo passou para DP06, com critérios em SEG09. DA26 volta a usar 5 tentativas e 15 minutos, mas por par email e endereço IP e com a mesma mensagem para todos os emails, o que resolve os dois motivos. | Ex. 6, revisão 2 |
 
 "Reativar contas desativadas" estava nesta lista na versão 0.2. Voltou ao âmbito na revisão 2 (RN28), porque sem reativação uma desativação por engano não tinha volta.

@@ -1,12 +1,12 @@
 # User Stories do MVP
 
-> **Versão:** 0.3 (revisão crítica 2, Ficha PL 01)
+> **Versão:** 0.4 (revisão crítica, Ficha PL 02, exercício 5)
 > **Estado:** em validação com o Product Owner.
 
 ## Como ler este documento
 
 - Os termos "tarefa aberta", "tarefa atrasada", "progresso", "data atual", "projetos visíveis" e "Sem gestor" têm o significado definido em [requirements.md, secção 2](requirements.md#2-definições).
-- Cada história indica os requisitos (RF), as regras de negócio (RN) e os requisitos de segurança (SEG) que cobre. Em caso de conflito, prevalece [requirements.md](requirements.md).
+- Cada história indica os requisitos (RF), as regras de negócio (RN) e os requisitos de segurança (SEG) e as decisões técnicas (DA) que cobre. Em caso de conflito, prevalece [requirements.md](requirements.md).
 - Os critérios de aceitação usam o formato Gherkin (Given / When / Then). As palavras-chave ficam em inglês e o conteúdo em português.
 - Os nomes usados nos exemplos e os emails são fictícios. Os emails usam o domínio reservado `empresa.example`.
 - **"Recusado"** (operação recusada): a operação não altera nada e aparece uma mensagem de erro. Quando o texto da mensagem importa, o cenário indica-o.
@@ -70,7 +70,7 @@ Todas as histórias são **Must** e fazem parte do MVP. A US15 depende da valida
 
 > **Como** utilizador, **quero** entrar na Matriz com o meu email e palavra-passe e sair quando terminar, **para** aceder apenas à informação que o meu papel permite.
 
-**Requisitos:** RF01 · **Segurança:** SEG04, SEG05, SEG07
+**Requisitos:** RF01 · **Regras:** RN04 · **Segurança:** SEG04, SEG05, SEG07, SEG09 · **Decisões:** DA10, DA25, DA26
 
 ```gherkin
 Scenario: credenciais válidas
@@ -100,9 +100,55 @@ Scenario: sair
   When sai da aplicação
   Then vê a página de entrada
   And voltar atrás no browser não mostra dados da Matriz
+
+Scenario: email com maiúsculas
+  Given existe uma conta ativa com o email "marta@empresa.example"
+  When a Marta entra com o email "Marta@Empresa.example" e a palavra-passe correta
+  Then fica autenticada
+
+Scenario: primeira entrada com palavra-passe temporária
+  Given a Ana criou a conta "ines@empresa.example" com uma palavra-passe temporária
+  When a Inês entra com essa palavra-passe
+  Then vê a página para definir uma palavra-passe nova
+  And aparece a mensagem "Defina uma palavra-passe nova para continuar."
+  And não consegue abrir outras páginas antes de a definir
+
+Scenario Outline: palavra-passe nova
+  Given a Inês está na página para definir uma palavra-passe nova
+  When define uma palavra-passe com <n> caracteres
+  Then <resultado>
+
+  Examples:
+    | n   | resultado                                                                   |
+    | 11  | aparece a mensagem "A palavra-passe tem de ter entre 12 e 128 caracteres." |
+    | 12  | a palavra-passe fica definida e a Inês vê a lista de projetos              |
+    | 128 | a palavra-passe fica definida e a Inês vê a lista de projetos              |
+    | 129 | aparece a mensagem "A palavra-passe tem de ter entre 12 e 128 caracteres." |
+
+Scenario Outline: tentativas repetidas
+  Given foram feitas 5 tentativas falhadas para "<email>" a partir do mesmo endereço nos últimos 15 minutos
+  When é feita nova tentativa para esse email a partir desse endereço, mesmo com a palavra-passe correta
+  Then a entrada é recusada
+  And aparece a mensagem "Demasiadas tentativas. Tente de novo dentro de 15 minutos."
+
+  Examples:
+    | email                    |
+    | marta@empresa.example    |
+    | ninguem@empresa.example  |
+
+Scenario: o bloqueio não afeta outro endereço
+  Given foram feitas 5 tentativas falhadas para "marta@empresa.example" a partir de um endereço, nos últimos 15 minutos
+  When a Marta entra a partir de outro endereço com a palavra-passe correta
+  Then fica autenticada
+
+Scenario: sessão sem atividade
+  Given a Marta está autenticada e não faz nenhum pedido há 30 minutos
+  When abre uma página
+  Then vê a página de entrada
+  And aparece a mensagem "A sessão terminou. Entre de novo."
 ```
 
-A proteção contra tentativas repetidas (SEG09) terá cenários depois de decidido o mecanismo (DP06).
+O mecanismo de entrada, de sessão e de limite de tentativas está em DA25 e DA26 ([architecture.md](architecture.md#9-decisões-técnicas)).
 
 ---
 
@@ -110,12 +156,36 @@ A proteção contra tentativas repetidas (SEG09) terá cenários depois de decid
 
 > **Como** Administrador, **quero** criar contas e corrigir o nome e o email, **para** que cada colaborador tenha acesso à Matriz com dados corretos.
 
-**Requisitos:** RF02, RF03 · **Regras:** RN04, RN28
+**Requisitos:** RF02, RF03 · **Regras:** RN04, RN28, RN29 · **Segurança:** SEG09 · **Decisões:** DA10, DA25
 
 ```gherkin
 Scenario: criação com sucesso
-  When a Ana cria uma conta com nome "Inês Costa", email "ines@empresa.example" e papel "Membro"
+  When a Ana cria uma conta com nome "Inês Costa", email "ines@empresa.example", papel "Membro"
+    e uma palavra-passe temporária com 12 caracteres
   Then a conta aparece na lista de contas com estado "Ativa"
+
+Scenario: palavra-passe temporária curta
+  When a Ana cria uma conta com uma palavra-passe temporária com 11 caracteres
+  Then a criação é recusada
+  And aparece a mensagem "A palavra-passe tem de ter entre 12 e 128 caracteres."
+
+Scenario: email guardado em minúsculas
+  When a Ana cria uma conta com o email "Ines@Empresa.example"
+  Then a conta fica com o email "ines@empresa.example"
+
+Scenario: email repetido com maiúsculas diferentes
+  When a Ana cria uma conta com o email "MARTA@empresa.example"
+  Then a criação é recusada
+  And aparece a mensagem "Já existe uma conta com este email"
+
+Scenario Outline: comprimento do nome
+  When a Ana cria uma conta com um nome de <n> caracteres
+  Then <resultado>
+
+  Examples:
+    | n   | resultado            |
+    | 100 | a conta é criada     |
+    | 101 | a criação é recusada |
 
 Scenario Outline: dados inválidos na criação
   When a Ana cria uma conta com nome "<nome>", email "<email>" e papel "<papel>"
@@ -146,11 +216,19 @@ Scenario: email repetido na edição
 Scenario: utilizador sem permissão
   When o Rui tenta abrir a gestão de contas
   Then o acesso é recusado
+
+Scenario: repor o acesso
+  Given o Pedro esqueceu a palavra-passe
+  And o par do email do Pedro e do seu endereço está bloqueado por tentativas falhadas
+  When a Ana define uma palavra-passe temporária para o Pedro
+  Then a palavra-passe antiga deixa de funcionar
+  And o Pedro entra com a palavra-passe temporária
+  And tem de definir uma palavra-passe nova
 ```
 
 O papel é um de: Administrador, Gestor, Membro, Observador.
 
-A forma de dar e repor o acesso de uma conta está pendente ([constraints.md, DP07](constraints.md#4-decisões-técnicas-pendentes)) e tem de ser decidida antes de implementar esta história.
+O acesso inicial e a reposição do acesso seguem DA25 ([architecture.md](architecture.md#9-decisões-técnicas)).
 
 ---
 
@@ -158,7 +236,7 @@ A forma de dar e repor o acesso de uma conta está pendente ([constraints.md, DP
 
 > **Como** Administrador, **quero** criar e editar equipas e adicionar ou remover pessoas, **para** definir quem vê cada projeto.
 
-**Requisitos:** RF05, RF06 · **Regras:** RN02, RN03, RN17, RN22, RN26
+**Requisitos:** RF05, RF06 · **Regras:** RN02, RN03, RN17, RN22, RN26, RN29 · **Decisões:** DA10
 
 ```gherkin
 Scenario: criar equipa
@@ -175,6 +253,8 @@ Scenario Outline: nome inválido
     | cria uma equipa                            | Compras |
     | muda o nome da equipa "Logística Norte"    | Compras |
     | muda o nome da equipa "Logística Norte"    |         |
+    | cria uma equipa                            | compras |
+    | cria uma equipa                            | "a" repetido 101 vezes |
 
 Scenario: editar o nome
   When a Ana muda o nome da equipa "Compras" para "Compras e Aprovisionamento"
@@ -213,7 +293,7 @@ Scenario: ver quem pertence à equipa
 
 > **Como** Gestor, **quero** criar um projeto numa equipa a que pertenço, **para** agrupar as tarefas desse trabalho.
 
-**Requisitos:** RF07 · **Regras:** RN01, RN05, RN06, RN07, RN21, RN27
+**Requisitos:** RF07 · **Regras:** RN01, RN05, RN06, RN07, RN21, RN27, RN29
 
 ```gherkin
 Scenario: Gestor cria projeto
@@ -255,6 +335,23 @@ Scenario: equipa sem nenhum Gestor
   When a Ana tenta criar um projeto nessa equipa
   Then a criação é recusada
   And aparece a mensagem "A equipa não tem nenhum Gestor"
+
+Scenario: equipa só com Gestor desativado
+  Given o Tiago, único Gestor da equipa "Compras", tem a conta desativada
+  When a Ana tenta criar um projeto na equipa "Compras"
+  Then a criação é recusada
+  And aparece a mensagem "A equipa não tem nenhum Gestor"
+
+Scenario Outline: comprimento dos textos
+  When o Rui cria um projeto na equipa "Logística Norte" com <campo> de <n> caracteres
+  Then <resultado>
+
+  Examples:
+    | campo     | n    | resultado            |
+    | nome      | 100  | o projeto é criado   |
+    | nome      | 101  | a criação é recusada |
+    | descrição | 1000 | o projeto é criado   |
+    | descrição | 1001 | a criação é recusada |
 ```
 
 ---
@@ -263,7 +360,7 @@ Scenario: equipa sem nenhum Gestor
 
 > **Como** Gestor, **quero** criar tarefas num projeto que giro, com título, descrição, prazo e prioridade, **para** dividir o trabalho em partes que se podem acompanhar.
 
-**Requisitos:** RF12, RF14 · **Regras:** RN08, RN11, RN12, RN13, RN20 · **Segurança:** SEG02
+**Requisitos:** RF12, RF14 · **Regras:** RN08, RN11, RN12, RN13, RN20, RN29 · **Segurança:** SEG02
 
 ```gherkin
 Scenario: criação com sucesso
@@ -315,6 +412,15 @@ Scenario Outline: projeto que não aceita tarefas
 Scenario: Membro tenta criar tarefa
   When a Marta tenta criar uma tarefa no projeto "Novo armazém"
   Then a criação é recusada
+
+Scenario Outline: comprimento da descrição
+  When o Rui cria uma tarefa no projeto "Novo armazém" com uma descrição de <n> caracteres
+  Then <resultado>
+
+  Examples:
+    | n    | resultado            |
+    | 2000 | a tarefa é criada    |
+    | 2001 | a criação é recusada |
 ```
 
 ---
@@ -362,7 +468,7 @@ Scenario: retirar responsável
 
 > **Como** Membro, **quero** mudar o estado das tarefas de que sou responsável, **para** que o gestor saiba em que ponto está o trabalho.
 
-**Requisitos:** RF15 · **Regras:** RN09, RN12, RN15
+**Requisitos:** RF15 · **Regras:** RN09, RN12, RN15 · **Decisões:** DA05
 
 ```gherkin
 Scenario: avançar o estado
@@ -402,6 +508,14 @@ Scenario Outline: projeto fechado
     | estado    |
     | Concluído |
     | Arquivado |
+
+Scenario: alteração simultânea
+  Given o Rui e a Marta abriram a tarefa "Pedir orçamento de estantes" na mesma versão
+  And o Rui mudou o estado para "Concluída"
+  When a Marta muda o estado para "Em curso" sem abrir de novo a tarefa
+  Then a alteração é recusada
+  And aparece a mensagem "Esta tarefa foi alterada por outra pessoa. Abra-a de novo e repita a alteração."
+  And o estado continua "Concluída"
 ```
 
 Entre os três estados da tarefa, qualquer mudança é permitida (RN12).
@@ -676,7 +790,7 @@ As transições permitidas estão em [requirements.md, secção 4.1](requirement
 
 > **Como** Gestor, **quero** editar o nome, a descrição e as datas de um projeto que giro, **para** manter a informação do projeto correta.
 
-**Requisitos:** RF07 · **Regras:** RN05, RN06, RN09, RN21, RN22
+**Requisitos:** RF07 · **Regras:** RN05, RN06, RN09, RN21, RN22 · **Decisões:** DA05
 
 ```gherkin
 Scenario: editar dados do projeto
@@ -718,6 +832,7 @@ Scenario Outline: gestor inválido
     | pessoa                                         |
     | o Tiago (Gestor, não pertence à equipa)        |
     | o Pedro (Membro, pertence à equipa)            |
+    | a Sofia (Gestor, pertence à equipa, conta desativada) |
 
 Scenario: projeto sem gestor
   Given o projeto "Novo armazém" está "Sem gestor"
@@ -739,6 +854,13 @@ Scenario: novo gestor
 Scenario: mudar a equipa
   When a Ana tenta mudar a equipa do projeto "Novo armazém"
   Then a alteração é recusada
+
+Scenario: edição simultânea do projeto
+  Given a Ana e o Rui abriram o projeto "Novo armazém" na mesma versão
+  And a Ana mudou a data de fim prevista e gravou
+  When o Rui muda o nome e grava sem abrir de novo o projeto
+  Then a alteração é recusada
+  And aparece a mensagem "Este projeto foi alterado por outra pessoa. Abra-o de novo e repita a alteração."
 ```
 
 ---
@@ -852,7 +974,7 @@ Scenario Outline: não altera nada
 
 > **Como** Gestor, **quero** editar e apagar tarefas de um projeto que giro, **para** corrigir o planeamento.
 
-**Requisitos:** RF12 · **Regras:** RN11, RN13, RN19 · **Segurança:** SEG02
+**Requisitos:** RF12 · **Regras:** RN11, RN13, RN19 · **Segurança:** SEG02 · **Decisões:** DA05
 
 ```gherkin
 Scenario: editar
@@ -895,6 +1017,20 @@ Scenario Outline: sem permissão
     | a Marta (Membro)        | editar uma tarefa                     |
     | a Marta (Membro)        | apagar uma tarefa                     |
     | a Sofia (outro Gestor)  | editar uma tarefa                     |
+
+Scenario: edição simultânea
+  Given a Ana e o Rui abriram a tarefa "Pedir orçamento de estantes" na mesma versão
+  And a Ana mudou o prazo e gravou
+  When o Rui muda o título e grava sem abrir de novo a tarefa
+  Then a alteração é recusada
+  And aparece a mensagem "Esta tarefa foi alterada por outra pessoa. Abra-a de novo e repita a alteração."
+
+Scenario: tarefa apagada entretanto
+  Given o Rui abriu a tarefa "Pedir orçamento de estantes"
+  And a Ana apagou essa tarefa
+  When o Rui grava uma alteração
+  Then a alteração é recusada
+  And aparece a mensagem "A tarefa não existe."
 ```
 
 ---
@@ -934,6 +1070,15 @@ Cada caso está coberto por pelo menos um cenário da história indicada.
 | E27 | Retirar o prazo de uma tarefa atrasada | Permitido. Deixa de estar atrasada. | US16 | RN13 |
 | E28 | Reativar uma conta | Volta com o mesmo papel e equipas. As tarefas não voltam a ser atribuídas. | US14 | RN28 |
 | E29 | Mudar o email para um já usado | Recusado. | US02 | RN04, RN28 |
+| E30 | Gravar sobre uma versão antiga | Recusado. Nada muda. | US07, US16, US17 | DA05 |
+| E31 | Gravar uma tarefa apagada entretanto | Recusado: "A tarefa não existe." | US16 | DA05, RN19 |
+| E32 | Email com maiúsculas diferentes | É a mesma conta: entra e não pode ser repetido. | US01, US02 | RN04, DA10 |
+| E33 | Nome de equipa que só difere em maiúsculas | Recusado. | US03 | RN03, DA10 |
+| E34 | Texto no limite e acima do limite | No limite é aceite, acima é recusado. | US02, US03, US04, US05 | RN29 |
+| E35 | Tentativas falhadas repetidas | Pausa de 15 minutos só para esse email e endereço. Mesma mensagem para emails que não existem. | US01 | SEG09, DA26 |
+| E36 | Primeira entrada ou acesso reposto | Tem de definir uma palavra-passe nova. | US01, US02 | DA25 |
+| E37 | Sessão sem pedidos há 30 minutos | Termina. A pessoa vê a página de entrada. | US01 | DA26 |
+| E38 | Gestor com conta desativada | Não pode ser indicado como gestor nem conta como Gestor da equipa. | US04, US17 | RN21, RN27 |
 
 ---
 

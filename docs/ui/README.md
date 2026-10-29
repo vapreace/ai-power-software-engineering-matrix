@@ -1,6 +1,6 @@
 # Interface da Matriz
 
-> **Versão:** 0.1 (Ficha PL 02, Exercício 4)
+> **Versão:** 0.2 (Ficha PL 02, Exercício 5: revisão crítica)
 > **Estado:** proposta. As decisões deste documento têm origem **D** e têm de ser validadas pelo Product Owner.
 
 | Ficheiro | O que é |
@@ -54,7 +54,7 @@ As linhas a tracejado são o menu. Todas as páginas exceto a de entrada exigem 
 | 2 | Nome e papel de quem entrou, e o botão Sair. | US01, SEG07 |
 | 3 | "+ Novo projeto": só para o Gestor e o Administrador. O Pedro, Membro, não o vê. Esconder o botão é conforto: a API recusa o pedido na mesma. | RN05, US04, SEG02 |
 | 4 | Filtro por estado. Por omissão, Ativo e Concluído; Arquivado fica desligado. Corresponde ao parâmetro `status` de `GET /projects`. | RF09, RN25, US12 |
-| 5 | Lista ordenada por nome, como devolve a API. | `GET /projects` |
+| 5 | Lista ordenada por nome, como devolve a API. | DA27, `GET /projects` |
 | 6 | Progresso com barra e texto: "60% (6 de 10 concluídas)". Sem tarefas, mostra "Sem tarefas". O texto garante que a informação não depende só da barra. | RF27, US09, E1 |
 | 7 | Atrasos: "Sem atrasos", "1 tarefa atrasada" ou "N tarefas atrasadas". Quando há atrasos, o texto fica destacado com contorno, não só com cor. | RF28, US10 |
 | 8 | O nome do projeto abre o detalhe do projeto. | `GET /projects/{projectId}` (Ficha 03) |
