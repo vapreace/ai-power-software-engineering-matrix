@@ -1,6 +1,6 @@
 # Restrições, pressupostos e decisões pendentes
 
-> **Versão:** 0.8 (revisão crítica, Ficha PL 02, exercício 5)
+> **Versão:** 0.9 (revisão final, Ficha PL 02)
 > **Estado:** em validação. Os pressupostos deste documento **não são requisitos confirmados**.
 
 Documentos relacionados:
@@ -63,7 +63,7 @@ Todos os requisitos desta secção são decisões de análise (D) e fazem parte 
 |----|-----------|-------------|
 | SEG01 | Todas as páginas e operações exigem autenticação, exceto a página de entrada. | Teste: um pedido sem autenticação a cada página do MVP é recusado e mostra a página de entrada. |
 | SEG02 | As permissões (requirements.md, secção 3.1) são verificadas em cada operação, não apenas escondidas na interface. | US05, US12, US15 e US16 (cenários de recusa). |
-| SEG03 | As palavras-passe nunca são guardadas nem mostradas em texto legível. | Revisão do armazenamento de dados, depois de DP03 e DP06. |
+| SEG03 | As palavras-passe nunca são guardadas nem mostradas em texto legível. | Revisão de database.md (`password_hash`, DA26) e do código na Ficha 03. |
 | SEG04 | A mensagem de erro de entrada não revela se o email existe nem se a conta está desativada, a menos que a palavra-passe esteja correta. | US01, cenários de credenciais inválidas. |
 | SEG05 | Uma conta desativada não consegue entrar. | US01 e US14. |
 | SEG06 | Todos os dados recebidos são validados (obrigatórios, limites, datas). O texto introduzido pelos utilizadores é sempre tratado como texto e nunca executado. | Teste: títulos e descrições com código ou caracteres especiais aparecem tal como foram escritos. |

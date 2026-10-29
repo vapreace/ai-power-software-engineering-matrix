@@ -112,11 +112,11 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Análise do problema e perguntas de clarificação | Concluída |
 | Âmbito funcional e MVP | Concluído, por validar com o Product Owner |
 | User Stories e critérios de aceitação | Concluídas (18 histórias), por validar |
-| Documentação de contexto | requirements.md 0.6, user-stories.md 0.4, constraints.md 0.8 |
+| Documentação de contexto | requirements.md 0.6, user-stories.md 0.5, constraints.md 0.9 |
 | Instruções para agentes (AGENTS.md) | Atualizado na Ficha PL 02: fase, stack, documentos e convenções |
 | Revisão crítica da documentação | Concluída: revisão 1 e revisão independente (2 agentes) aplicadas |
-| Revisão crítica do Architecture Pack | Concluída: revisão 1 e revisão independente aplicadas (Ficha PL 02) |
-| Arquitetura | Proposta (architecture.md 0.5) |
+| Revisão crítica do Architecture Pack | Concluída: revisão 1, revisão independente e revisão final aplicadas (Ficha PL 02) |
+| Arquitetura | Proposta (architecture.md 0.6) |
 | Modelo de dados | Proposta (database.md 0.2) |
 | API | Proposta (openapi.yaml 0.2.0) |
 | Protótipo | Wireframe da lista de projetos (Ficha PL 02) |

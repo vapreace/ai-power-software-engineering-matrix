@@ -1,6 +1,6 @@
 # Arquitetura da Matriz
 
-> **Versão:** 0.5 (Ficha PL 02, Exercício 5: revisão crítica)
+> **Versão:** 0.6 (Ficha PL 02, revisão final)
 > **Estado:** proposta. Todas as decisões deste documento têm origem **D** (decisão da equipa) e têm de ser validadas pelo Product Owner.
 
 Documentos relacionados:
@@ -111,7 +111,7 @@ O backend serve o frontend compilado e a API na mesma origem. O browser só fala
 | Módulo | Responsabilidade | Dono dos dados | Requisitos e regras | Histórias |
 |--------|------------------|----------------|---------------------|-----------|
 | **Acesso** | Entrar e sair. Verificar a palavra-passe. Criar e terminar sessões. Garantir que cada pedido tem sessão válida e conta ativa. Obrigar a definir uma palavra-passe nova quando a atual é temporária. Limitar tentativas falhadas. | Sessões e contadores de tentativas, em memória | RF01, SEG01, SEG03, SEG04, SEG05, SEG07, SEG08, SEG09, DA25, DA26 | US01 |
-| **Contas** | Criar, editar, desativar e reativar contas. Mudar o papel. Dar e repor o acesso com uma palavra-passe temporária. Garantir um Administrador ativo. | Utilizador: nome, email, palavra-passe protegida, papel, estado | RF02, RN04, RN16, RN18, RN23, RN28, RN29, RNF05, DA25 | US02, US14, US18 |
+| **Contas** | Criar, editar, desativar e reativar contas. Mudar o papel. Dar e repor o acesso com uma palavra-passe temporária. Garantir um Administrador ativo. | Utilizador: nome, email, palavra-passe protegida e indicação de palavra-passe temporária, papel, estado | RF02, RN04, RN16, RN18, RN23, RN28, RN29, RNF05, DA25 | US02, US14, US18 |
 | **Equipas** | Criar e editar equipas. Adicionar e remover pessoas. Dizer a que equipas pertence cada pessoa. | Equipa, pertença a equipas | RF05, RF06, RN02, RN03, RN17, RN23, RN26, RN29 | US03, US18 |
 | **Projetos** | Criar, editar, mudar o estado e arquivar projetos. Gerir o gestor e o valor "Sem gestor". Dizer que projetos cada pessoa vê e se um projeto aceita alterações. | Projeto | RF07, RF08, RN01, RN05 a RN10, RN21, RN22, RN23, RN27, RN29 | US04, US13, US17 |
 | **Tarefas** | Criar, editar, apagar e atribuir tarefas. Mudar o estado. "As minhas tarefas" e filtros. Definir o que é uma tarefa atrasada. | Tarefa | RF12 a RF17, RF28 (marcação), RN11 a RN17, RN19, RN20, RN24, RN25, RN29 | US05 a US08, US10, US11, US16 |
@@ -125,7 +125,7 @@ Não têm regras de negócio. Todos os módulos podem usá-los.
 
 | Componente | Responsabilidade | Requisitos |
 |------------|------------------|------------|
-| Utilizador atual | Identidade, papel e equipas de quem faz o pedido, obtidos da sessão. Nunca vêm do pedido do cliente. | SEG02 |
+| Utilizador atual | Identidade, papel, estado e equipas de quem faz o pedido. A sessão guarda só o identificador da conta; o resto lê-se da base de dados em cada pedido, por isso mudar o papel, as equipas ou desativar a conta tem efeito no pedido seguinte. Nunca vem do pedido do cliente. | SEG02, SEG08, RN17, RN23 |
 | Relógio da organização | Dá a data atual no fuso horário da organização. O fuso é `Europe/Lisbon` (DA24). Nos testes, é substituído por uma data fixa (2026-11-10). | RNF06, P12, DA24 |
 | Erros e validação | Formato único das respostas de erro e mensagens em português. | SEG06, RNF02 |
 
@@ -133,7 +133,7 @@ Não têm regras de negócio. Todos os módulos podem usá-los.
 
 | Responsabilidade | Requisitos |
 |------------------|------------|
-| Ecrãs do MVP: entrada, lista de projetos, projeto (tarefas, filtros, progresso), "As minhas tarefas", gestão de contas, gestão de equipas. A navegação e o primeiro ecrã estão em [ui/README.md](ui/README.md). | DP05, US01 a US18 |
+| Ecrãs do MVP: entrada, definir palavra-passe nova (DA25), lista de projetos, projeto (tarefas, filtros, progresso), "As minhas tarefas", gestão de contas, gestão de equipas. A navegação e o primeiro ecrã estão em [ui/README.md](ui/README.md). | DP05, US01 a US18 |
 | Navegação e encaminhamento para a página de entrada quando a sessão deixa de ser válida. | SEG01, SEG07 |
 | Validação dos formulários para ajudar o utilizador. A validação que conta é a do backend. | SEG06 |
 | Mostrar só as ações que o papel permite. Isto é conforto, não proteção: a proteção é a do backend. | SEG02 |
@@ -253,7 +253,7 @@ Organização proposta do repositório:
 └── frontend/             aplicação Vue
 ```
 
-Os nomes dos pacotes e as convenções de código entram no AGENTS.md quando for atualizado com a stack.
+Os nomes dos pacotes e as convenções de código entram no AGENTS.md no início da Ficha 03.
 
 ---
 
@@ -265,13 +265,13 @@ Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14) est�
 |----|---------|---------|---------------------------|---------------|
 | DA01 | Monólito modular. | DP02 | Monólito sem módulos, microservices. | Secção 3. |
 | DA02 | Backend em Java com Spring Boot 4, API REST com JSON. Frontend em Vue 3 com TypeScript e Vite. O backend serve o frontend compilado. Um repositório com as pastas `backend/` e `frontend/`. | DP01 | Thymeleaf (páginas no servidor), React, Angular. | Um deploy e a mesma origem: não é preciso configurar CORS em produção. Em desenvolvimento, o Vite reencaminha `/api` para o backend. As versões exatas e as bibliotecas adicionais fixam-se na Ficha 03, com aprovação (AGENTS.md). |
-| DA03 | Base de dados relacional PostgreSQL. | DP03 (parcial) | H2 ou SQLite, MongoDB. | Chaves estrangeiras e constraints (UNIQUE no email, RN04, e no nome da equipa, RN03). O modelo físico está em database.md. A ordenação sem acentos de RN24 usa uma collation ICU (DA14). |
+| DA03 | Base de dados relacional PostgreSQL. | DP03 (com DA08 a DA14) | H2 ou SQLite, MongoDB. | Chaves estrangeiras e constraints (UNIQUE no email, RN04, e no nome da equipa, RN03). O modelo físico está em database.md. A ordenação sem acentos de RN24 usa uma collation ICU (DA14). |
 | DA04 | Autenticação com sessão no servidor e cookie HttpOnly, com Spring Security. Proteção CSRF ativa. Palavras-passe guardadas com hash adaptativo. | DP06 (parcial) | Token JWT sem estado. | Sair (SEG07) e desativar (SEG08) terminam a sessão no servidor. O armazenamento das sessões tem de permitir terminar todas as sessões de uma conta. O resto da DP06 está em DA26. |
 | DA05 | Bloqueio otimista em Projeto e Tarefa: cada registo tem um número de versão. Gravar sobre uma versão antiga é recusado. | DP13 | O último a gravar ganha (manter LIM11). | Resolve LIM11. Campo `version` no modelo de dados (database.md). Vale para todas as alterações de tarefas e projetos, com resposta 409 `VERSION_CONFLICT` (DA20). As alterações automáticas da secção 7 também mudam a versão. Cenários de exemplo em US07, US16 e US17 (E30, E31). |
 | DA06 | Regras entre módulos com eventos internos síncronos, na mesma transação, sem broker. | DP02 | Chamadas diretas entre módulos (criam ciclos), broker de mensagens (consistência eventual e mais infraestrutura). | Secção 7. O fluxo fica menos visível no código: a tabela da secção 7 é a referência. |
 | DA07 | Uma única instância do backend no MVP. | | Várias instâncias. | Chega para P05 (RNF03, RNF04). O alojamento fica para DP10. |
 | DA24 | Fuso horário fixo `Europe/Lisbon`, definido na configuração da aplicação. O Administrador não o muda no MVP. | DP08 | Fuso configurável pelo Administrador. | O Relógio da organização lê o fuso da configuração. Mantém-se LIM09. |
-| DA25 | O Administrador define uma palavra-passe temporária ao criar a conta e ao repor o acesso, e entrega-a à pessoa fora da aplicação. Na entrada seguinte, a pessoa tem de definir uma palavra-passe nova antes de usar a aplicação. | DP07 | Ligação de ativação por email (exige envio de emails, e RF34 é Could). | `password_hash` obrigatório e campo `must_change_password` (database.md). Endpoints `PUT /users/{userId}/password` e `PUT /session/password` (secção 13). Repor o acesso limpa o contador de tentativas desse email (SEG09 c). Cenários em US01 e US02 (E36). |
+| DA25 | O Administrador define uma palavra-passe temporária ao criar a conta e ao repor o acesso, e entrega-a à pessoa fora da aplicação. Na entrada seguinte, a pessoa tem de definir uma palavra-passe nova antes de usar a aplicação. | DP07 | Ligação de ativação por email (exige envio de emails, e RF34 é Could). | `password_hash` obrigatório e campo `must_change_password` (database.md). Endpoints `PUT /users/{userId}/password` e `PUT /session/password` (secção 13). Repor o acesso limpa o contador de tentativas desse email (SEG09 c). A primeira conta de Administrador é criada no arranque da aplicação, a partir da configuração, com palavra-passe temporária; sem ela, RN18 não se cumpre. Cenários em US01 e US02 (E36). |
 | DA26 | Palavra-passe com 12 a 128 caracteres, sem regras de composição, guardada com bcrypt. A sessão termina após 30 minutos sem pedidos e o identificador de sessão muda ao entrar. Sessões em memória (DA07), com o cookie `JSESSIONID`. Limite de tentativas: as falhas contam-se por par email e endereço IP, só em memória. Com 5 falhas em 15 minutos, esse par espera 15 minutos, com a mesma mensagem para emails que existem e que não existem. | DP06 (resto) | Bloquear a conta depois de N falhas: deixa bloquear contas de outras pessoas (constraints.md, secção 5.2). | Cumpre SEG09 (a), (b) e (c). Reiniciar a aplicação termina as sessões e limpa os contadores. Dado pessoal novo em memória (PRIV01). LIM14. Cenários em US01 (E35, E37). |
 
 ---

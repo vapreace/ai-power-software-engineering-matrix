@@ -1,6 +1,6 @@
 # User Stories do MVP
 
-> **Versão:** 0.4 (revisão crítica, Ficha PL 02, exercício 5)
+> **Versão:** 0.5 (revisão final, Ficha PL 02)
 > **Estado:** em validação com o Product Owner.
 
 ## Como ler este documento
@@ -285,6 +285,12 @@ Scenario: remover o gestor de um projeto
 Scenario: ver quem pertence à equipa
   When o Rui abre a equipa "Logística Norte"
   Then vê o Rui, a Sofia, a Marta e o Pedro
+
+Scenario: remoção com sessão aberta
+  Given o Pedro tem uma sessão aberta
+  When a Ana remove o Pedro da equipa "Logística Norte"
+  And o Pedro tenta abrir o projeto "Novo armazém", sem sair da aplicação
+  Then o acesso é recusado
 ```
 
 ---
@@ -938,6 +944,12 @@ Scenario: último administrador
 Scenario: utilizador sem permissão
   When o Rui tenta mudar o papel de outra conta
   Then a alteração é recusada
+
+Scenario: mudança de papel com sessão aberta
+  Given o Rui tem uma sessão aberta
+  When a Ana muda o papel do Rui para "Membro"
+  And o Rui tenta criar uma tarefa no projeto "Novo armazém", sem sair da aplicação
+  Then a criação é recusada
 ```
 
 ---
@@ -1079,6 +1091,7 @@ Cada caso está coberto por pelo menos um cenário da história indicada.
 | E36 | Primeira entrada ou acesso reposto | Tem de definir uma palavra-passe nova. | US01, US02 | DA25 |
 | E37 | Sessão sem pedidos há 30 minutos | Termina. A pessoa vê a página de entrada. | US01 | DA26 |
 | E38 | Gestor com conta desativada | Não pode ser indicado como gestor nem conta como Gestor da equipa. | US04, US17 | RN21, RN27 |
+| E39 | Mudança de papel ou de equipa com sessão aberta | Tem efeito no pedido seguinte, sem ser preciso sair. | US03, US18 | SEG02, RN17, RN23 |
 
 ---
 

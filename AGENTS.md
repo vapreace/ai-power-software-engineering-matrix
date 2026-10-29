@@ -92,7 +92,7 @@ Indica sempre:
 ## Validação
 
 - Quando terminares uma história, indica que está "pronta para revisão". Só uma pessoa da equipa a marca como concluída (`docs/user-stories.md`, secção 4).
-- A ferramenta de build e os comandos de testes definem-se na Ficha 03 (DP09). Não assumas nenhum. Até lá, descreve no relatório as verificações manuais que fizeste.
+- A ferramenta de build e os comandos escolhem-se no início da Ficha 03. A estratégia e as ferramentas de testes são a DP09 (Módulo 4). Não assumas nenhum comando. Até lá, descreve no relatório as verificações manuais que fizeste.
 
 ## Estilo
 
@@ -102,4 +102,4 @@ Indica sempre:
 
 ## Manutenção deste ficheiro
 
-A stack e as convenções foram acrescentadas na Ficha PL 02. Este ficheiro será atualizado no início da Ficha 03, com a ferramenta de build e os comandos de build e de testes.
+A stack e as convenções foram acrescentadas na Ficha PL 02. Este ficheiro será atualizado no início da Ficha 03, com a ferramenta de build, os comandos e os nomes dos pacotes, e no Módulo 4, com os comandos de testes (DP09).

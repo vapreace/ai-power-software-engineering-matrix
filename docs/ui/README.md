@@ -1,6 +1,6 @@
 # Interface da Matriz
 
-> **Versão:** 0.2 (Ficha PL 02, Exercício 5: revisão crítica)
+> **Versão:** 0.3 (Ficha PL 02, revisão final)
 > **Estado:** proposta. As decisões deste documento têm origem **D** e têm de ser validadas pelo Product Owner.
 
 | Ficheiro | O que é |
@@ -30,9 +30,13 @@ A Ficha sugere o dashboard, mas o painel geral (RF29) é Should e não está no 
 | Contas | Administrador | RF02 |
 | Sair | Todos | RF01, SEG07 |
 
+Depois de entrar com uma palavra-passe temporária, a pessoa vai primeiro para a página "Definir palavra-passe nova" e só depois para a lista de projetos (DA25, US01).
+
 ```mermaid
 flowchart LR
     E["Entrada"] --> P["Projetos"]
+    E -- "palavra-passe temporária" --> N["Definir palavra-passe nova"]
+    N --> P
     P --> D["Projeto: tarefas, filtros, progresso"]
     M["As minhas tarefas"] --> D
     Q["Equipas"] --> QE["Equipa: quem pertence"]

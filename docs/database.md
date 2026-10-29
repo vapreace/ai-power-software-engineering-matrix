@@ -65,7 +65,7 @@ Módulo dono: Contas. Fonte: RF02, RN04, RN16, RN18, RN28.
 | `role` | valor de lista | Sim | `ADMINISTRATOR`, `MANAGER`, `MEMBER`, `OBSERVER`. | RN04 |
 | `status` | valor de lista | Sim | `ACTIVE` ou `DEACTIVATED`. Valor inicial `ACTIVE`. | RN16, RN28 |
 
-A conta nasce com uma palavra-passe temporária definida pelo Administrador. Repor o acesso volta a pôr `must_change_password` a verdadeiro (DA25).
+A conta nasce com uma palavra-passe temporária definida pelo Administrador. A primeira conta de Administrador é criada no arranque da aplicação, a partir da configuração (DA25). Repor o acesso volta a pôr `must_change_password` a verdadeiro.
 
 ### 3.2 `teams` (Equipa)
 
