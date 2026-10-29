@@ -1,2 +1,104 @@
-# ai-power-software-engineering-matrix
-This is Matrix. A project and task management application developed as part of an AI-Powered Software Engineering course.
+# Matriz
+
+Aplicação de gestão de projetos e tarefas para equipas, desenvolvida no curso **AI-Powered Software Engineering: From Mindset to Delivery**.
+
+> Fase atual: **especificação** (Ficha PL 01). Ainda não existe código.
+
+---
+
+## Problema
+
+Uma empresa precisa de uma aplicação onde as suas equipas possam organizar projetos, gerir tarefas e acompanhar o progresso do trabalho.
+
+Hoje, a informação sobre o trabalho está dispersa por folhas de cálculo, emails e reuniões. Ninguém sabe ao certo quem está a fazer o quê nem o que está atrasado.
+
+A primeira frase é a descrição do cliente. A segunda é um pressuposto ainda por confirmar (ver [constraints.md](docs/constraints.md#2-pressupostos-assumidos)).
+
+## Objetivos principais
+
+1. Cada pessoa sabe que tarefas tem atribuídas e com que prazo.
+2. O gestor de um projeto vê, a qualquer momento, o progresso e as tarefas atrasadas.
+3. A direção acompanha o estado geral dos projetos sem pedir relatórios.
+4. As equipas piloto deixam de usar folhas de cálculo para acompanhar o trabalho.
+
+## Utilizadores
+
+| Papel | Em resumo |
+|-------|-----------|
+| Administrador | Gere contas, equipas e papéis. |
+| Gestor | Cria projetos, distribui tarefas e acompanha o progresso. |
+| Membro | Executa e atualiza as suas tarefas. |
+| Observador | Consulta o estado de todos os projetos, sem alterar. |
+
+## Funcionalidades previstas para o MVP
+
+| Área | Funcionalidades |
+|------|-----------------|
+| Acesso | Entrar e sair. Permissões por papel. Gestão de contas pelo Administrador. |
+| Equipas | Criar equipas. Adicionar e remover membros. |
+| Projetos | Criar e editar projetos. Mudar estado e arquivar. Lista de projetos com filtro por estado. |
+| Tarefas | Criar, editar e apagar. Atribuir responsável. Prazo e prioridade. Mudar estado. Lista com filtros. "As minhas tarefas". |
+| Progresso | Percentagem de tarefas concluídas por projeto. Destaque e contagem de tarefas atrasadas. |
+
+Fora do MVP: quadro, comentários, histórico, pesquisa, avisos, anexos, subtarefas, relatórios, integrações. A lista completa está em [requirements.md, secção 9](docs/requirements.md#9-fora-do-âmbito-inicial).
+
+```
+ Administrador        Gestor                     Membro                Gestor
+ ─────────────        ──────                     ──────                ──────
+ 1. Cria equipa  ──►  2. Cria projeto      ──►  4. Abre "As     ──►  6. Vê progresso
+    e contas          3. Cria e atribui          minhas tarefas"      e tarefas
+                         tarefas                5. Atualiza estado    atrasadas
+```
+
+## Organização da documentação
+
+```
+.
+├── README.md              Visão geral (este ficheiro)
+├── AGENTS.md              Instruções para agentes de IA
+└── docs/
+    ├── requirements.md    O que a Matriz tem de fazer
+    ├── user-stories.md    Como se verifica que está feito
+    └── constraints.md     Limites, pressupostos e o que falta decidir
+```
+
+Cada tipo de informação tem **um único documento de referência**, para evitar contradições:
+
+| Informação | Documento |
+|------------|-----------|
+| Visão, objetivos, definições, tipos de utilizador, permissões | [requirements.md](docs/requirements.md) |
+| Requisitos funcionais (RF), regras de negócio (RN), requisitos não funcionais (RNF) | [requirements.md](docs/requirements.md) |
+| Âmbito do MVP e funcionalidades futuras | [requirements.md](docs/requirements.md) |
+| User Stories (US), critérios de aceitação, casos excecionais | [user-stories.md](docs/user-stories.md) |
+| Restrições (R), pressupostos (P), segurança e privacidade, decisões pendentes (DP), limitações (LIM) | [constraints.md](docs/constraints.md) |
+| Instruções para agentes de IA | [AGENTS.md](AGENTS.md) |
+
+Em caso de conflito, prevalecem as definições e regras de negócio de `requirements.md`.
+
+### Convenções de identificadores
+
+| Prefixo | Significado | Exemplo |
+|---------|-------------|---------|
+| O | Objetivo | O2 |
+| RF | Requisito funcional | RF17 |
+| RN | Regra de negócio | RN13 |
+| RNF | Requisito não funcional | RNF01 |
+| US | User Story | US08 |
+| E | Caso excecional | E2 |
+| P | Pressuposto | P05 |
+| DP | Decisão técnica pendente | DP06 |
+
+## Estado atual do projeto
+
+| Fase | Estado |
+|------|--------|
+| Análise do problema e perguntas de clarificação | Concluída |
+| Âmbito funcional e MVP | Concluído, por validar com o Product Owner |
+| User Stories e critérios de aceitação | Concluídas (16 histórias), por validar |
+| Documentação de contexto | Concluída (versão 0.1) |
+| Instruções para agentes (AGENTS.md) | Concluído (versão 0.1) |
+| Revisão crítica da documentação | Por fazer |
+| Arquitetura, modelo de dados, API e protótipo | Aula 2 |
+| Implementação | Ainda não iniciada |
+
+Nenhuma tecnologia foi escolhida. As decisões técnicas pendentes estão em [constraints.md, secção 4](docs/constraints.md#4-decisões-técnicas-pendentes).
