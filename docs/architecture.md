@@ -1,6 +1,6 @@
 # Arquitetura da Matriz
 
-> **Versão:** 0.2 (Ficha PL 02, Exercício 2: ligação ao modelo de dados)
+> **Versão:** 0.3 (Ficha PL 02, Exercício 3: convenções da API)
 > **Estado:** proposta. Todas as decisões deste documento têm origem **D** (decisão da equipa) e têm de ser validadas pelo Product Owner.
 
 Documentos relacionados:
@@ -259,7 +259,7 @@ Os nomes dos pacotes e as convenções de código entram no AGENTS.md quando for
 
 ## 9. Decisões técnicas
 
-Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14) estão em [database.md, secção 9](database.md#9-decisões-de-modelação).
+Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14) estão em [database.md, secção 9](database.md#9-decisões-de-modelação). As convenções da API (DA15 a DA20) estão na secção 13.
 
 | ID | Decisão | Resolve | Alternativas consideradas | Consequências |
 |----|---------|---------|---------------------------|---------------|
@@ -302,7 +302,7 @@ Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14) est�
 | DP01 | Resolvida | DA02 |
 | DP02 | Resolvida | DA01, DA06 |
 | DP03 | Resolvida | DA03 e [database.md](database.md) (DA08 a DA14) |
-| DP04 | Pendente | Exercício 3 |
+| DP04 | Parcial: convenções e lista de endpoints | Secção 13 e [openapi.yaml](../openapi.yaml). As restantes operações detalham-se na Ficha 03. |
 | DP05 | Pendente | Exercício 4 |
 | DP06 | Parcial: mecanismo escolhido | DA04. O resto antes de implementar US01. |
 | DP07 | Pendente | Antes de implementar US02. Afeta Contas e Acesso. |
@@ -326,3 +326,57 @@ Esta arquitetura apoia-se em P05, P11, P12 e no pressuposto novo P14 (equipa peq
 | As fronteiras entre módulos degradam-se e o monólito modular aproxima-se de um monólito confuso. | Regras da secção 6 no AGENTS.md. Revisão das dependências em cada revisão de código. Teste automático de arquitetura na Ficha 03 (ferramenta por decidir). |
 | Os eventos internos escondem o fluxo das regras. | A tabela da secção 7 é a referência. Cada evento tem testes com os cenários das histórias (US03, US14, US18). |
 | As alterações automáticas da secção 7 falham em projetos fechados por causa de RN09. | Operação interna própria, sem a verificação de RN09. Coberto pelo caso E22. |
+
+---
+
+## 13. API
+
+O contrato está em [openapi.yaml](../openapi.yaml). Nesta fase documenta três operações. As restantes detalham-se na Ficha 03, com as convenções desta secção.
+
+### 13.1 Convenções
+
+Todas têm origem **D**.
+
+| ID | Decisão | Porquê | Alternativa rejeitada |
+|----|---------|--------|-----------------------|
+| DA15 | Base `/api`, sem versão no caminho. JSON com nomes em camelCase, com os termos do glossário (DA08). | Há um único cliente, o frontend do mesmo deploy (DA02). | `/api/v1`. |
+| DA16 | Erros no formato Problem Details (RFC 9457), com um `code` estável e uma mensagem em português em `detail`. Os erros de validação trazem a lista de campos em `errors`. | Formato padrão, suportado pelo Spring. O frontend decide pelo `code` e mostra o `detail` (RNF02). | Formato próprio. |
+| DA17 | 400: dados inválidos. 401: sem sessão válida. 403: sem permissão ou projeto não visível. 404: o recurso não existe. 409: conflito com o estado atual (projeto fechado, versão antiga). As verificações seguem esta ordem: 401, 404, 403, 400, 409. | Respostas previsíveis para os cenários de recusa das histórias. O 403 para projetos não visíveis corresponde ao "Acesso recusado" de US12. Como não há projetos confidenciais (P13), mostrar que o projeto existe não é um risco. | 404 para projetos não visíveis. 422 para regras de negócio. |
+| DA18 | Sem paginação no MVP. As listas vêm dentro de `items`. | O volume de P05 cabe numa resposta. Com `items`, a paginação pode entrar mais tarde sem partir o contrato. | Paginação desde já. |
+| DA19 | Uma operação para cada linha diferente da matriz de permissões. Mudar o estado de uma tarefa (`PUT /tasks/{taskId}/status`) é separado de editar a tarefa (`PATCH /tasks/{taskId}`), porque o responsável muda o estado mas não edita (RN15). O mesmo para o estado do projeto e o estado da conta. | Cada operação verifica uma só regra de permissão (SEG02). | Um único `PATCH` com verificação campo a campo. |
+| DA20 | A versão do bloqueio otimista (DA05) vai no corpo dos pedidos que alteram tarefas ou projetos. Apagar uma tarefa não leva versão. Uma versão antiga devolve 409 `VERSION_CONFLICT`. | Simples para o frontend e coerente com DA05. | Cabeçalhos `ETag` e `If-Match`, com 412. |
+
+### 13.2 Endpoints previstos
+
+As operações marcadas com **contrato** estão detalhadas em `openapi.yaml`. As outras são a lista de trabalho para a Ficha 03.
+
+| Método | Caminho | O que faz | Histórias | Estado |
+|--------|---------|-----------|-----------|--------|
+| POST | `/session` | Entrar. | US01 | Ficha 03 (DP06) |
+| DELETE | `/session` | Sair. | US01 | Ficha 03 |
+| GET | `/session` | Utilizador atual: nome, papel e equipas. | US01 | Ficha 03 |
+| GET | `/users` | Lista de contas. | US02 | Ficha 03 |
+| POST | `/users` | Criar conta. | US02 | Ficha 03 (DP07) |
+| PATCH | `/users/{userId}` | Editar nome e email. Mudar o papel. | US02, US18 | Ficha 03 |
+| PUT | `/users/{userId}/status` | Desativar ou reativar. | US14 | Ficha 03 |
+| GET | `/teams` | Lista de equipas. | US03 | Ficha 03 |
+| POST | `/teams` | Criar equipa. | US03 | Ficha 03 |
+| PATCH | `/teams/{teamId}` | Mudar o nome. | US03 | Ficha 03 |
+| GET | `/teams/{teamId}/members` | Quem pertence à equipa. Serve também para escolher o responsável e o gestor. | US03, US06, US17 | Ficha 03 |
+| PUT | `/teams/{teamId}/members/{userId}` | Adicionar uma pessoa. | US03 | Ficha 03 |
+| DELETE | `/teams/{teamId}/members/{userId}` | Remover uma pessoa. | US03 | Ficha 03 |
+| GET | `/projects` | Lista de projetos visíveis, com progresso e atrasos. | US09, US10, US12, US15 | **Contrato** |
+| POST | `/projects` | Criar projeto. | US04 | Ficha 03 |
+| GET | `/projects/{projectId}` | Detalhe do projeto, com progresso e atrasos. | US09, US10 | Ficha 03 |
+| PATCH | `/projects/{projectId}` | Editar o projeto. O Administrador muda o gestor. | US17 | Ficha 03 |
+| PUT | `/projects/{projectId}/status` | Mudar o estado e arquivar. | US13 | Ficha 03 |
+| GET | `/projects/{projectId}/tasks` | Tarefas do projeto, com filtros por responsável, estado e atraso. | US10, US11 | Ficha 03 |
+| POST | `/projects/{projectId}/tasks` | Criar tarefa. | US05 | **Contrato** |
+| PATCH | `/tasks/{taskId}` | Editar a tarefa. Atribuir, mudar ou retirar o responsável. | US06, US16 | Ficha 03 |
+| DELETE | `/tasks/{taskId}` | Apagar a tarefa. | US16 | Ficha 03 |
+| PUT | `/tasks/{taskId}/status` | Mudar o estado. | US07, US17 | **Contrato** |
+| GET | `/me/tasks` | "As minhas tarefas", com o filtro "Incluir concluídas". | US08 | Ficha 03 |
+
+Todas as histórias US01 a US18 têm pelo menos um endpoint.
+
+A confirmação de RN10 (concluir um projeto com tarefas abertas) é feita no frontend, com o número de tarefas abertas calculado a partir do progresso (total menos concluídas).

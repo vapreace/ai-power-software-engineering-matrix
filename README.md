@@ -58,6 +58,7 @@ Fora do MVP: quadro, comentários, histórico, registo das ações do Administra
 .
 ├── README.md              Visão geral (este ficheiro)
 ├── AGENTS.md              Instruções para agentes de IA
+├── openapi.yaml           Contrato da API REST
 └── docs/
     ├── requirements.md    O que a Matriz tem de fazer
     ├── user-stories.md    Como se verifica que está feito
@@ -77,6 +78,7 @@ Cada tipo de informação tem **um único documento de referência**, para evita
 | Restrições (R), pressupostos (P), segurança e privacidade, decisões pendentes (DP), limitações (LIM) | [constraints.md](docs/constraints.md) |
 | Arquitetura, componentes e decisões técnicas (DA) | [architecture.md](docs/architecture.md) |
 | Modelo de dados e decisões de modelação | [database.md](docs/database.md) |
+| Contrato da API REST | [openapi.yaml](openapi.yaml) |
 | Instruções para agentes de IA | [AGENTS.md](AGENTS.md) |
 
 Este README é só um resumo. Em caso de diferença, prevalece `docs/requirements.md`.
@@ -93,7 +95,7 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | E | Caso excecional | E2 |
 | P | Pressuposto | P05 |
 | DP | Decisão técnica pendente | DP06 |
-| DA | Decisão de arquitetura ou de modelação | DA01 |
+| DA | Decisão de arquitetura, de modelação ou da API | DA01 |
 | R | Restrição | R03 |
 | SEG | Requisito de segurança | SEG08 |
 | PRIV | Requisito de privacidade | PRIV01 |
@@ -113,7 +115,8 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Revisão crítica da documentação | Concluída: revisão 1 e revisão independente (2 agentes) aplicadas |
 | Arquitetura | Proposta (versão 0.1, Ficha PL 02) |
 | Modelo de dados | Proposta (versão 0.1, Ficha PL 02) |
-| API e protótipo | Aula 2 |
+| API | Proposta (openapi.yaml 0.1, Ficha PL 02) |
+| Protótipo | Aula 2 |
 | Implementação | Ainda não iniciada |
 
 As decisões técnicas estão em [architecture.md, secção 9](docs/architecture.md#9-decisões-técnicas). As que faltam estão em [constraints.md, secção 4](docs/constraints.md#4-decisões-técnicas-pendentes).
