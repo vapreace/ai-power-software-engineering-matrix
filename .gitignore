@@ -1,0 +1,27 @@
+# .gitignore da Matriz
+# Versão básica, sem tecnologia escolhida.
+# As entradas da linguagem e da framework entram depois da Aula 2 (DP01).
+
+# IDE e editores
+.idea/
+*.iml
+.vscode/
+*.swp
+*~
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Segredos e configuração local (IA01: nunca versionar credenciais)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs e ficheiros temporários
+*.log
+*.tmp
+tmp/
