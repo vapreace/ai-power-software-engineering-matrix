@@ -64,7 +64,8 @@ Fora do MVP: quadro, comentários, histórico, registo das ações do Administra
     ├── user-stories.md    Como se verifica que está feito
     ├── constraints.md     Limites, pressupostos e o que falta decidir
     ├── architecture.md    Como a Matriz está organizada
-    └── database.md        Que dados a Matriz guarda
+    ├── database.md        Que dados a Matriz guarda
+    └── ui/                Navegação e wireframe da interface
 ```
 
 Cada tipo de informação tem **um único documento de referência**, para evitar contradições:
@@ -79,6 +80,7 @@ Cada tipo de informação tem **um único documento de referência**, para evita
 | Arquitetura, componentes e decisões técnicas (DA) | [architecture.md](docs/architecture.md) |
 | Modelo de dados e decisões de modelação | [database.md](docs/database.md) |
 | Contrato da API REST | [openapi.yaml](openapi.yaml) |
+| Navegação, wireframe e decisões de interface | [ui/README.md](docs/ui/README.md) |
 | Instruções para agentes de IA | [AGENTS.md](AGENTS.md) |
 
 Este README é só um resumo. Em caso de diferença, prevalece `docs/requirements.md`.
@@ -95,7 +97,7 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | E | Caso excecional | E2 |
 | P | Pressuposto | P05 |
 | DP | Decisão técnica pendente | DP06 |
-| DA | Decisão de arquitetura, de modelação ou da API | DA01 |
+| DA | Decisão de arquitetura, de modelação, da API ou da interface | DA01 |
 | R | Restrição | R03 |
 | SEG | Requisito de segurança | SEG08 |
 | PRIV | Requisito de privacidade | PRIV01 |
@@ -116,7 +118,7 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Arquitetura | Proposta (versão 0.1, Ficha PL 02) |
 | Modelo de dados | Proposta (versão 0.1, Ficha PL 02) |
 | API | Proposta (openapi.yaml 0.1, Ficha PL 02) |
-| Protótipo | Aula 2 |
+| Protótipo | Wireframe da lista de projetos (Ficha PL 02) |
 | Implementação | Ainda não iniciada |
 
 As decisões técnicas estão em [architecture.md, secção 9](docs/architecture.md#9-decisões-técnicas). As que faltam estão em [constraints.md, secção 4](docs/constraints.md#4-decisões-técnicas-pendentes).

@@ -1,6 +1,6 @@
 # Restrições, pressupostos e decisões pendentes
 
-> **Versão:** 0.6 (API, Ficha PL 02, exercício 3)
+> **Versão:** 0.7 (interface, Ficha PL 02, exercício 4)
 > **Estado:** em validação. Os pressupostos deste documento **não são requisitos confirmados**.
 
 Documentos relacionados:
@@ -117,7 +117,7 @@ As decisões tomadas na Aula 2 estão em [architecture.md, secção 9](architect
 | DP02 | Arquitetura da aplicação. | Resolvida: DA01, DA06 | Todo o desenvolvimento |
 | DP03 | Base de dados e modelo de dados físico. | Resolvida: DA03 e database.md (DA08 a DA14) | Modelo de domínio (requirements.md, secção 4) |
 | DP04 | Desenho da API. | Parcial: DA15 a DA20 e openapi.yaml. As restantes operações detalham-se na Ficha 03 | Todas as histórias |
-| DP05 | Protótipo da interface. | Aula 2 | RNF01, todas as histórias |
+| DP05 | Protótipo da interface. | Parcial: DA21 a DA23 e wireframe da lista de projetos (ui/README.md). Os restantes ecrãs na Ficha 03 | RNF01, todas as histórias |
 | DP06 | Mecanismo de autenticação, regras mínimas da palavra-passe, duração da sessão, expiração por inatividade e mecanismo de SEG09 (limites, duração, desbloqueio). | Parcial: mecanismo em DA04. O resto antes de implementar US01 | RF01, SEG01, SEG07, SEG08, SEG09, PRIV01 |
 | DP07 | Como se dá o acesso inicial a uma conta nova e como se repõe o acesso (palavra-passe esquecida ou conta bloqueada). Tem de estar decidida antes de implementar US02. | Aula 2 | RF02, US02, SEG09 |
 | DP08 | Fuso horário fixo ou configurável pelo Administrador. | Aula 2 | P12, RNF06 |

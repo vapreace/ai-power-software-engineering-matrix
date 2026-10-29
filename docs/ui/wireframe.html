@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Matriz: wireframe da lista de projetos</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; background: #fff; color: #222; font: 14px/1.4 Arial, Helvetica, sans-serif; width: 1520px; }
+  h1.doc { font-size: 20px; margin: 0 0 4px; }
+  p.doc { margin: 0 0 16px; color: #555; }
+  .row { display: flex; gap: 32px; align-items: flex-start; }
+  .label { font-weight: bold; margin: 0 0 6px; color: #555; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .frame { border: 2px solid #333; background: #fff; }
+  .desk { width: 1060px; }
+  .mob { width: 360px; overflow: hidden; }
+  .bar { display: flex; align-items: center; gap: 20px; border-bottom: 2px solid #333; padding: 10px 16px; background: #eee; }
+  .logo { font-weight: bold; font-size: 18px; border: 2px solid #333; padding: 2px 8px; }
+  .nav a { color: #222; text-decoration: none; padding: 4px 8px; border: 1px solid transparent; }
+  .nav a.on { border: 1px solid #333; background: #fff; font-weight: bold; }
+  .user { margin-left: auto; display: flex; gap: 12px; align-items: center; }
+  .btn { border: 2px solid #333; padding: 5px 12px; background: #fff; font-weight: bold; display: inline-block; }
+  .btn.sec { font-weight: normal; border-width: 1px; }
+  .content { padding: 16px; }
+  .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .head h2 { margin: 0; font-size: 22px; }
+  .filters { display: flex; gap: 14px; align-items: center; border: 1px dashed #777; padding: 8px 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .box { display: inline-block; width: 14px; height: 14px; border: 2px solid #333; vertical-align: -2px; margin-right: 4px; text-align: center; line-height: 10px; font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border: 1px solid #999; padding: 8px; text-align: left; vertical-align: middle; }
+  th { background: #eee; }
+  .tag { border: 1px solid #333; padding: 1px 6px; font-size: 12px; white-space: nowrap; }
+  .prog { display: flex; align-items: center; gap: 8px; }
+  .track { width: 90px; height: 10px; border: 1px solid #333; flex: none; }
+  .fill { height: 100%; background: #777; }
+  .late { font-weight: bold; border: 2px solid #333; padding: 1px 6px; white-space: nowrap; }
+  .muted { color: #666; }
+  .m { display: inline-block; min-width: 22px; height: 22px; border-radius: 11px; background: #222; color: #fff; font-size: 12px; font-weight: bold; text-align: center; line-height: 22px; margin: 0 4px; vertical-align: middle; }
+  .card { border: 1px solid #999; padding: 10px; margin-bottom: 10px; }
+  .card .t { display: flex; justify-content: space-between; gap: 8px; align-items: center; font-weight: bold; font-size: 15px; }
+  .card .s { color: #555; margin: 4px 0 8px; }
+  .card .b { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .states { display: flex; gap: 24px; margin-top: 28px; }
+  .state { width: 482px; }
+  .ph { background: #ddd; height: 14px; margin: 10px 0; }
+  .center { text-align: center; padding: 28px 16px; }
+  .note { margin-top: 20px; color: #555; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1 class="doc">Matriz: lista de projetos (wireframe de baixa fidelidade)</h1>
+<p class="doc">Ficha PL 02, exercício 4. Dados simulados, baseados nas pessoas e projetos de partida de user-stories.md. Data atual: 10/11/2026. Os números pretos remetem para a legenda em docs/ui/README.md.</p>
+
+<div class="row">
+  <div>
+    <p class="label">Computador: Rui, Gestor da equipa Logística Norte</p>
+    <div class="frame desk" id="desk">
+      <div class="bar">
+        <span class="logo">Matriz</span>
+        <nav class="nav"><span class="m">1</span>
+          <a class="on">Projetos</a> <a>As minhas tarefas</a> <a>Equipas</a>
+        </nav>
+        <div class="user"><span class="m">2</span><span>Rui (Gestor)</span><span class="btn sec">Sair</span></div>
+      </div>
+      <div class="content">
+        <div class="head">
+          <h2>Projetos</h2>
+          <span><span class="m">3</span><span class="btn">+ Novo projeto</span></span>
+        </div>
+        <div class="filters"><span class="m">4</span>
+          <strong>Estado:</strong>
+          <span><span class="box">x</span>Ativo</span>
+          <span><span class="box">x</span>Concluído</span>
+          <span><span class="box"></span>Arquivado</span>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Nome <span class="m">5</span></th><th>Equipa</th><th>Gestor</th><th>Estado</th><th>Fim previsto</th><th>Progresso <span class="m">6</span></th><th>Atrasos <span class="m">7</span></th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><u>Frota</u></td><td>Logística Norte</td><td>Sofia</td><td><span class="tag">Ativo</span></td><td class="muted">Sem data</td>
+              <td class="muted">Sem tarefas</td><td>Sem atrasos</td>
+            </tr>
+            <tr>
+              <td><u>Inventário 2026</u></td><td>Logística Norte</td><td>Rui</td><td><span class="tag">Ativo</span></td><td>18/12/2026</td>
+              <td><div class="prog"><div class="track"><div class="fill" style="width:33%"></div></div>33% (1 de 3 concluídas)</div></td><td>Sem atrasos</td>
+            </tr>
+            <tr>
+              <td><u>Novo armazém</u> <span class="m">8</span></td><td>Logística Norte</td><td>Rui</td><td><span class="tag">Ativo</span></td><td>18/12/2026</td>
+              <td><div class="prog"><div class="track"><div class="fill" style="width:60%"></div></div>60% (6 de 10 concluídas)</div></td><td><span class="late">2 tarefas atrasadas</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted" style="margin:10px 0 0">O projeto "Armazém Sul" está arquivado e só aparece com o filtro Arquivado.</p>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p class="label">Telemóvel, 360 px: Pedro, Membro <span class="m">9</span></p>
+    <div class="frame mob" id="mob">
+      <div class="bar" style="gap:10px">
+        <span class="logo">Matriz</span>
+        <span style="margin-left:auto">Pedro (Membro)</span>
+        <span class="btn sec" aria-label="Menu">Menu</span>
+      </div>
+      <div class="content">
+        <div class="head"><h2>Projetos</h2></div>
+        <div class="filters">
+          <strong>Estado:</strong>
+          <span><span class="box">x</span>Ativo</span>
+          <span><span class="box">x</span>Concluído</span>
+          <span><span class="box"></span>Arquivado</span>
+        </div>
+        <div class="card">
+          <div class="t"><u>Frota</u><span class="tag">Ativo</span></div>
+          <div class="s">Logística Norte · Gestor: Sofia</div>
+          <div class="muted">Sem tarefas</div>
+          <div class="b"><span>Sem atrasos</span><span class="muted">Fim previsto: sem data</span></div>
+        </div>
+        <div class="card">
+          <div class="t"><u>Inventário 2026</u><span class="tag">Ativo</span></div>
+          <div class="s">Logística Norte · Gestor: Rui</div>
+          <div class="prog"><div class="track"><div class="fill" style="width:33%"></div></div>33% (1 de 3 concluídas)</div>
+          <div class="b"><span>Sem atrasos</span><span class="muted">Fim previsto: 18/12/2026</span></div>
+        </div>
+        <div class="card">
+          <div class="t"><u>Novo armazém</u><span class="tag">Ativo</span></div>
+          <div class="s">Logística Norte · Gestor: Rui</div>
+          <div class="prog"><div class="track"><div class="fill" style="width:60%"></div></div>60% (6 de 10 concluídas)</div>
+          <div class="b"><span class="late">2 tarefas atrasadas</span><span class="muted">Fim previsto: 18/12/2026</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="states">
+  <div class="state">
+    <p class="label">Estado: a carregar <span class="m">10</span></p>
+    <div class="frame content">
+      <h2 style="margin:0 0 8px;font-size:18px">Projetos</h2>
+      <p class="muted" style="margin:0">A carregar projetos...</p>
+      <div class="ph"></div><div class="ph" style="width:85%"></div><div class="ph" style="width:70%"></div>
+    </div>
+  </div>
+  <div class="state">
+    <p class="label">Estado: lista vazia <span class="m">11</span></p>
+    <div class="frame content center">
+      <h2 style="margin:0 0 8px;font-size:18px">Projetos</h2>
+      <p style="margin:12px 0 0"><strong>Não há projetos para mostrar</strong></p>
+      <p class="muted" style="margin:6px 0 0">Ex.: o Tiago foi removido da equipa Compras (US12).</p>
+    </div>
+  </div>
+  <div class="state">
+    <p class="label">Estado: erro <span class="m">12</span></p>
+    <div class="frame content center">
+      <h2 style="margin:0 0 8px;font-size:18px">Projetos</h2>
+      <p style="margin:12px 0 10px"><strong>Não foi possível carregar os projetos.</strong></p>
+      <span class="btn">Tentar de novo</span>
+    </div>
+  </div>
+</div>
+<p class="note">Sem sessão válida (401), a aplicação mostra a página de entrada com "A sessão terminou. Entre de novo." (SEG01, DA16).</p>
+</body>
+</html>

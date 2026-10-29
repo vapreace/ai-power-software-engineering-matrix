@@ -1,6 +1,6 @@
 # Arquitetura da Matriz
 
-> **Versão:** 0.3 (Ficha PL 02, Exercício 3: convenções da API)
+> **Versão:** 0.4 (Ficha PL 02, Exercício 4: ligação à interface)
 > **Estado:** proposta. Todas as decisões deste documento têm origem **D** (decisão da equipa) e têm de ser validadas pelo Product Owner.
 
 Documentos relacionados:
@@ -133,7 +133,7 @@ Não têm regras de negócio. Todos os módulos podem usá-los.
 
 | Responsabilidade | Requisitos |
 |------------------|------------|
-| Ecrãs do MVP: entrada, lista de projetos, projeto (tarefas, filtros, progresso), "As minhas tarefas", gestão de contas, gestão de equipas. O detalhe fica para o Exercício 4. | DP05, US01 a US18 |
+| Ecrãs do MVP: entrada, lista de projetos, projeto (tarefas, filtros, progresso), "As minhas tarefas", gestão de contas, gestão de equipas. A navegação e o primeiro ecrã estão em [ui/README.md](ui/README.md). | DP05, US01 a US18 |
 | Navegação e encaminhamento para a página de entrada quando a sessão deixa de ser válida. | SEG01, SEG07 |
 | Validação dos formulários para ajudar o utilizador. A validação que conta é a do backend. | SEG06 |
 | Mostrar só as ações que o papel permite. Isto é conforto, não proteção: a proteção é a do backend. | SEG02 |
@@ -259,7 +259,7 @@ Os nomes dos pacotes e as convenções de código entram no AGENTS.md quando for
 
 ## 9. Decisões técnicas
 
-Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14) estão em [database.md, secção 9](database.md#9-decisões-de-modelação). As convenções da API (DA15 a DA20) estão na secção 13.
+Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14) estão em [database.md, secção 9](database.md#9-decisões-de-modelação). As convenções da API (DA15 a DA20) estão na secção 13. As decisões de interface (DA21 a DA23) estão em [ui/README.md](ui/README.md#6-decisões-de-interface).
 
 | ID | Decisão | Resolve | Alternativas consideradas | Consequências |
 |----|---------|---------|---------------------------|---------------|
@@ -303,7 +303,7 @@ Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14) est�
 | DP02 | Resolvida | DA01, DA06 |
 | DP03 | Resolvida | DA03 e [database.md](database.md) (DA08 a DA14) |
 | DP04 | Parcial: convenções e lista de endpoints | Secção 13 e [openapi.yaml](../openapi.yaml). As restantes operações detalham-se na Ficha 03. |
-| DP05 | Pendente | Exercício 4 |
+| DP05 | Parcial: navegação e wireframe da lista de projetos | [ui/README.md](ui/README.md). Os restantes ecrãs desenham-se na Ficha 03. |
 | DP06 | Parcial: mecanismo escolhido | DA04. O resto antes de implementar US01. |
 | DP07 | Pendente | Antes de implementar US02. Afeta Contas e Acesso. |
 | DP08 | Pendente | Só afeta a configuração do Relógio da organização. |
