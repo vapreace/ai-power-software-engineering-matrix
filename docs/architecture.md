@@ -1,6 +1,6 @@
 # Arquitetura da Matriz
 
-> **Versão:** 0.1 (Ficha PL 02, Exercício 1)
+> **Versão:** 0.2 (Ficha PL 02, Exercício 2: ligação ao modelo de dados)
 > **Estado:** proposta. Todas as decisões deste documento têm origem **D** (decisão da equipa) e têm de ser validadas pelo Product Owner.
 
 Documentos relacionados:
@@ -8,6 +8,7 @@ Documentos relacionados:
 - [requirements.md](requirements.md): requisitos, regras de negócio, permissões e âmbito do MVP.
 - [user-stories.md](user-stories.md): histórias do MVP e critérios de aceitação.
 - [constraints.md](constraints.md): restrições, pressupostos, segurança e decisões pendentes.
+- [database.md](database.md): modelo de dados e decisões de modelação (DA08 a DA14).
 
 As decisões de arquitetura têm o prefixo **DA**. Cada uma indica a decisão pendente (DP) que resolve. A origem C, D ou P tem o significado de [requirements.md](requirements.md#como-ler-este-documento).
 
@@ -110,10 +111,10 @@ O backend serve o frontend compilado e a API na mesma origem. O browser só fala
 | Módulo | Responsabilidade | Dono dos dados | Requisitos e regras | Histórias |
 |--------|------------------|----------------|---------------------|-----------|
 | **Acesso** | Entrar e sair. Verificar a palavra-passe. Criar e terminar sessões. Garantir que cada pedido tem sessão válida e conta ativa. Limitar tentativas falhadas. | Sessões | RF01, SEG01, SEG03, SEG04, SEG05, SEG07, SEG08, SEG09 | US01 |
-| **Contas** | Criar, editar, desativar e reativar contas. Mudar o papel. Garantir um Administrador ativo. | Utilizador: nome, email, palavra-passe protegida, papel, estado | RF02, RN04, RN16, RN18, RN23, RN28, RNF05 | US02, US14, US18 |
-| **Equipas** | Criar e editar equipas. Adicionar e remover pessoas. Dizer a que equipas pertence cada pessoa. | Equipa, pertença a equipas | RF05, RF06, RN02, RN03, RN17, RN26 | US03 |
-| **Projetos** | Criar, editar, mudar o estado e arquivar projetos. Gerir o gestor e o valor "Sem gestor". Dizer que projetos cada pessoa vê e se um projeto aceita alterações. | Projeto | RF07, RF08, RN01, RN05 a RN10, RN21, RN22, RN27 | US04, US13, US17 |
-| **Tarefas** | Criar, editar, apagar e atribuir tarefas. Mudar o estado. "As minhas tarefas" e filtros. Definir o que é uma tarefa atrasada. | Tarefa | RF12 a RF17, RF28 (marcação), RN11 a RN15, RN19, RN20, RN24, RN25 | US05 a US08, US10, US11, US16 |
+| **Contas** | Criar, editar, desativar e reativar contas. Mudar o papel. Garantir um Administrador ativo. | Utilizador: nome, email, palavra-passe protegida, papel, estado | RF02, RN04, RN16, RN18, RN23, RN28, RN29, RNF05 | US02, US14, US18 |
+| **Equipas** | Criar e editar equipas. Adicionar e remover pessoas. Dizer a que equipas pertence cada pessoa. | Equipa, pertença a equipas | RF05, RF06, RN02, RN03, RN17, RN26, RN29 | US03 |
+| **Projetos** | Criar, editar, mudar o estado e arquivar projetos. Gerir o gestor e o valor "Sem gestor". Dizer que projetos cada pessoa vê e se um projeto aceita alterações. | Projeto | RF07, RF08, RN01, RN05 a RN10, RN21, RN22, RN27, RN29 | US04, US13, US17 |
+| **Tarefas** | Criar, editar, apagar e atribuir tarefas. Mudar o estado. "As minhas tarefas" e filtros. Definir o que é uma tarefa atrasada. | Tarefa | RF12 a RF17, RF28 (marcação), RN11 a RN15, RN19, RN20, RN24, RN25, RN29 | US05 a US08, US10, US11, US16 |
 | **Acompanhamento** | Só leitura. Lista de projetos visíveis com progresso e nº de tarefas atrasadas. Resumo de cada projeto. Não guarda dados. | Nenhum | RF09, RF27, RF28 (contagem) | US09, US10, US12, US15 |
 
 O módulo Acompanhamento existe para que Projetos não dependa de Tarefas (ver secção 6). Pede a Projetos os projetos visíveis e a Tarefas os totais de cada projeto.
@@ -141,7 +142,7 @@ Não têm regras de negócio. Todos os módulos podem usá-los.
 
 ### 5.4 Base de dados
 
-Um esquema PostgreSQL. Cada tabela tem um módulo dono, o único que escreve nela. As chaves estrangeiras entre tabelas de módulos diferentes são permitidas, porque garantem a integridade. O modelo de dados fica em `docs/database.md` (Exercício 2).
+Um esquema PostgreSQL. Cada tabela tem um módulo dono, o único que escreve nela. As chaves estrangeiras entre tabelas de módulos diferentes são permitidas, porque garantem a integridade. O modelo de dados está em [database.md](database.md).
 
 ---
 
@@ -258,15 +259,15 @@ Os nomes dos pacotes e as convenções de código entram no AGENTS.md quando for
 
 ## 9. Decisões técnicas
 
-Todas têm origem **D**.
+Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14) estão em [database.md, secção 9](database.md#9-decisões-de-modelação).
 
 | ID | Decisão | Resolve | Alternativas consideradas | Consequências |
 |----|---------|---------|---------------------------|---------------|
 | DA01 | Monólito modular. | DP02 | Monólito sem módulos, microservices. | Secção 3. |
 | DA02 | Backend em Java com Spring Boot 4, API REST com JSON. Frontend em Vue 3 com TypeScript e Vite. O backend serve o frontend compilado. Um repositório com as pastas `backend/` e `frontend/`. | DP01 | Thymeleaf (páginas no servidor), React, Angular. | Um deploy e a mesma origem: não é preciso configurar CORS em produção. Em desenvolvimento, o Vite reencaminha `/api` para o backend. As versões exatas e as bibliotecas adicionais fixam-se na Ficha 03, com aprovação (AGENTS.md). |
-| DA03 | Base de dados relacional PostgreSQL. | DP03 (parcial) | H2 ou SQLite, MongoDB. | Chaves estrangeiras e constraints (UNIQUE no email, RN04, e no nome da equipa, RN03). O modelo físico fica para o Exercício 2, que tem de confirmar a ordenação sem acentos de RN24. |
+| DA03 | Base de dados relacional PostgreSQL. | DP03 (parcial) | H2 ou SQLite, MongoDB. | Chaves estrangeiras e constraints (UNIQUE no email, RN04, e no nome da equipa, RN03). O modelo físico está em database.md. A ordenação sem acentos de RN24 usa uma collation ICU (DA14). |
 | DA04 | Autenticação com sessão no servidor e cookie HttpOnly, com Spring Security. Proteção CSRF ativa. Palavras-passe guardadas com hash adaptativo. | DP06 (parcial) | Token JWT sem estado. | Sair (SEG07) e desativar (SEG08) terminam a sessão no servidor. O armazenamento das sessões tem de permitir terminar todas as sessões de uma conta. Ficam em aberto na DP06: regras da palavra-passe, duração e expiração da sessão, mecanismo de SEG09. |
-| DA05 | Bloqueio otimista em Projeto e Tarefa: cada registo tem um número de versão. Gravar sobre uma versão antiga é recusado. | DP13 | O último a gravar ganha (manter LIM11). | Resolve LIM11. Novo campo no modelo de dados (Exercício 2) e resposta 409 na API (Exercício 3). As alterações automáticas da secção 7 também mudam a versão. Exige cenários novos em US16 e US17. |
+| DA05 | Bloqueio otimista em Projeto e Tarefa: cada registo tem um número de versão. Gravar sobre uma versão antiga é recusado. | DP13 | O último a gravar ganha (manter LIM11). | Resolve LIM11. Campo `version` no modelo de dados (database.md) e resposta 409 na API (Exercício 3). As alterações automáticas da secção 7 também mudam a versão. Exige cenários novos em US16 e US17. |
 | DA06 | Regras entre módulos com eventos internos síncronos, na mesma transação, sem broker. | DP02 | Chamadas diretas entre módulos (criam ciclos), broker de mensagens (consistência eventual e mais infraestrutura). | Secção 7. O fluxo fica menos visível no código: a tabela da secção 7 é a referência. |
 | DA07 | Uma única instância do backend no MVP. | | Várias instâncias. | Chega para P05 (RNF03, RNF04). O alojamento fica para DP10. |
 
@@ -300,7 +301,7 @@ Todas têm origem **D**.
 |----|--------|----------------|
 | DP01 | Resolvida | DA02 |
 | DP02 | Resolvida | DA01, DA06 |
-| DP03 | Parcial: base de dados escolhida | DA03. Modelo físico no Exercício 2. |
+| DP03 | Resolvida | DA03 e [database.md](database.md) (DA08 a DA14) |
 | DP04 | Pendente | Exercício 3 |
 | DP05 | Pendente | Exercício 4 |
 | DP06 | Parcial: mecanismo escolhido | DA04. O resto antes de implementar US01. |

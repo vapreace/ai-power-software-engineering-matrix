@@ -1,6 +1,6 @@
 # Restrições, pressupostos e decisões pendentes
 
-> **Versão:** 0.4 (arquitetura, Ficha PL 02, exercício 1)
+> **Versão:** 0.5 (modelo de dados, Ficha PL 02, exercício 2)
 > **Estado:** em validação. Os pressupostos deste documento **não são requisitos confirmados**.
 
 Documentos relacionados:
@@ -8,6 +8,7 @@ Documentos relacionados:
 - [requirements.md](requirements.md): requisitos funcionais e não funcionais, regras de negócio, âmbito do MVP.
 - [user-stories.md](user-stories.md): histórias do MVP e critérios de aceitação.
 - [architecture.md](architecture.md): arquitetura, componentes e decisões técnicas (DA).
+- [database.md](database.md): modelo de dados e decisões de modelação.
 
 ---
 
@@ -114,7 +115,7 @@ As decisões tomadas na Aula 2 estão em [architecture.md, secção 9](architect
 |----|---------------|--------|-------|
 | DP01 | Linguagem e framework (backend e frontend). | Resolvida: DA02 | Todo o desenvolvimento |
 | DP02 | Arquitetura da aplicação. | Resolvida: DA01, DA06 | Todo o desenvolvimento |
-| DP03 | Base de dados e modelo de dados físico. | Parcial: base de dados em DA03. Modelo físico na Aula 2 (Ficha PL 02, ex. 2) | Modelo de domínio (requirements.md, secção 4) |
+| DP03 | Base de dados e modelo de dados físico. | Resolvida: DA03 e database.md (DA08 a DA14) | Modelo de domínio (requirements.md, secção 4) |
 | DP04 | Desenho da API. | Aula 2 | Todas as histórias |
 | DP05 | Protótipo da interface. | Aula 2 | RNF01, todas as histórias |
 | DP06 | Mecanismo de autenticação, regras mínimas da palavra-passe, duração da sessão, expiração por inatividade e mecanismo de SEG09 (limites, duração, desbloqueio). | Parcial: mecanismo em DA04. O resto antes de implementar US01 | RF01, SEG01, SEG07, SEG08, SEG09, PRIV01 |
@@ -146,6 +147,7 @@ As decisões tomadas na Aula 2 estão em [architecture.md, secção 9](architect
 | LIM10 | As equipas não se apagam. | Uma equipa que deixou de existir mantém-se na lista. |
 | LIM11 | Resolvida por DA05 (bloqueio otimista). Mantida para não renumerar. | Quem grava sobre uma versão antiga de uma tarefa ou de um projeto vê a alteração recusada e tem de a repetir. |
 | LIM12 | Uma equipa sem nenhum Gestor não pode ter projetos novos (RN27). | O Administrador tem de adicionar um Gestor à equipa primeiro. |
+| LIM13 | Os limites de texto contam códigos Unicode (DA11). | Emojis compostos (bandeiras, famílias) contam mais do que um carácter: um título com esses emojis chega ao limite mais cedo. |
 
 ### 5.2 Itens retirados
 

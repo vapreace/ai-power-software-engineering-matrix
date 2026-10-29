@@ -1,6 +1,6 @@
 # Requisitos da Matriz
 
-> **Versão:** 0.4 (papel Observador, Ficha PL 02, exercício 1)
+> **Versão:** 0.5 (modelo de dados, Ficha PL 02, exercício 2)
 > **Estado:** em validação. Nada deste documento foi ainda confirmado pelo cliente, exceto o que está marcado com origem **C**.
 
 ## Como ler este documento
@@ -27,6 +27,7 @@ Documentos relacionados:
 - [user-stories.md](user-stories.md): histórias do MVP e critérios de aceitação.
 - [constraints.md](constraints.md): restrições, pressupostos, segurança e privacidade, decisões técnicas pendentes.
 - [architecture.md](architecture.md): arquitetura, componentes e decisões técnicas (DA).
+- [database.md](database.md): modelo de dados e decisões de modelação.
 
 Em caso de conflito entre documentos, as **definições** (secção 2) e as **regras de negócio** (secção 6) deste ficheiro prevalecem. O conflito deve ser reportado e corrigido.
 
@@ -265,15 +266,15 @@ Os IDs não são renumerados. As regras novas são acrescentadas no fim.
 |----|-------|
 | RN01 | Um projeto pertence a uma só equipa. |
 | RN02 | Um utilizador pode pertencer a várias equipas. |
-| RN03 | O nome de uma equipa é obrigatório e único na organização. |
-| RN04 | O email de uma conta é obrigatório e único. Nome e papel também são obrigatórios. |
+| RN03 | O nome de uma equipa é obrigatório e único na organização, sem distinguir maiúsculas (DA10). |
+| RN04 | O email de uma conta é obrigatório e único, sem distinguir maiúsculas (DA10). Nome e papel também são obrigatórios. |
 | RN05 | Um Gestor só cria projetos nas equipas a que pertence e só altera os projetos de que é gestor (ver também RN21). |
 | RN06 | Projeto: nome, equipa e data de início são obrigatórios. Descrição e data de fim prevista são opcionais. A data de fim prevista não pode ser anterior à data de início. |
 | RN07 | Um projeto novo fica no estado "Ativo". As transições permitidas estão na secção 4.1. |
 | RN08 | Só projetos "Ativo" aceitam novas tarefas. |
 | RN09 | Num projeto "Concluído" ou "Arquivado", nem o projeto nem as suas tarefas podem ser alterados. Exceções: a mudança de estado do projeto (secção 4.1), as alterações automáticas de RN16, RN17, RN22 e RN23, e a mudança de gestor pelo Administrador (RN21). |
 | RN10 | Concluir um projeto com tarefas abertas é permitido, mas exige confirmação com o número de tarefas abertas. Arquivar um projeto concluído não pede confirmação. |
-| RN11 | Tarefa: o título é obrigatório e tem 1 a 200 caracteres, depois de ignorar os espaços no início e no fim. Cada carácter conta como um, incluindo letras acentuadas e emojis. Descrição e prazo são opcionais. A prioridade existe sempre (Baixa, Média ou Alta): se não for indicada, fica "Média". |
+| RN11 | Tarefa: o título é obrigatório e tem 1 a 200 caracteres, depois de ignorar os espaços no início e no fim. Cada carácter conta como um, incluindo letras acentuadas e emojis simples: o texto é normalizado e conta-se cada código Unicode (DA11, LIM13). Descrição e prazo são opcionais. A prioridade existe sempre (Baixa, Média ou Alta): se não for indicada, fica "Média". |
 | RN12 | Uma tarefa nova fica "Por fazer". Os estados podem mudar em qualquer direção. |
 | RN13 | O prazo de uma tarefa não pode ser anterior à data atual. A validação só se aplica quando o prazo é definido ou mudado. Editar outros campos de uma tarefa já atrasada é permitido. Retirar o prazo é sempre permitido. |
 | RN14 | Uma tarefa tem no máximo um responsável. O responsável tem de ter conta ativa, pertencer à equipa do projeto e ter papel Gestor ou Membro. |
@@ -291,6 +292,7 @@ Os IDs não são renumerados. As regras novas são acrescentadas no fim.
 | RN26 | Só utilizadores com papel Gestor ou Membro pertencem a equipas. Contas desativadas não podem ser adicionadas a equipas. Um Gestor sem equipa não vê nenhum projeto. |
 | RN27 | Quando um Gestor cria um projeto, fica gestor desse projeto. Quando o Administrador cria um projeto, tem de indicar o gestor (RN21). Uma equipa sem nenhum Gestor não pode ter projetos novos. |
 | RN28 | O Administrador pode editar o nome e o email de uma conta (o email continua único, RN04) e reativar uma conta desativada. A conta reativada mantém o papel e as equipas. As tarefas que ficaram "Sem responsável" na desativação não voltam a ser atribuídas automaticamente. |
+| RN29 | Comprimentos máximos, depois de ignorar os espaços no início e no fim: nome de pessoa 100, email 254, nome de equipa 100, nome de projeto 100, descrição de projeto 1000 e descrição de tarefa 2000 caracteres. Os nomes não podem ficar vazios. Os caracteres contam-se como na RN11. |
 
 ---
 
@@ -322,7 +324,7 @@ Permitir que uma equipa substitua a folha de cálculo de acompanhamento por uma 
 
 Também fazem parte do MVP:
 
-- todas as regras de negócio (RN01 a RN28);
+- todas as regras de negócio (RN01 a RN29);
 - os requisitos não funcionais RNF01 a RNF07;
 - os requisitos de segurança SEG01 a SEG09 e de privacidade PRIV01 a PRIV03 ([constraints.md, secção 3](constraints.md#3-requisitos-de-segurança-e-privacidade)).
 
