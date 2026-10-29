@@ -1,6 +1,6 @@
 # Requisitos da Matriz
 
-> **Versão:** 0.1 (especificação inicial, Ficha PL 01)
+> **Versão:** 0.2 (revisão crítica 1, Ficha PL 01)
 > **Estado:** em validação. Nada deste documento foi ainda confirmado pelo cliente, exceto o que está marcado com origem **C**.
 
 ## Como ler este documento
@@ -61,7 +61,7 @@ Estas métricas medem a adoção no piloto. **Não são critérios de aceitaçã
 | ID | Métrica | Origem |
 |----|---------|:------:|
 | M1 | As 2 equipas piloto usam a Matriz todas as semanas durante 8 semanas. | D |
-| M2 | Um gestor cria um projeto com 10 tarefas atribuídas em menos de 15 minutos. | D |
+| M2 | Um gestor cria um projeto com 10 tarefas atribuídas em menos de 15 minutos (valor provisório, a calibrar no piloto). | D |
 
 ---
 
@@ -69,14 +69,18 @@ Estas métricas medem a adoção no piloto. **Não são critérios de aceitaçã
 
 Estas definições são usadas em todos os documentos. Qualquer critério de aceitação depende delas.
 
+As definições só explicam o significado dos termos. As regras sobre esses termos estão na secção 6, com a respetiva origem. As definições de cálculo (tarefa atrasada, progresso) são decisões de análise (**D**).
+
 | Termo | Definição |
 |-------|-----------|
-| **Equipa** | Grupo de utilizadores da organização. Uma pessoa pode pertencer a várias equipas. |
-| **Projeto** | Conjunto de tarefas de um trabalho, que pertence a uma só equipa. |
-| **Tarefa** | Unidade de trabalho que pertence sempre a um projeto. |
-| **Responsável** | Utilizador que executa a tarefa. Cada tarefa tem no máximo um. |
+| **Equipa** | Grupo de utilizadores da organização. |
+| **Pertencer a uma equipa** | Ter sido adicionado a essa equipa pelo Administrador. Não confundir com o papel Membro. |
+| **Membro (papel)** | Um dos quatro papéis da secção 3. Um utilizador com papel Gestor também pode pertencer a uma equipa. |
+| **Projeto** | Conjunto de tarefas relativas a um trabalho de uma equipa. |
+| **Tarefa** | Unidade de trabalho de um projeto. |
+| **Responsável** | Utilizador que executa a tarefa. |
 | **Gestor do projeto** | Utilizador com papel Gestor indicado no campo "Gestor" do projeto. |
-| **Conta ativa** | Conta que não foi desativada. Só contas ativas conseguem entrar na aplicação. |
+| **Conta ativa** | Conta que não foi desativada. |
 | **Data atual** | Dia de calendário no fuso horário da organização (P12). Nos testes: Europe/Lisbon. |
 | **Tarefa aberta** | Tarefa com estado "Por fazer" ou "Em curso". |
 | **Tarefa atrasada** | Tarefa aberta com prazo **anterior** à data atual. Uma tarefa com prazo igual à data atual **não** está atrasada. Uma tarefa sem prazo **nunca** está atrasada. |
@@ -94,21 +98,24 @@ Estas definições são usadas em todos os documentos. Qualquer critério de ace
 | **Membro** | Colaborador de uma equipa. | Saber o que tem para fazer e atualizar o estado. | A Marta abre "As minhas tarefas" e marca 2 como concluídas. |
 | **Observador** | Direção ou outra parte interessada. | Ver o estado de todos os projetos sem os alterar. | O Carlos confirma que 3 de 12 projetos têm atrasos. |
 
-Origem: **D** (os quatro papéis). Só existem utilizadores internos à organização (**D**, ver RF38).
+Origem: **D** (os quatro papéis). Só existem utilizadores internos à organização (**D**, apoiada em P06, ver RF38).
 
 ### 3.1 Matriz de permissões
 
 | Ação | Administrador | Gestor | Membro | Observador |
 |------|:-------------:|:------:|:------:|:----------:|
 | Gerir contas | ✔ | | | |
-| Gerir equipas e membros | ✔ | | | |
+| Gerir equipas e quem lhes pertence | ✔ | | | |
 | Criar projeto | ✔ (qualquer equipa) | ✔ (equipas a que pertence) | | |
 | Editar ou mudar o estado de um projeto | ✔ | ✔ (projetos que gere) | | |
+| Mudar o gestor de um projeto | ✔ | | | |
 | Criar, editar, apagar e atribuir tarefas | ✔ | ✔ (projetos que gere) | | |
-| Mudar o estado de uma tarefa | ✔ | ✔ (projetos que gere) | ✔ (tarefas de que é responsável) | |
+| Mudar o estado de uma tarefa | ✔ | ✔ (projetos que gere e tarefas de que é responsável) | ✔ (tarefas de que é responsável) | |
 | Ver projetos e tarefas | Todos | Projetos visíveis | Projetos visíveis | Todos |
 
-Quando o Administrador cria um projeto, indica como gestor um utilizador com papel Gestor (**D**).
+Quando o Administrador cria um projeto, indica como gestor um utilizador com papel Gestor que pertença à equipa do projeto (RN21).
+
+As permissões aplicam-se dentro dos limites das regras de negócio. Por exemplo, ninguém altera um projeto arquivado (RN09).
 
 ---
 
@@ -151,8 +158,7 @@ classDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Planeado
-    Planeado --> Ativo
+    [*] --> Ativo
     Ativo --> Concluído
     Concluído --> Ativo : reabrir
     Concluído --> Arquivado
@@ -172,7 +178,7 @@ Três estados: **Por fazer**, **Em curso**, **Concluída**. Qualquer mudança en
 | ID | Requisito | Justificação | Prior. | Origem |
 |----|-----------|--------------|:------:|:------:|
 | RF01 | Entrar e sair da aplicação com email e palavra-passe. | Sem identificação não há responsáveis nem permissões. | Must | D |
-| RF02 | O Administrador cria contas, atribui papéis e desativa contas. | Só há utilizadores internos e o controlo é centralizado. | Must | D |
+| RF02 | O Administrador vê a lista de contas, cria contas, muda o papel de uma conta e desativa contas. | Só há utilizadores internos e o controlo é centralizado. | Must | D |
 | RF03 | Cada utilizador só vê e altera o que o seu papel permite (secção 3.1). | Cada equipa só vê os seus projetos. | Must | D |
 | RF04 | Entrar com a conta da empresa. | Menos uma palavra-passe, mas exige integração. | Could | D |
 
@@ -180,8 +186,8 @@ Três estados: **Por fazer**, **Em curso**, **Concluída**. Qualquer mudança en
 
 | ID | Requisito | Justificação | Prior. | Origem |
 |----|-----------|--------------|:------:|:------:|
-| RF05 | O Administrador cria e edita equipas. | A equipa é a unidade de organização referida pelo cliente. | Must | C, D |
-| RF06 | O Administrador adiciona e remove membros de uma equipa. | Define quem vê cada projeto. | Must | D |
+| RF05 | O Administrador vê a lista de equipas, cria e edita equipas. | A equipa é a unidade de organização referida pelo cliente. | Must | C, D |
+| RF06 | O Administrador adiciona pessoas a uma equipa e remove-as. | Define quem vê cada projeto. | Must | D |
 
 ### 5.3 Projetos
 
@@ -199,10 +205,10 @@ Três estados: **Por fazer**, **Em curso**, **Concluída**. Qualquer mudança en
 |----|-----------|--------------|:------:|:------:|
 | RF12 | Criar, editar e apagar tarefas. | Pedido do cliente: "gerir tarefas". | Must | C |
 | RF13 | Atribuir, mudar ou retirar o responsável de uma tarefa. | Resolve "quem está a fazer o quê". | Must | D |
-| RF14 | Definir prazo e prioridade de uma tarefa. | Sem prazo não é possível identificar atrasos. | Must | D |
+| RF14 | Definir prazo e prioridade de uma tarefa. | Sem prazo não é possível identificar atrasos. A prioridade ordena as tarefas com o mesmo prazo (RN24). | Must | D |
 | RF15 | Mudar o estado de uma tarefa. | Base do cálculo do progresso. | Must | D |
 | RF16 | Ver a lista de tarefas de um projeto, com filtros por responsável, estado e atraso. | Vista mínima para o gestor acompanhar o projeto. | Must | D |
-| RF17 | Ver "As minhas tarefas": todas as tarefas de que o utilizador é responsável, de todos os projetos. | O membro precisa de um único sítio para ver o seu trabalho. | Must | D |
+| RF17 | Ver "As minhas tarefas": todas as tarefas de que o utilizador é responsável, de todos os projetos. | Cada pessoa precisa de um único sítio para ver o seu trabalho. | Must | D |
 | RF18 | Vista de quadro (colunas por estado). | Vista visual muito usada, mas a lista cobre a necessidade. | Should | D |
 | RF19 | Comentários em tarefas. | Reduz a troca de emails sobre uma tarefa. | Should | D |
 | RF20 | Histórico de alterações de cada tarefa. | Permite saber quem mudou o quê e quando. | Should | D |
@@ -241,27 +247,34 @@ Três estados: **Por fazer**, **Em curso**, **Concluída**. Qualquer mudança en
 
 Todas têm origem **D** e estão por validar com o Product Owner. RN02 depende também do pressuposto P03.
 
+Os IDs não são renumerados. As regras novas são acrescentadas no fim.
+
 | ID | Regra |
 |----|-------|
 | RN01 | Um projeto pertence a uma só equipa. |
 | RN02 | Um utilizador pode pertencer a várias equipas. |
 | RN03 | O nome de uma equipa é obrigatório e único na organização. |
 | RN04 | O email de uma conta é obrigatório e único. Nome e papel também são obrigatórios. |
-| RN05 | Um Gestor só cria projetos nas equipas a que pertence e só altera os projetos de que é gestor. |
+| RN05 | Um Gestor só cria projetos nas equipas a que pertence e só altera os projetos de que é gestor (ver também RN21). |
 | RN06 | Projeto: nome, equipa e data de início são obrigatórios. Descrição e data de fim prevista são opcionais. A data de fim prevista não pode ser anterior à data de início. |
-| RN07 | Um projeto novo fica no estado "Planeado". As transições permitidas estão na secção 4.1. |
-| RN08 | Só projetos "Planeado" ou "Ativo" aceitam novas tarefas. |
-| RN09 | Um projeto "Arquivado" é só de leitura para todos, incluindo as suas tarefas. |
+| RN07 | Um projeto novo fica no estado "Ativo". As transições permitidas estão na secção 4.1. |
+| RN08 | Só projetos "Ativo" aceitam novas tarefas. |
+| RN09 | Num projeto "Concluído", as tarefas são só de leitura. Num projeto "Arquivado", o projeto e as tarefas são só de leitura. Em ambos, a única alteração permitida é a mudança de estado do projeto (secção 4.1). |
 | RN10 | Concluir um projeto com tarefas abertas é permitido, mas exige confirmação com o número de tarefas abertas. |
 | RN11 | Tarefa: título obrigatório (1 a 200 caracteres). Descrição, prazo e prioridade são opcionais. A prioridade por omissão é "Média". |
 | RN12 | Uma tarefa nova fica "Por fazer". Os estados podem mudar em qualquer direção. |
-| RN13 | O prazo de uma tarefa não pode ser anterior à data atual, quando é criado ou alterado. |
-| RN14 | Uma tarefa tem no máximo um responsável, que tem de ser membro ativo da equipa do projeto. |
-| RN15 | Um Membro só muda o estado das tarefas de que é responsável. |
+| RN13 | O prazo de uma tarefa não pode ser anterior à data atual. A validação só se aplica quando o prazo é definido ou mudado. Editar outros campos de uma tarefa já atrasada é permitido. |
+| RN14 | Uma tarefa tem no máximo um responsável. O responsável tem de ter conta ativa, pertencer à equipa do projeto e ter papel Gestor ou Membro. |
+| RN15 | O responsável de uma tarefa pode mudar o seu estado, qualquer que seja o seu papel. Um utilizador com papel Membro só muda o estado das tarefas de que é responsável. |
 | RN16 | Contas são desativadas, nunca apagadas. Ao desativar, as tarefas abertas da pessoa ficam "Sem responsável" e as concluídas mantêm o seu nome. |
 | RN17 | Ao remover uma pessoa de uma equipa, as suas tarefas abertas nos projetos dessa equipa ficam "Sem responsável". |
-| RN18 | Tem de existir sempre pelo menos um Administrador ativo. |
+| RN18 | Tem de existir sempre pelo menos um Administrador ativo. Não é possível desativar o último nem mudar o seu papel. |
 | RN19 | Apagar uma tarefa exige confirmação e é definitivo. |
+| RN20 | Uma tarefa pertence sempre a um projeto. |
+| RN21 | O gestor de um projeto tem de pertencer à equipa do projeto e ter papel Gestor. Só o Administrador muda o gestor de um projeto. A equipa de um projeto não pode ser mudada. |
+| RN22 | Se o gestor de um projeto deixar de cumprir RN21 (conta desativada, removido da equipa ou papel mudado), o projeto fica "Sem gestor". Até o Administrador indicar um novo gestor, só o Administrador altera esse projeto. |
+| RN23 | Ao mudar o papel de uma conta: se deixar de ser Gestor, os projetos que gere ficam "Sem gestor" (RN22); se passar a Observador ou Administrador, as suas tarefas abertas ficam "Sem responsável" (RN14). |
+| RN24 | "As minhas tarefas" ordena por prazo, do mais próximo para o mais distante, com as tarefas sem prazo no fim. Em caso de empate, ordena por prioridade (Alta, Média, Baixa) e depois por título, por ordem alfabética. |
 
 ---
 
@@ -274,7 +287,7 @@ Os requisitos de segurança e privacidade estão em [constraints.md, secção 3]
 | RNF01 | Acesso | A Matriz é usada num browser, em computador e em telemóvel. | Todas as páginas do MVP funcionam numa largura de ecrã de 360 px sem deslocamento horizontal. | D |
 | RNF02 | Idioma | A interface está em português. | Revisão de todos os textos visíveis. | P10 |
 | RNF03 | Capacidade | Suporta o volume de referência: 300 utilizadores, 20 equipas, 200 projetos e 10 000 tarefas. | Teste com dados fictícios neste volume. | P05 |
-| RNF04 | Desempenho | Com o volume de referência, as páginas do MVP ficam disponíveis em menos de 2 segundos. | Medição com dados fictícios no volume de RNF03. | P05 |
+| RNF04 | Desempenho | Com o volume de RNF03 e 20 utilizadores em simultâneo, 95% dos pedidos às páginas do MVP respondem em menos de 2 segundos. | Teste de carga no ambiente de testes, com dados fictícios. | P05 |
 | RNF05 | Integridade | Nenhuma operação apaga contas. O histórico de tarefas concluídas mantém o responsável original. | Testes de US14. | D |
 | RNF06 | Datas | Todas as regras de datas usam a data atual da organização (secção 2). | Testes de US05 e US10 com data fixa. | D |
 | RNF07 | Verificabilidade | Cada critério de aceitação de [user-stories.md](user-stories.md) pode ser verificado por um teste automático. | Revisão dos testes antes de fechar cada história. | D |
@@ -291,7 +304,11 @@ Permitir que uma equipa substitua a folha de cálculo de acompanhamento por uma 
 
 16 requisitos **Must**: RF01, RF02, RF03, RF05, RF06, RF07, RF08, RF09, RF12, RF13, RF14, RF15, RF16, RF17, RF27, RF28.
 
-Também fazem parte do MVP todas as regras de negócio (RN01 a RN19) e os requisitos não funcionais RNF01 a RNF07.
+Também fazem parte do MVP:
+
+- todas as regras de negócio (RN01 a RN24);
+- os requisitos não funcionais RNF01 a RNF07;
+- os requisitos de segurança SEG01 a SEG10 e de privacidade PRIV01 a PRIV03 ([constraints.md, secção 3](constraints.md#3-requisitos-de-segurança-e-privacidade)).
 
 ### 8.3 Percurso principal
 
@@ -307,7 +324,7 @@ Também fazem parte do MVP todas as regras de negócio (RN01 a RN19) e os requis
 
 ### 8.4 Critério de conclusão do MVP
 
-O MVP está concluído quando todos os critérios de aceitação das histórias US01 a US16 ([user-stories.md](user-stories.md)) são verificados com sucesso.
+O MVP está concluído quando todos os critérios de aceitação das histórias US01 a US18 ([user-stories.md](user-stories.md)) são verificados com sucesso.
 
 ---
 

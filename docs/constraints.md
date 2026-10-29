@@ -1,6 +1,6 @@
 # Restrições, pressupostos e decisões pendentes
 
-> **Versão:** 0.1 (especificação inicial, Ficha PL 01)
+> **Versão:** 0.2 (revisão crítica 1, Ficha PL 01)
 > **Estado:** em validação. Os pressupostos deste documento **não são requisitos confirmados**.
 
 Documentos relacionados:
@@ -17,7 +17,7 @@ São factos. Não dependem de validação.
 | ID | Restrição |
 |----|-----------|
 | R01 | A única informação confirmada pelo cliente é a descrição inicial: "Precisamos de uma aplicação onde as nossas equipas possam organizar projetos, gerir tarefas e acompanhar o progresso do trabalho." O cliente ainda não definiu funcionalidades, regras de negócio, requisitos técnicos nem prioridades. |
-| R02 | Não há acesso direto ao cliente. As perguntas sem resposta são resolvidas com pressupostos (P) ou decisões de análise (D), sempre registados. |
+| R02 | Nem todas as perguntas podem ser colocadas ao cliente. As que ficam sem resposta são resolvidas com pressupostos (P) ou decisões de análise (D), sempre registados. |
 | R03 | O projeto é desenvolvido no curso AI-Powered Software Engineering, ao longo de 6 módulos. A entrega final e a apresentação são no Módulo 6 (18 ou 19 de novembro de 2026, conforme a turma). |
 | R04 | Na Ficha PL 01 não se implementa código. O foco é a análise, a especificação e a preparação do contexto. |
 | R05 | A linguagem, a framework, a base de dados e a arquitetura são escolhidas na Aula 2 (Conceção, Arquitetura e Prototipagem). |
@@ -44,12 +44,15 @@ Cada pressuposto tem de ser confirmado com o cliente ou com o Product Owner. Se 
 | P10 | A interface só precisa de estar em português. | Q34 | RNF02 | É preciso suportar vários idiomas. |
 | P11 | Os utilizadores não precisam de ver as alterações dos outros em tempo real. | Exercício 1, pressuposto 9 | US09, LIM02 | É preciso atualização automática das páginas. |
 | P12 | A organização trabalha num único fuso horário. | Nova (Ex. 3) | Definição de "data atual", RN13, US10 | A regra de atraso tem de considerar o fuso de cada utilizador. |
+| P13 | Não há projetos confidenciais: o Administrador e o Observador podem ver todos os projetos. | Nova (Ex. 6) | requirements.md §3.1, RF03, US15 | É preciso restringir a visibilidade de alguns projetos, também para o Observador. |
 
 ---
 
 ## 3. Requisitos de segurança e privacidade
 
 ### 3.1 Segurança da aplicação
+
+Todos os requisitos desta secção são decisões de análise (D) e fazem parte do MVP.
 
 | ID | Requisito | Verificação |
 |----|-----------|-------------|
@@ -60,6 +63,9 @@ Cada pressuposto tem de ser confirmado com o cliente ou com o Product Owner. Se 
 | SEG05 | Uma conta desativada não consegue entrar. | US01 e US14. |
 | SEG06 | Todos os dados recebidos são validados (obrigatórios, limites, datas). O texto introduzido pelos utilizadores é sempre tratado como texto e nunca executado. | Testes com títulos e descrições que contêm código ou caracteres especiais. |
 | SEG07 | Ao sair, a sessão termina. | Depois de sair, voltar atrás no browser não mostra dados. |
+| SEG08 | Desativar uma conta termina de imediato todas as sessões dessa conta. | US14, cenário "sessão aberta". |
+| SEG09 | Depois de 5 tentativas de entrada falhadas seguidas, a conta fica bloqueada durante 15 minutos. Os valores são provisórios (D). | US01, cenários de tentativas falhadas. |
+| SEG10 | As ações do Administrador (criar conta, mudar papel, desativar conta, criar e editar equipas, mudar quem pertence a uma equipa, mudar o gestor de um projeto) ficam registadas com autor, ação, data e hora. A aplicação não permite alterar nem apagar este registo. | US14 e US18, cenários "ação registada". |
 
 ### 3.2 Privacidade
 
@@ -67,9 +73,12 @@ Cada pressuposto tem de ser confirmado com o cliente ou com o Product Owner. Se 
 |----|-----------|
 | PRIV01 | Só se guardam os dados pessoais necessários: nome, email, papel e equipas. |
 | PRIV02 | O tratamento de dados pessoais segue o RGPD (P07). O prazo de conservação está pendente (DP11). |
-| PRIV03 | Testes, demonstrações e documentação usam apenas dados fictícios. |
+| PRIV03 | Testes, demonstrações e documentação usam apenas dados fictícios. Os emails de exemplo usam o domínio reservado `empresa.example`. |
 
-**Risco identificado:** RN16 mantém o nome de uma pessoa desativada nas tarefas concluídas. Isto pode entrar em conflito com o direito ao apagamento do RGPD. Tem de ser validado antes de fechar DP11.
+**Riscos identificados:**
+
+- RN16 mantém o nome de uma pessoa desativada nas tarefas concluídas, e SEG10 guarda o autor das ações administrativas. As duas regras podem entrar em conflito com o direito ao apagamento do RGPD. Tem de ser validado antes de fechar DP11.
+- Títulos e descrições de tarefas são texto livre. Os utilizadores podem escrever lá dados pessoais. Tem de ser considerado em DP11.
 
 ### 3.3 Desenvolvimento com apoio de IA
 
@@ -94,12 +103,12 @@ Nenhuma tecnologia foi escolhida. Estas decisões ficam para as fases indicadas.
 | DP03 | Base de dados e modelo de dados físico. | Aula 2 | Modelo de domínio (requirements.md, secção 4) |
 | DP04 | Desenho da API. | Aula 2 | Todas as histórias |
 | DP05 | Protótipo da interface. | Aula 2 | RNF01, todas as histórias |
-| DP06 | Mecanismo de autenticação, duração da sessão e expiração por inatividade. | Aula 2 | RF01, SEG01, SEG07 |
+| DP06 | Mecanismo de autenticação, regras mínimas da palavra-passe, duração da sessão e expiração por inatividade. | Aula 2 | RF01, SEG01, SEG07, SEG08, SEG09 |
 | DP07 | Como o novo utilizador recebe o acesso inicial e como recupera a palavra-passe. | Aula 2 | US02, RF02 |
 | DP08 | Fuso horário fixo ou configurável pelo Administrador. | Aula 2 | P12, RNF06 |
 | DP09 | Estratégia e ferramentas de testes. | Módulo 4 | RNF07 |
 | DP10 | Ambientes, alojamento e pipeline de integração e entrega contínua. | Módulo 5 | |
-| DP11 | Prazo de conservação dos dados pessoais e tratamento de contas desativadas face ao RGPD. | Antes do piloto | PRIV02, RN16 |
+| DP11 | Prazo de conservação dos dados pessoais (incluindo os escritos em tarefas e o registo de SEG10) e tratamento de contas desativadas face ao RGPD. | Antes do piloto | PRIV02, RN16, SEG10 |
 | DP12 | Requisitos de acessibilidade e disponibilidade (horário, tempo de recuperação). | Antes do piloto | RNF |
 
 ---
@@ -116,7 +125,8 @@ Nenhuma tecnologia foi escolhida. Estas decisões ficam para as fases indicadas.
 | LIM04 | Só utilizadores internos (RF38). | Clientes e fornecedores não têm acesso. |
 | LIM05 | Sem migração de dados. | Cada equipa começa do zero. |
 | LIM06 | Apagar uma tarefa é definitivo (RN19). | Não há recuperação. |
-| LIM07 | Sem histórico de alterações (RF20 só na versão 1.1). | No MVP não se sabe quem mudou o quê. |
+| LIM07 | Sem histórico de alterações das tarefas (RF20 só na versão 1.1). | No MVP só ficam registadas as ações do Administrador (SEG10). Não se sabe quem mudou cada tarefa. |
+| LIM10 | Não há forma de ver o registo de SEG10 dentro da aplicação. | A consulta do registo fica para uma versão futura. |
 | LIM08 | Sem subtarefas, dependências nem registo de tempo. | Planeamento avançado fica fora do MVP. |
 | LIM09 | Um único fuso horário (P12). | Equipas noutros fusos podem ver atrasos com um dia de diferença. |
 

@@ -1,6 +1,6 @@
 # User Stories do MVP
 
-> **Versão:** 0.1 (especificação inicial, Ficha PL 01)
+> **Versão:** 0.2 (revisão crítica 1, Ficha PL 01)
 > **Estado:** em validação com o Product Owner.
 
 ## Como ler este documento
@@ -8,7 +8,9 @@
 - Os termos "tarefa aberta", "tarefa atrasada", "progresso", "data atual" e "projetos visíveis" têm o significado definido em [requirements.md, secção 2](requirements.md#2-definições).
 - Cada história indica os requisitos (RF) e as regras de negócio (RN) que cobre. Em caso de conflito, prevalece [requirements.md](requirements.md).
 - Os critérios de aceitação usam o formato Gherkin (Given / When / Then). As palavras-chave ficam em inglês e o conteúdo em português.
-- Os nomes usados nos exemplos (Ana, Rui, Marta, Pedro, João, Carlos) e os emails são fictícios.
+- Os nomes usados nos exemplos e os emails são fictícios. Os emails usam o domínio reservado `empresa.example`.
+- **"Recusado"** significa sempre: a operação não altera nada e aparece uma mensagem de erro. Quando o texto da mensagem importa, o cenário indica-o.
+- Cada cenário pode alterar, no seu `Given`, a situação de partida descrita na tabela seguinte.
 
 ### Pessoas usadas nos exemplos
 
@@ -16,6 +18,8 @@
 |------|-------|---------|
 | Ana | Administrador | |
 | Rui | Gestor | Logística Norte |
+| Sofia | Gestor | Logística Norte |
+| Tiago | Gestor | Compras |
 | Marta | Membro | Logística Norte, Compras |
 | Pedro | Membro | Logística Norte |
 | João | Membro | Compras |
@@ -31,7 +35,7 @@ Todas as histórias são **Must** e fazem parte do MVP. A ordem segue as depend�
 |:-----:|----|----------|-------|------------|------------|
 | 1 | US01 | Entrar na aplicação | Todos | RF01 | |
 | 2 | US02 | Criar conta | Administrador | RF02, RF03 | US01 |
-| 3 | US03 | Criar equipa e gerir membros | Administrador | RF05, RF06 | US02 |
+| 3 | US03 | Criar equipa e gerir quem lhe pertence | Administrador | RF05, RF06 | US02 |
 | 4 | US04 | Criar projeto | Gestor | RF07 | US03 |
 | 5 | US05 | Criar tarefa | Gestor | RF12, RF14 | US04 |
 | 6 | US06 | Atribuir responsável | Gestor | RF13 | US05 |
@@ -42,9 +46,11 @@ Todas as histórias são **Must** e fazem parte do MVP. A ordem segue as depend�
 | 11 | US11 | Filtrar tarefas do projeto | Gestor | RF16 | US05 |
 | 12 | US12 | Ver projetos das minhas equipas | Membro | RF09, RF03 | US04 |
 | 13 | US13 | Mudar estado e arquivar projeto | Gestor | RF08 | US04 |
-| 14 | US14 | Desativar conta | Administrador | RF02 | US06 |
-| 15 | US15 | Consultar todos os projetos | Observador | RF03, RF09 | US09 |
-| 16 | US16 | Editar e apagar tarefa | Gestor | RF12 | US05 |
+| 14 | US17 | Editar projeto | Gestor, Administrador | RF07 | US04 |
+| 15 | US14 | Desativar conta | Administrador | RF02 | US06 |
+| 16 | US18 | Mudar papel de uma conta | Administrador | RF02 | US17 |
+| 17 | US15 | Consultar todos os projetos | Observador | RF03, RF09 | US09 |
+| 18 | US16 | Editar e apagar tarefa | Gestor | RF12 | US05 |
 
 ---
 
@@ -54,25 +60,36 @@ Todas as histórias são **Must** e fazem parte do MVP. A ordem segue as depend�
 
 > **Como** utilizador, **quero** entrar na Matriz com o meu email e palavra-passe, **para** aceder apenas à informação que o meu papel permite.
 
-**Requisitos:** RF01
+**Requisitos:** RF01 · **Segurança:** SEG04, SEG05, SEG09
 
 ```gherkin
 Scenario: credenciais válidas
-  Given existe uma conta ativa com o email "marta@exemplo.pt"
+  Given existe uma conta ativa com o email "marta@empresa.example"
   When a Marta entra com o email e a palavra-passe corretos
-  Then fica autenticada e o seu nome aparece no topo da página
+  Then fica autenticada e o seu nome fica visível na página
 
 Scenario: credenciais inválidas
-  Given existe uma conta ativa com o email "marta@exemplo.pt"
+  Given existe uma conta ativa com o email "marta@empresa.example"
   When a Marta entra com uma palavra-passe errada
   Then a entrada é recusada
   And aparece a mensagem "Email ou palavra-passe incorretos"
 
 Scenario: conta desativada
-  Given a conta "pedro@exemplo.pt" está desativada
+  Given a conta "pedro@empresa.example" está desativada
   When o Pedro entra com o email e a palavra-passe corretos
   Then a entrada é recusada
   And aparece a mensagem "Conta desativada. Contacte o administrador."
+
+Scenario: demasiadas tentativas falhadas
+  Given houve 5 tentativas falhadas seguidas para a conta "marta@empresa.example" nos últimos 15 minutos
+  When a Marta entra com o email e a palavra-passe corretos
+  Then a entrada é recusada
+  And aparece a mensagem "Demasiadas tentativas. Tente novamente mais tarde."
+
+Scenario: fim do bloqueio
+  Given a conta "marta@empresa.example" foi bloqueada por tentativas falhadas há mais de 15 minutos
+  When a Marta entra com o email e a palavra-passe corretos
+  Then fica autenticada
 ```
 
 A mensagem de credenciais inválidas é a mesma quer falhe o email, quer a palavra-passe.
@@ -88,11 +105,11 @@ A mensagem de credenciais inválidas é a mesma quer falhe o email, quer a palav
 ```gherkin
 Scenario: criação com sucesso
   Given a Ana tem papel Administrador
-  When cria uma conta com nome "Marta Silva", email "marta@exemplo.pt" e papel "Membro"
+  When cria uma conta com nome "Marta Silva", email "marta@empresa.example" e papel "Membro"
   Then a conta aparece na lista de utilizadores com estado "Ativa"
 
 Scenario: email repetido
-  Given já existe uma conta com o email "marta@exemplo.pt"
+  Given já existe uma conta com o email "marta@empresa.example"
   When a Ana cria outra conta com o mesmo email
   Then a criação é recusada
   And aparece a mensagem "Já existe uma conta com este email"
@@ -113,11 +130,11 @@ A forma como o novo utilizador recebe o acesso inicial está pendente ([constrai
 
 ---
 
-### US03 Criar equipa e gerir membros
+### US03 Criar equipa e gerir quem lhe pertence
 
-> **Como** Administrador, **quero** criar equipas e adicionar ou remover membros, **para** definir quem vê cada projeto.
+> **Como** Administrador, **quero** criar equipas e adicionar ou remover pessoas, **para** definir quem vê cada projeto.
 
-**Requisitos:** RF05, RF06 · **Regras:** RN02, RN03, RN17
+**Requisitos:** RF05, RF06 · **Regras:** RN02, RN03, RN17, RN22
 
 ```gherkin
 Scenario: criar equipa
@@ -132,12 +149,17 @@ Scenario: nome repetido
 Scenario: pessoa em duas equipas
   Given existem as equipas "Logística Norte" e "Compras"
   When a Ana adiciona a Marta às duas equipas
-  Then a Marta aparece como membro de ambas
+  Then a Marta aparece nas duas equipas
 
-Scenario: remover membro com tarefas abertas
+Scenario: remover pessoa com tarefas abertas
   Given a Marta é responsável por 2 tarefas abertas num projeto de "Compras"
   When a Ana remove a Marta da equipa "Compras"
   Then essas 2 tarefas ficam com responsável "Sem responsável"
+
+Scenario: remover o gestor de um projeto
+  Given o Rui é gestor do projeto "Novo armazém" da equipa "Logística Norte"
+  When a Ana remove o Rui da equipa "Logística Norte"
+  Then o projeto "Novo armazém" fica "Sem gestor"
 
 Scenario: contas desativadas não podem ser adicionadas
   Given a conta do Pedro está desativada
@@ -158,7 +180,7 @@ Scenario: criação com sucesso
   Given o Rui tem papel Gestor e pertence à equipa "Logística Norte"
   When cria o projeto "Novo armazém" na equipa "Logística Norte"
     com data de início 2026-11-02 e data de fim prevista 2026-12-18
-  Then o projeto é criado com estado "Planeado"
+  Then o projeto é criado com estado "Ativo"
   And o gestor do projeto é o Rui
   And o projeto aparece na lista de projetos da equipa
 
@@ -189,7 +211,7 @@ Scenario: Membro tenta criar projeto
 
 > **Como** Gestor, **quero** criar tarefas num projeto que giro, com título, descrição, prazo e prioridade, **para** dividir o trabalho em partes que se podem acompanhar.
 
-**Requisitos:** RF12, RF14 · **Regras:** RN08, RN11, RN12, RN13
+**Requisitos:** RF12, RF14 · **Regras:** RN08, RN11, RN12, RN13, RN20
 
 ```gherkin
 Scenario: criação com sucesso
@@ -245,7 +267,7 @@ Scenario Outline: projeto que não aceita tarefas
 ```gherkin
 Scenario: atribuir
   Given a tarefa "Pedir orçamento de estantes" está "Sem responsável"
-  And a Marta é membro ativo da equipa do projeto
+  And a Marta tem conta ativa e pertence à equipa do projeto
   When o Rui atribui a tarefa à Marta
   Then o responsável passa a ser a Marta
   And a tarefa aparece em "As minhas tarefas" da Marta
@@ -253,6 +275,11 @@ Scenario: atribuir
 Scenario: pessoa fora da equipa
   Given o João não pertence à equipa do projeto
   When o Rui tenta atribuir a tarefa ao João
+  Then a atribuição é recusada
+
+Scenario: papel que não pode ser responsável
+  Given o Carlos tem papel Observador e pertence à equipa do projeto
+  When o Rui tenta atribuir a tarefa ao Carlos
   Then a atribuição é recusada
 
 Scenario: retirar responsável
@@ -277,10 +304,11 @@ Scenario: avançar o estado
   Then o estado da tarefa é "Em curso"
 
 Scenario: reabrir tarefa concluída
-  Given a tarefa está "Concluída"
-  When a Marta muda o estado para "Em curso"
+  Given o projeto mostra "70% (7 de 10 concluídas)"
+  And a Marta é responsável por uma das tarefas concluídas
+  When a Marta muda o estado dessa tarefa para "Em curso"
   Then o estado é "Em curso"
-  And a tarefa deixa de contar como concluída no progresso do projeto
+  And o projeto passa a mostrar "60% (6 de 10 concluídas)"
 
 Scenario: tarefa de outra pessoa
   Given o Pedro é o responsável pela tarefa "Contratar transporte"
@@ -293,11 +321,24 @@ Scenario: gestor muda qualquer tarefa do seu projeto
   When muda o estado de uma tarefa da Marta para "Concluída"
   Then o estado é "Concluída"
 
-Scenario: projeto arquivado
-  Given o projeto tem estado "Arquivado"
-  When a Marta tenta mudar o estado de uma tarefa desse projeto
+Scenario: gestor responsável num projeto que não gere
+  Given a Sofia tem papel Gestor e é gestora do projeto "Frota"
+  And o Rui é responsável por uma tarefa do projeto "Frota"
+  When o Rui muda o estado dessa tarefa para "Em curso"
+  Then o estado é "Em curso"
+
+Scenario Outline: projeto que não aceita alterações às tarefas
+  Given o projeto tem estado "<estado>"
+  When a Marta tenta mudar o estado de uma tarefa de que é responsável nesse projeto
   Then a alteração é recusada
+
+  Examples:
+    | estado    |
+    | Concluído |
+    | Arquivado |
 ```
+
+Entre os três estados da tarefa, qualquer mudança é permitida (RN12).
 
 ---
 
@@ -305,7 +346,7 @@ Scenario: projeto arquivado
 
 > **Como** Membro, **quero** ver numa só página todas as tarefas de que sou responsável, de todos os projetos, **para** saber o que tenho para fazer.
 
-**Requisitos:** RF17
+**Requisitos:** RF17 · **Regras:** RN24
 
 ```gherkin
 Scenario: tarefas de várias equipas
@@ -321,9 +362,15 @@ Scenario: incluir concluídas
   Then vê 6 tarefas
 
 Scenario: ordenação
-  When a Marta abre "As minhas tarefas"
-  Then as tarefas aparecem por prazo, do mais próximo para o mais distante
-  And as tarefas sem prazo aparecem no fim
+  Given a Marta tem as tarefas abertas:
+    | título    | prazo      | prioridade |
+    | Inventário | 2026-11-20 | Baixa      |
+    | Orçamento | 2026-11-12 | Média      |
+    | Transporte | 2026-11-12 | Alta       |
+    | Arquivo   | sem prazo  | Alta       |
+    | Contrato  | 2026-11-12 | Alta       |
+  When abre "As minhas tarefas"
+  Then as tarefas aparecem pela ordem: Contrato, Transporte, Orçamento, Inventário, Arquivo
 
 Scenario: projetos arquivados
   Given a Marta tem uma tarefa aberta num projeto "Arquivado"
@@ -391,10 +438,16 @@ Scenario Outline: classificação de atraso
     | 2026-11-09 | Concluída | não está  |
     | sem prazo  | Por fazer | não está  |
 
-Scenario: contagem no projeto
-  Given o projeto tem exatamente 2 tarefas atrasadas
+Scenario Outline: contagem no projeto
+  Given o projeto tem exatamente <n> tarefas atrasadas
   When o Rui abre o projeto ou a lista de projetos
-  Then vê "2 tarefas atrasadas"
+  Then vê "<texto>"
+
+  Examples:
+    | n | texto               |
+    | 0 | Sem atrasos         |
+    | 1 | 1 tarefa atrasada   |
+    | 2 | 2 tarefas atrasadas |
 ```
 
 ---
@@ -406,6 +459,11 @@ Scenario: contagem no projeto
 **Requisitos:** RF16
 
 ```gherkin
+Scenario: filtro por estado
+  Given o projeto tem 3 tarefas "Por fazer", 2 "Em curso" e 5 "Concluída"
+  When o Rui filtra por estado "Em curso"
+  Then vê apenas 2 tarefas
+
 Scenario: filtros combinados
   Given o projeto tem 4 tarefas da Marta, das quais 1 está atrasada
   When o Rui filtra por responsável "Marta" e por "Atrasadas"
@@ -428,7 +486,7 @@ Vários filtros aplicam-se ao mesmo tempo: a tarefa tem de cumprir todos.
 
 > **Como** Membro, **quero** ver a lista de projetos das minhas equipas, filtrada por estado, **para** encontrar os projetos onde trabalho.
 
-**Requisitos:** RF09, RF03
+**Requisitos:** RF09, RF03 · **Segurança:** SEG02
 
 ```gherkin
 Scenario: só projetos das minhas equipas
@@ -473,14 +531,26 @@ Scenario: cancelar conclusão
   Then o projeto mantém o estado "Ativo"
 
 Scenario: transição não permitida
-  Given o projeto está "Planeado"
+  Given o projeto está "Ativo"
   When o Rui tenta mudar o estado diretamente para "Arquivado"
   Then a alteração é recusada
 
-Scenario: projeto arquivado fica só de leitura
-  Given o projeto está "Arquivado"
-  When qualquer utilizador tenta alterar o projeto ou as suas tarefas
+Scenario Outline: projeto arquivado fica só de leitura
+  Given o projeto "Armazém Sul" está "Arquivado"
+  When <utilizador> tenta <operação>
   Then a alteração é recusada
+
+  Examples:
+    | utilizador                 | operação                            |
+    | o Rui, gestor do projeto   | editar o nome do projeto            |
+    | o Rui, gestor do projeto   | criar uma tarefa                    |
+    | a Ana, Administrador       | editar uma tarefa                   |
+    | a Marta, responsável       | mudar o estado da sua tarefa        |
+
+Scenario: desarquivar
+  Given o projeto "Armazém Sul" está "Arquivado"
+  When o Rui muda o estado para "Concluído"
+  Then o projeto fica "Concluído"
 ```
 
 As transições permitidas estão em [requirements.md, secção 4.1](requirements.md#41-estados-do-projeto).
@@ -491,7 +561,7 @@ As transições permitidas estão em [requirements.md, secção 4.1](requirement
 
 > **Como** Administrador, **quero** desativar a conta de um colaborador que saiu, **para** que deixe de ter acesso sem se perder o histórico.
 
-**Requisitos:** RF02 · **Regras:** RN16, RN18
+**Requisitos:** RF02 · **Regras:** RN16, RN18, RN22 · **Segurança:** SEG08, SEG10
 
 ```gherkin
 Scenario: desativar conta com tarefas
@@ -500,6 +570,22 @@ Scenario: desativar conta com tarefas
   Then o Pedro não consegue entrar
   And as 2 tarefas abertas ficam "Sem responsável"
   And as 4 tarefas concluídas mantêm o Pedro como responsável
+
+Scenario: sessão aberta
+  Given o Pedro tem uma sessão aberta
+  When a Ana desativa a conta do Pedro
+  And o Pedro tenta abrir qualquer página
+  Then o pedido é recusado
+  And o Pedro vê a página de entrada
+
+Scenario: desativar o gestor de um projeto
+  Given o Rui é gestor do projeto "Novo armazém"
+  When a Ana desativa a conta do Rui
+  Then o projeto "Novo armazém" fica "Sem gestor"
+
+Scenario: ação registada
+  When a Ana desativa a conta do Pedro
+  Then o registo de ações administrativas indica a Ana, a desativação da conta do Pedro, a data e a hora
 
 Scenario: último administrador
   Given a Ana é a única conta ativa com papel Administrador
@@ -514,7 +600,7 @@ Scenario: último administrador
 
 > **Como** Observador, **quero** ver os projetos e o progresso de todas as equipas sem os poder alterar, **para** acompanhar o estado geral do trabalho.
 
-**Requisitos:** RF03, RF09
+**Requisitos:** RF03, RF09 · **Segurança:** SEG02 · **Pressuposto:** P13
 
 ```gherkin
 Scenario: vê todas as equipas
@@ -523,9 +609,17 @@ Scenario: vê todas as equipas
   When abre a lista de projetos
   Then vê os projetos das duas equipas
 
-Scenario: não altera nada
-  When o Carlos tenta criar, editar ou mudar o estado de um projeto ou de uma tarefa
+Scenario Outline: não altera nada
+  When o Carlos tenta <operação>
   Then a alteração é recusada
+
+  Examples:
+    | operação                         |
+    | criar um projeto                 |
+    | editar um projeto                |
+    | mudar o estado de um projeto     |
+    | criar uma tarefa                 |
+    | mudar o estado de uma tarefa     |
 ```
 
 ---
@@ -541,9 +635,17 @@ Scenario: editar
   When o Rui altera o título e o prazo de uma tarefa com valores válidos
   Then as alterações ficam guardadas
 
-Scenario: editar com valores inválidos
-  When o Rui altera o prazo de uma tarefa para uma data anterior à data atual
+Scenario: prazo mudado para o passado
+  Given a data atual é 2026-11-10
+  When o Rui muda o prazo de uma tarefa para 2026-11-09
   Then a alteração é recusada
+
+Scenario: editar tarefa já atrasada sem mudar o prazo
+  Given a data atual é 2026-11-10
+  And uma tarefa tem prazo 2026-11-05 e estado "Em curso"
+  When o Rui altera apenas o título dessa tarefa
+  Then a alteração fica guardada
+  And o prazo mantém-se 2026-11-05
 
 Scenario: apagar com confirmação
   Given o projeto tem 10 tarefas, 6 concluídas
@@ -554,6 +656,93 @@ Scenario: apagar com confirmação
 Scenario: cancelar apagar
   When o Rui escolhe apagar uma tarefa e cancela
   Then a tarefa mantém-se
+```
+
+---
+
+### US17 Editar projeto
+
+> **Como** Gestor, **quero** editar o nome, a descrição e as datas de um projeto que giro, **para** manter a informação do projeto correta.
+
+**Requisitos:** RF07 · **Regras:** RN05, RN06, RN21, RN22
+
+```gherkin
+Scenario: editar dados do projeto
+  Given o Rui é gestor do projeto "Novo armazém"
+  When muda o nome para "Armazém Norte" e a data de fim prevista para 2027-01-15
+  Then as alterações ficam guardadas
+
+Scenario: datas incoerentes
+  When o Rui muda a data de fim prevista para uma data anterior à data de início
+  Then a alteração é recusada
+
+Scenario: projeto de outro gestor
+  Given a Sofia é gestora do projeto "Frota"
+  When o Rui tenta editar o projeto "Frota"
+  Then a alteração é recusada
+
+Scenario: Gestor tenta mudar o gestor
+  When o Rui tenta indicar a Sofia como gestora do projeto "Novo armazém"
+  Then a alteração é recusada
+
+Scenario: Administrador muda o gestor
+  Given a Sofia tem papel Gestor e pertence à equipa "Logística Norte"
+  When a Ana indica a Sofia como gestora do projeto "Novo armazém"
+  Then a gestora do projeto passa a ser a Sofia
+
+Scenario Outline: gestor inválido
+  When a Ana indica <pessoa> como gestor do projeto "Novo armazém"
+  Then a alteração é recusada
+
+  Examples:
+    | pessoa                                         |
+    | o Tiago (Gestor, não pertence à equipa)        |
+    | o Pedro (Membro, pertence à equipa)            |
+
+Scenario: projeto sem gestor
+  Given o projeto "Novo armazém" está "Sem gestor"
+  When a Ana indica a Sofia como gestora
+  Then a gestora do projeto passa a ser a Sofia
+  And a Sofia pode editar o projeto
+
+Scenario: mudar a equipa
+  When a Ana tenta mudar a equipa do projeto "Novo armazém"
+  Then a alteração é recusada
+```
+
+---
+
+### US18 Mudar papel de uma conta
+
+> **Como** Administrador, **quero** mudar o papel de uma conta, **para** acompanhar as mudanças de funções dos colaboradores.
+
+**Requisitos:** RF02 · **Regras:** RN18, RN22, RN23 · **Segurança:** SEG10
+
+```gherkin
+Scenario: Gestor passa a Membro
+  Given o Rui tem papel Gestor e é gestor do projeto "Novo armazém"
+  When a Ana muda o papel do Rui para "Membro"
+  Then o Rui passa a ter papel Membro
+  And o projeto "Novo armazém" fica "Sem gestor"
+
+Scenario: Membro passa a Observador
+  Given a Marta tem papel Membro e é responsável por 3 tarefas abertas
+  When a Ana muda o papel da Marta para "Observador"
+  Then essas 3 tarefas ficam "Sem responsável"
+
+Scenario: ação registada
+  When a Ana muda o papel da Marta
+  Then o registo de ações administrativas indica a Ana, a conta da Marta, o papel anterior, o papel novo, a data e a hora
+
+Scenario: último administrador
+  Given a Ana é a única conta ativa com papel Administrador
+  When tenta mudar o próprio papel para "Gestor"
+  Then a alteração é recusada
+  And aparece a mensagem "Tem de existir pelo menos um administrador ativo"
+
+Scenario: utilizador sem permissão
+  When o Rui tenta mudar o papel de outra conta
+  Then a alteração é recusada
 ```
 
 ---
@@ -577,6 +766,13 @@ Cada caso está coberto por pelo menos um cenário da história indicada.
 | E11 | Criar tarefa em projeto concluído ou arquivado | Recusado. | US05 | RN08 |
 | E12 | Reabrir tarefa concluída | Permitido. O progresso desce. | US07 | RN12 |
 | E13 | Título com 200 e com 201 caracteres | 200 é aceite, 201 é recusado. | US05 | RN11 |
+| E14 | Gestor de um projeto desativado, removido da equipa ou com papel mudado | O projeto fica "Sem gestor". Só o Administrador o altera até indicar novo gestor. | US03, US14, US17, US18 | RN22 |
+| E15 | 5 tentativas de entrada falhadas seguidas | A conta fica bloqueada durante 15 minutos, mesmo com a palavra-passe correta. | US01 | SEG09 |
+| E16 | Conta desativada com sessão aberta | O pedido seguinte é recusado e a pessoa vê a página de entrada. | US14 | SEG08 |
+| E17 | Tarefas com o mesmo prazo em "As minhas tarefas" | Ordenadas por prioridade e depois por título. | US08 | RN24 |
+| E18 | Editar outro campo de uma tarefa já atrasada | Permitido. A validação do prazo só se aplica quando o prazo muda. | US16 | RN13 |
+| E19 | Atribuir tarefa a um Observador | Recusado. Só papéis Gestor e Membro podem ser responsáveis. | US06 | RN14 |
+| E20 | Alterar tarefas num projeto concluído | Recusado. É preciso reabrir o projeto. | US07 | RN09 |
 
 ---
 

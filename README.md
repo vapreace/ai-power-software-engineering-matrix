@@ -16,6 +16,8 @@ A primeira frase é a descrição do cliente. A segunda é um pressuposto ainda 
 
 ## Objetivos principais
 
+Os objetivos 3 e 4 e os papéis de utilizador são propostas da equipa, ainda por validar com o cliente.
+
 1. Cada pessoa sabe que tarefas tem atribuídas e com que prazo.
 2. O gestor de um projeto vê, a qualquer momento, o progresso e as tarefas atrasadas.
 3. A direção acompanha o estado geral dos projetos sem pedir relatórios.
@@ -34,8 +36,8 @@ A primeira frase é a descrição do cliente. A segunda é um pressuposto ainda 
 
 | Área | Funcionalidades |
 |------|-----------------|
-| Acesso | Entrar e sair. Permissões por papel. Gestão de contas pelo Administrador. |
-| Equipas | Criar equipas. Adicionar e remover membros. |
+| Acesso | Entrar e sair. Permissões por papel. Gestão de contas e papéis pelo Administrador. Registo das ações do Administrador. |
+| Equipas | Criar equipas. Adicionar e remover pessoas. |
 | Projetos | Criar e editar projetos. Mudar estado e arquivar. Lista de projetos com filtro por estado. |
 | Tarefas | Criar, editar e apagar. Atribuir responsável. Prazo e prioridade. Mudar estado. Lista com filtros. "As minhas tarefas". |
 | Progresso | Percentagem de tarefas concluídas por projeto. Destaque e contagem de tarefas atrasadas. |
@@ -87,6 +89,11 @@ Em caso de conflito, prevalecem as definições e regras de negócio de `require
 | E | Caso excecional | E2 |
 | P | Pressuposto | P05 |
 | DP | Decisão técnica pendente | DP06 |
+| R | Restrição | R03 |
+| SEG | Requisito de segurança | SEG08 |
+| PRIV | Requisito de privacidade | PRIV01 |
+| LIM | Limitação de âmbito | LIM01 |
+| M | Métrica de sucesso | M1 |
 
 ## Estado atual do projeto
 
@@ -94,10 +101,10 @@ Em caso de conflito, prevalecem as definições e regras de negócio de `require
 |------|--------|
 | Análise do problema e perguntas de clarificação | Concluída |
 | Âmbito funcional e MVP | Concluído, por validar com o Product Owner |
-| User Stories e critérios de aceitação | Concluídas (16 histórias), por validar |
-| Documentação de contexto | Concluída (versão 0.1) |
+| User Stories e critérios de aceitação | Concluídas (18 histórias), por validar |
+| Documentação de contexto | Concluída (versão 0.2) |
 | Instruções para agentes (AGENTS.md) | Concluído (versão 0.1) |
-| Revisão crítica da documentação | Por fazer |
+| Revisão crítica da documentação | Revisão 1 aplicada. Revisão independente por fazer. |
 | Arquitetura, modelo de dados, API e protótipo | Aula 2 |
 | Implementação | Ainda não iniciada |
 
