@@ -56,7 +56,7 @@ O MVP completo mantém-se: as 22 histórias. O âmbito da ficha (R08) vem primei
 
 ## 3. Decisões
 
-**Confirmadas:** DA01 a DA34. As da Ficha PL 03 são DA28 (Java 21, Maven, pacotes, bibliotecas), DA29 (eliminação lógica), DA30 (Liquibase, seed, configuração, Docker Compose), DA31 (testes), DA32 (pesquisa), DA33 (ordem das tarefas) e DA34 (endereço da API no frontend).
+**Confirmadas:** DA01 a DA35. As da Ficha PL 03 são DA28 (Java 21, Maven, pacotes, bibliotecas), DA29 (eliminação lógica), DA30 (Liquibase, seed, configuração, Docker Compose), DA31 (testes), DA32 (pesquisa), DA33 (ordem das tarefas) DA34 (endereço da API no frontend) e DA35 (sessões de contas desativadas).
 
 **Ficam para a implementação, com aprovação:**
 
@@ -65,7 +65,6 @@ O MVP completo mantém-se: as 22 histórias. O âmbito da ficha (R08) vem primei
 | Versões exatas do Spring Boot, das bibliotecas, do PostgreSQL e do Node | I0 |
 | Formato dos changesets Liquibase (YAML, XML ou SQL formatado) | I0 |
 | Ponto de mudança entre tabela e cartões (DA22) | I2 |
-| Mecanismo para terminar todas as sessões de uma conta (DA04, SEG08) | I1 |
 
 ---
 
@@ -80,8 +79,8 @@ O exercício 7 (frontend) não fica só no I5: cada incremento entrega a sua par
 
 | Inc. | Objetivo | Histórias | Ficha PL 03 | Estado |
 |------|----------|-----------|-------------|--------|
-| I0 | Projeto executável, esquema e seed | | Ex. 2 | Pronto para revisão |
-| I1 | Entrar, sair, utilizador autenticado | US01 | Ex. 3 | Por fazer |
+| I0 | Projeto executável, esquema e seed | | Ex. 2 | Concluído |
+| I1 | Entrar, sair, utilizador autenticado | US01 | Ex. 3 | Pronto para revisão |
 | I2 | Gestão de projetos | US04, US12, US15, US17 (editar), US20, US22 | Ex. 4 | Por fazer |
 | I3 | Gestão de tarefas | US05, US07 (gestor), US10, US11 (sem o filtro por responsável), US16 | Ex. 5 | Por fazer |
 | I4 | Responsáveis e comentários | US06, US07 (responsáveis), US11 (filtro por responsável), US19 | Ex. 6 | Por fazer |

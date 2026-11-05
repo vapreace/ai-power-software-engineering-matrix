@@ -1,9 +1,77 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
+import type { Role } from '@/api/types'
+import { loadSession } from '@/session'
+import LoginView from '@/views/LoginView.vue'
+import SetPasswordView from '@/views/SetPasswordView.vue'
+import DashboardView from '@/views/DashboardView.vue'
+import ComingSoonView from '@/views/ComingSoonView.vue'
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    /** Página que não exige sessão (só a entrada, SEG01). */
+    public?: boolean
+    /** Papéis que veem a página no menu (DA21). Sem valor: todos. */
+    roles?: Role[]
+    title?: string
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [{ path: '/', name: 'home', component: HomeView }],
+  routes: [
+    { path: '/entrar', name: 'login', component: LoginView, meta: { public: true, title: 'Entrar' } },
+    {
+      path: '/definir-palavra-passe',
+      name: 'set-password',
+      component: SetPasswordView,
+      meta: { title: 'Definir palavra-passe nova' },
+    },
+    { path: '/', name: 'home', component: DashboardView, meta: { title: 'Painel' } },
+    { path: '/projetos', name: 'projects', component: ComingSoonView, meta: { title: 'Projetos' } },
+    {
+      path: '/minhas-tarefas',
+      name: 'my-tasks',
+      component: ComingSoonView,
+      meta: { title: 'As minhas tarefas', roles: ['MANAGER', 'MEMBER'] },
+    },
+    { path: '/equipas', name: 'teams', component: ComingSoonView, meta: { title: 'Equipas' } },
+    {
+      path: '/contas',
+      name: 'accounts',
+      component: ComingSoonView,
+      meta: { title: 'Contas', roles: ['ADMINISTRATOR'] },
+    },
+    { path: '/:pathMatch(.*)*', redirect: { name: 'home' } },
+  ],
+})
+
+// Guarda de rotas: sem sessão vai para a entrada; com palavra-passe temporária,
+// só a página de definir a nova (SEG01, DA25). A proteção que conta é a do backend (SEG02).
+router.beforeEach(async (to) => {
+  const user = await loadSession()
+  if (to.meta.public) {
+    if (!user) {
+      return true
+    }
+    return user.mustChangePassword ? { name: 'set-password' } : { name: 'home' }
+  }
+  if (!user) {
+    return { name: 'login' }
+  }
+  if (user.mustChangePassword && to.name !== 'set-password') {
+    return { name: 'set-password' }
+  }
+  if (!user.mustChangePassword && to.name === 'set-password') {
+    return { name: 'home' }
+  }
+  if (to.meta.roles && !to.meta.roles.includes(user.role)) {
+    return { name: 'home' }
+  }
+  return true
+})
+
+router.afterEach((to) => {
+  document.title = to.meta.title ? `${to.meta.title} · Matriz` : 'Matriz'
 })
 
 export default router

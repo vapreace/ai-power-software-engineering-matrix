@@ -1,0 +1,194 @@
+/* Estilos comuns da Matriz, ao jeito do wireframe (docs/ui/wireframe.png). */
+:root {
+  --text: #222;
+  --muted: #666;
+  --border: #333;
+  --line: #999;
+  --surface: #fff;
+  --band: #eee;
+  --error: #a40000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--surface);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1 {
+  font-size: 22px;
+  margin: 0 0 12px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.page {
+  padding: 16px;
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.narrow {
+  padding: 16px;
+  max-width: 420px;
+  margin: 40px auto;
+}
+
+.card {
+  border: 2px solid var(--border);
+  padding: 20px;
+}
+
+.btn {
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 6px 14px;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn.secondary {
+  border-width: 1px;
+  font-weight: normal;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.btn:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid #1a5fb4;
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.field {
+  margin-bottom: 14px;
+}
+
+.field label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.field input {
+  width: 100%;
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  font: inherit;
+}
+
+.field input[aria-invalid='true'] {
+  border: 2px solid var(--error);
+}
+
+.field-error {
+  color: var(--error);
+  margin: 4px 0 0;
+}
+
+.alert {
+  border: 2px solid var(--error);
+  color: var(--error);
+  padding: 8px 10px;
+}
+
+.alert.info {
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  border-bottom: 2px solid var(--border);
+  padding: 10px 16px;
+  background: var(--band);
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 18px;
+  border: 2px solid var(--border);
+  padding: 2px 8px;
+}
+
+.main-menu {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.main-menu a {
+  color: var(--text);
+  text-decoration: none;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+}
+
+.main-menu a.router-link-exact-active {
+  border-color: var(--border);
+  background: var(--surface);
+  font-weight: bold;
+}
+
+.user {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.menu-toggle {
+  display: none;
+}
+
+/* Telemóvel: menu recolhido e sem deslocamento horizontal (RNF01, DA22). */
+@media (max-width: 640px) {
+  .app-header {
+    gap: 10px;
+  }
+
+  .menu-toggle {
+    display: inline-block;
+    margin-left: auto;
+  }
+
+  .main-menu {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .main-menu.open {
+    display: flex;
+  }
+
+  .user {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+}

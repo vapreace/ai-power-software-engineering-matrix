@@ -110,7 +110,7 @@ O backend serve o frontend compilado e a API na mesma origem. O browser só fala
 
 | Módulo | Responsabilidade | Dono dos dados | Requisitos e regras | Histórias |
 |--------|------------------|----------------|---------------------|-----------|
-| **Acesso** | Entrar e sair. Verificar a palavra-passe. Criar e terminar sessões. Garantir que cada pedido tem sessão válida e conta ativa. Obrigar a definir uma palavra-passe nova quando a atual é temporária. Limitar tentativas falhadas. | Sessões e contadores de tentativas, em memória | RF01, SEG01, SEG03, SEG04, SEG05, SEG07, SEG08, SEG09, DA25, DA26 | US01 |
+| **Acesso** | Entrar e sair. Verificar a palavra-passe. Criar e terminar sessões. Garantir que cada pedido tem sessão válida e conta ativa. Obrigar a definir uma palavra-passe nova quando a atual é temporária. Limitar tentativas falhadas. | Sessões e contadores de tentativas, em memória | RF01, SEG01, SEG03, SEG04, SEG05, SEG07, SEG08, SEG09, DA25, DA26, DA35 | US01 |
 | **Contas** | Criar, editar, desativar e reativar contas. Mudar o papel. Dar e repor o acesso com uma palavra-passe temporária. Garantir um Administrador ativo. | Utilizador: nome, email, palavra-passe protegida e indicação de palavra-passe temporária, papel, estado | RF02, RN04, RN16, RN18, RN23, RN28, RN29, RNF05, DA25 | US02, US14, US18 |
 | **Equipas** | Criar e editar equipas. Adicionar e remover pessoas. Dizer a que equipas pertence cada pessoa. | Equipa, pertença a equipas | RF05, RF06, RN02, RN03, RN17, RN23, RN26, RN29, RN32 | US03, US18 |
 | **Projetos** | Criar, editar, mudar o estado, arquivar e eliminar projetos. Gerir o gestor e o valor "Sem gestor". Dizer que projetos cada pessoa vê, pesquisar pelo nome e dizer se um projeto aceita alterações. | Projeto | RF07, RF08, RF40, RF41, RN01, RN05 a RN10, RN21, RN22, RN23, RN27, RN29, RN31, RN32, RN34 | US04, US13, US17, US20, US22 |
@@ -159,6 +159,7 @@ flowchart TD
     Projetos --> Contas
     Equipas --> Contas
     Acesso --> Contas
+    Acesso --> Equipas
 ```
 
 A seta indica quem chama quem. Todos os módulos usam também os componentes de Comum (omitidos no diagrama).
@@ -169,7 +170,8 @@ A seta indica quem chama quem. Todos os módulos usam também os componentes de 
 | Tarefas → Equipas, Contas | Cada responsável tem de pertencer à equipa, ter conta ativa e papel Gestor ou Membro (RN14). Só quem pertence à equipa comenta (RN30). |
 | Projetos → Equipas, Contas | O gestor tem de ter conta ativa, pertencer à equipa e ter papel Gestor (RN21). Equipa sem Gestor com conta ativa não tem projetos novos (RN27). |
 | Equipas → Contas | Só Gestor e Membro com conta ativa pertencem a equipas (RN26). |
-| Acesso → Contas | Conta desativada não entra (SEG05). |
+| Acesso → Contas | Conta desativada não entra (SEG05). Em cada pedido, confirma que a conta continua ativa (SEG08, DA35). |
+| Acesso → Equipas | O utilizador autenticado inclui as equipas a que pertence (`GET /session`, US01). Acrescentada na Ficha PL 03 (I1). |
 
 **Regras:**
 
@@ -186,8 +188,7 @@ Os eventos são publicados e tratados dentro da aplicação, de forma síncrona 
 
 | Evento | Publicado por | Quem reage | O que acontece | Regra |
 |--------|---------------|------------|----------------|-------|
-| Conta desativada | Contas | Acesso | Termina todas as sessões da conta. | SEG08 |
-| | | Tarefas | A pessoa deixa de ser responsável pelas tarefas abertas. As concluídas mantêm o nome. | RN16 |
+| Conta desativada | Contas | Tarefas | A pessoa deixa de ser responsável pelas tarefas abertas. As concluídas mantêm o nome. | RN16 |
 | | | Projetos | Os projetos que gere ficam "Sem gestor". | RN22 |
 | Papel mudado | Contas | Projetos | Se deixou de ser Gestor, os projetos que gere ficam "Sem gestor". | RN22, RN23 |
 | | | Equipas | Se passou a Observador ou Administrador, sai de todas as equipas. Publica "Pessoa removida da equipa" para cada uma. | RN23, RN26 |
@@ -204,7 +205,6 @@ sequenceDiagram
     actor Ana as Ana (Administrador)
     participant F as Frontend
     participant C as Contas
-    participant Ac as Acesso
     participant T as Tarefas
     participant P as Projetos
     Ana->>F: Desativar a conta do Pedro
@@ -212,14 +212,14 @@ sequenceDiagram
     Note over C,P: uma só transação
     C->>C: verifica permissão e RN18
     C->>C: estado da conta passa a Desativada
-    C->>Ac: Conta desativada
-    Ac->>Ac: termina as sessões do Pedro (SEG08)
     C->>T: Conta desativada
     T->>T: deixa de ser responsável pelas tarefas abertas (RN16)
     C->>P: Conta desativada
     P->>P: projetos que gere ficam "Sem gestor" (RN22)
     C-->>F: conta desativada
 ```
+
+O Acesso não precisa de reagir ao evento: no pedido seguinte do Pedro, vê que a conta está desativada, termina a sessão e responde 401 (SEG08, DA35).
 
 ---
 
@@ -281,10 +281,11 @@ Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14, DA29
 | DA01 | Monólito modular. | DP02 | Monólito sem módulos, microservices. | Secção 3. |
 | DA02 | Backend em Java com Spring Boot 4, API REST com JSON. Frontend em Vue 3 com TypeScript e Vite. O backend serve o frontend compilado. Um repositório com as pastas `backend/` e `frontend/`. | DP01 | Thymeleaf (páginas no servidor), React, Angular. | Um deploy e a mesma origem: não é preciso configurar CORS em produção. Em desenvolvimento, o Vite reencaminha `/api` para o backend. As versões exatas e as bibliotecas adicionais fixam-se na Ficha 03, com aprovação (AGENTS.md). |
 | DA03 | Base de dados relacional PostgreSQL. | DP03 (com DA08 a DA14) | H2 ou SQLite, MongoDB. | Chaves estrangeiras e constraints (UNIQUE no email, RN04, e no nome da equipa, RN03). O modelo físico está em database.md. A ordenação sem acentos de RN24 usa uma collation ICU (DA14). |
-| DA04 | Autenticação com sessão no servidor e cookie HttpOnly, com Spring Security. Proteção CSRF ativa. Palavras-passe guardadas com hash adaptativo. | DP06 (parcial) | Token JWT sem estado. | Sair (SEG07) e desativar (SEG08) terminam a sessão no servidor. O armazenamento das sessões tem de permitir terminar todas as sessões de uma conta. O resto da DP06 está em DA26. |
+| DA04 | Autenticação com sessão no servidor e cookie HttpOnly, com Spring Security. Proteção CSRF ativa. Palavras-passe guardadas com hash adaptativo. | DP06 (parcial) | Token JWT sem estado. | Sair (SEG07) e desativar (SEG08) terminam a sessão no servidor. Desativar não exige procurar as sessões da conta: o pedido seguinte é recusado (DA35). O resto da DP06 está em DA26. |
 | DA05 | Bloqueio otimista em Projeto e Tarefa: cada registo tem um número de versão. Gravar sobre uma versão antiga é recusado. | DP13 | O último a gravar ganha (manter LIM11). | Resolve LIM11. Campo `version` no modelo de dados (database.md). Vale para todas as alterações de tarefas e projetos, com resposta 409 `VERSION_CONFLICT` (DA20). As alterações automáticas da secção 7 também mudam a versão. Cenários de exemplo em US07, US16 e US17 (E30, E31). |
 | DA06 | Regras entre módulos com eventos internos síncronos, na mesma transação, sem broker. | DP02 | Chamadas diretas entre módulos (criam ciclos), broker de mensagens (consistência eventual e mais infraestrutura). | Secção 7. O fluxo fica menos visível no código: a tabela da secção 7 é a referência. |
 | DA07 | Uma única instância do backend no MVP. | | Várias instâncias. | Chega para P05 (RNF03, RNF04). O alojamento fica para DP10. |
+| DA35 | Em cada pedido com sessão, o Acesso lê a conta da base de dados. Se a conta estiver desativada ou já não existir, invalida a sessão e responde 401. Não há registo de sessões por conta. | SEG08 (mecanismo), Ficha 03 (I1) | Registo de sessões (SessionRegistry do Spring Security) para o evento "Conta desativada" expirar logo todas as sessões. | Cumpre SEG08 e o cenário "sessão aberta" de US14 (E16): o pedido seguinte é recusado e a pessoa vê a página de entrada. A sessão de uma conta desativada fica em memória até ao pedido seguinte ou aos 30 minutos de inatividade, sem permitir nada. O evento "Conta desativada" deixa de ter reação do Acesso (secção 7). |
 | DA28 | Java 21 (LTS). Build com Maven e Maven Wrapper (`mvnw`) no backend e npm no frontend. Pacote base `pt.matriz`, com um subpacote por módulo da secção 5.1 e `common` (secção 8). Bibliotecas do backend: Spring Web MVC, Spring Security, Bean Validation, Spring Data JPA, Liquibase, driver PostgreSQL e Spring Modulith (só a verificação das fronteiras). Frontend: Vue 3, TypeScript, Vite e Vue Router; os pedidos usam `fetch`, sem biblioteca extra. Em desenvolvimento correm o backend e o servidor do Vite; para entregar, o build do frontend vai para os recursos estáticos do backend e sai um único `.jar`. | Ficha 03 (pormenores de DA02) | Java 25. Gradle (Kotlin DSL). ArchUnit sem Spring Modulith. JDBC sem JPA. Axios e Pinia. | Java 21 é a versão instalada na máquina de desenvolvimento e é suportada pelo Spring Boot 4. As versões exatas das bibliotecas fixam-se no exercício 2, com aprovação, e ficam no README. JPA dá o bloqueio otimista de DA05 com `@Version`. Um teste do Spring Modulith confirma que não há ciclos nem acessos a subpacotes de outros módulos (secção 12.2). Os eventos de DA06 usam `@EventListener` síncrono, não os listeners assíncronos do Spring Modulith. |
 | DA30 | O esquema é criado por changesets Liquibase, a partir de um changelog principal em `db/changelog`, executados no arranque. Os dados de demonstração são changesets com o contexto `demo`, que só corre no perfil `demo`: as pessoas e os projetos de partida de [user-stories.md](user-stories.md), com emails `empresa.example`, palavras-passe de demonstração indicadas no README e `must_change_password` falso. A configuração vem de variáveis de ambiente, com `.env.example` de valores fictícios; o `.env` fica fora do Git. PostgreSQL local com Docker Compose. | Ficha 03, exercício 2 | `ddl-auto` do Hibernate (não é reproduzível e pode apagar dados). Flyway. Seed em código Java em cada arranque. | O Liquibase é a ferramenta que a equipa conhece melhor. Cada changeset corre uma só vez, por isso o seed não apaga nem repete dados. O primeiro Administrador de DA25 só é criado se não existir nenhum. As verificações manuais usam as mesmas pessoas que os cenários das histórias. Exige Docker para a base de dados local e para os testes (DA31). |
 | DA31 | Testes com JUnit Jupiter, Spring Boot Test (MockMvc) e Testcontainers com PostgreSQL. Na Ficha 03: pelo menos um teste de validação, um de autorização e um de criação com consulta posterior (R08), mais o teste de arquitetura de DA28. O Relógio da organização é substituído por uma data fixa. | DP09 (parcial) | H2 em memória (não tem a collation ICU de DA14 nem o `unaccent` de DA32). Só verificação manual. | Os testes usam o mesmo PostgreSQL da aplicação. A estratégia completa, a cobertura e os testes do frontend ficam para o Módulo 4 (DP09). |

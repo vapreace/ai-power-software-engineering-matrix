@@ -25,6 +25,21 @@ spring:
     problemdetails:
       enabled: true
 
+server:
+  servlet:
+    session:
+      # A sessão termina após 30 minutos sem pedidos (DA26).
+      timeout: 30m
+      tracking-modes: cookie
+      cookie:
+        http-only: true
+        same-site: lax
+
 matriz:
   # Fuso horário fixo da organização (DA24).
   time-zone: Europe/Lisbon
+  # Primeira conta de Administrador, criada no arranque se ainda não existir nenhuma (DA25).
+  first-administrator:
+    name: ${MATRIZ_ADMIN_NAME:Administrador}
+    email: ${MATRIZ_ADMIN_EMAIL:}
+    password: ${MATRIZ_ADMIN_PASSWORD:}

@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
 
 /** Confirma que o Liquibase cria o esquema de docs/database.md num PostgreSQL real (DA30, DA31). */
 @SpringBootTest
+@ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 class DatabaseSchemaTests {
 
@@ -32,7 +34,9 @@ class DatabaseSchemaTests {
 
     @Test
     void demoDataIsOnlyLoadedInTheDemoProfile() {
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM users", Integer.class)).isZero();
+        Integer demoChangeSets = jdbc.queryForObject(
+                "SELECT count(*) FROM databasechangelog WHERE id LIKE '100-demo%'", Integer.class);
+        assertThat(demoChangeSets).isZero();
     }
 
     @Test

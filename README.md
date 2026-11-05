@@ -2,7 +2,7 @@
 
 Aplicação de gestão de projetos e tarefas para equipas, desenvolvida no curso **AI-Powered Software Engineering: From Mindset to Delivery**.
 
-> Fase atual: **Ficha PL 03**. Exercício 1 concluído; exercício 2 (incremento I0, esqueleto e base de dados) em curso.
+> Fase atual: **Ficha PL 03**. Exercícios 1 e 2 concluídos; exercício 3 (incremento I1, entrar e sair) pronto para revisão.
 
 ---
 
@@ -84,7 +84,9 @@ O Liquibase cria o esquema no arranque do backend (DA30). Sem o perfil `demo`, a
 
 ### Contas de demonstração
 
-São as pessoas de partida de [user-stories.md](docs/user-stories.md), com dados fictícios (PRIV03). A palavra-passe de todas é `matriz-demo-2026`. A entrada na aplicação chega no incremento I1.
+São as pessoas de partida de [user-stories.md](docs/user-stories.md), com dados fictícios (PRIV03). A palavra-passe de todas é `matriz-demo-2026`.
+
+Sem o perfil `demo`, a primeira conta de Administrador é criada no arranque com os valores `MATRIZ_ADMIN_*` do `.env`, com palavra-passe temporária (DA25).
 
 | Email | Papel | Equipas |
 |-------|-------|---------|
@@ -178,6 +180,6 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | API | Contrato completo, 34 operações (openapi.yaml 0.3.0) |
 | Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.4) |
 | Plano de implementação | 8 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
-| Implementação | Em curso: incremento I0, esqueleto e base de dados (Ficha PL 03, exercício 2) |
+| Implementação | I0 (esqueleto e base de dados) concluído. I1 (entrar e sair) pronto para revisão |
 
 As decisões técnicas estão em [architecture.md, secção 9](docs/architecture.md#9-decisões-técnicas). As que faltam estão em [constraints.md, secção 4](docs/constraints.md#4-decisões-técnicas-pendentes).

@@ -1,0 +1,6 @@
+# Perfil dos testes automáticos (DA31). Os testes criam os seus próprios dados
+# e nunca usam o primeiro Administrador do .env.
+matriz:
+  first-administrator:
+    email: ""
+    password: ""

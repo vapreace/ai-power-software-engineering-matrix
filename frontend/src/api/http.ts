@@ -17,6 +17,23 @@ export class ApiError extends Error {
   constructor(public readonly problem: Problem) {
     super(problem.detail)
   }
+
+  /** Mensagem do campo indicado, quando a API a devolve em `errors`. */
+  fieldError(field: string): string | undefined {
+    return this.problem.errors?.find((error) => error.field === field)?.message
+  }
+}
+
+type SessionProblemHandler = (problem: Problem) => void
+
+let sessionProblemHandler: SessionProblemHandler | null = null
+
+/**
+ * Chamado quando a sessão terminou (401) ou a palavra-passe temporária ainda não foi
+ * mudada (403 PASSWORD_CHANGE_REQUIRED), em qualquer pedido (docs/ui/README.md, secção 10).
+ */
+export function setSessionProblemHandler(handler: SessionProblemHandler): void {
+  sessionProblemHandler = handler
 }
 
 function readCookie(name: string): string | undefined {
@@ -24,6 +41,15 @@ function readCookie(name: string): string | undefined {
     .split('; ')
     .find((part) => part.startsWith(`${name}=`))
     ?.split('=')[1]
+}
+
+function isSessionProblem(method: string, path: string, problem: Problem): boolean {
+  if (problem.code === 'PASSWORD_CHANGE_REQUIRED') {
+    return true
+  }
+  // Entrar com credenciais erradas e verificar a sessão ao arrancar não são sessões terminadas.
+  const sessionCall = path === '/session' && (method === 'POST' || method === 'GET')
+  return problem.status === 401 && !sessionCall
 }
 
 /**
@@ -50,7 +76,11 @@ export async function request<T>(method: string, path: string, body?: unknown): 
   })
 
   if (!response.ok) {
-    throw new ApiError(await toProblem(response))
+    const problem = await toProblem(response)
+    if (sessionProblemHandler && isSessionProblem(method, path, problem)) {
+      sessionProblemHandler(problem)
+    }
+    throw new ApiError(problem)
   }
   if (response.status === 204) {
     return undefined as T

@@ -1,7 +1,6 @@
 package pt.matriz.common;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 /**
  * Converte os erros no formato Problem Details (RFC 9457), com as extensões
  * {@code code} e {@code errors} (DA16). As mensagens estão em português (RNF02).
+ * Também é usado pelos filtros de segurança, através do HandlerExceptionResolver.
  */
 @RestControllerAdvice
 class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -27,17 +27,20 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     ResponseEntity<ProblemDetail> handleApiException(ApiException ex) {
-        return ResponseEntity.status(ex.getStatus()).body(problem(ex.getStatus(), ex.getCode(), ex.getMessage()));
+        ProblemDetail body = problem(ex.getStatus(), ex.getCode(), ex.getMessage());
+        if (!ex.getErrors().isEmpty()) {
+            body.setProperty("errors", ex.getErrors());
+        }
+        return ResponseEntity.status(ex.getStatus()).body(body);
     }
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ProblemDetail body = problem(HttpStatus.BAD_REQUEST, ProblemCode.VALIDATION_ERROR, INVALID_FIELDS);
-        List<Map<String, String>> errors = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> Map.of(
-                        "field", error.getField(),
-                        "message", error.getDefaultMessage() == null ? INVALID_FIELDS : error.getDefaultMessage()))
+        List<ApiFieldError> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> new ApiFieldError(error.getField(),
+                        error.getDefaultMessage() == null ? INVALID_FIELDS : error.getDefaultMessage()))
                 .toList();
         body.setProperty("errors", errors);
         return ResponseEntity.badRequest().body(body);
