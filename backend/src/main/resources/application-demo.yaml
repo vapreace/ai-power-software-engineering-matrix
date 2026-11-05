@@ -1,0 +1,5 @@
+# Perfil demo: carrega os dados de demonstração (contexto Liquibase "demo", DA30).
+# Contas de demonstração e palavra-passe: README.md.
+spring:
+  liquibase:
+    contexts: default,demo

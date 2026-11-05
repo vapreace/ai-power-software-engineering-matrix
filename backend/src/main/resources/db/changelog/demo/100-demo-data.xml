@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Dados de demonstração (DA30). Só correm com o contexto "demo" (perfil demo).
+  São as pessoas e os projetos de partida de docs/user-stories.md, com dados fictícios (PRIV03).
+  Palavra-passe de todas as contas: matriz-demo-2026 (hash bcrypt abaixo, SEG03).
+  Os prazos são relativos à data do primeiro arranque, para haver tarefas atrasadas (RF28).
+  Cada changeset corre uma só vez: reiniciar não apaga nem repete os dados.
+-->
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <property name="demoPasswordHash" value="$2a$10$A0DRrqRkcpr1m.cgL4V.t.XQjMNRLSsp/D2UoW7oWcLItRgOycOzW"/>
+
+    <changeSet id="100-demo-users" author="matriz" context="demo">
+        <comment>Pessoas de partida (user-stories.md).</comment>
+        <insert tableName="users">
+            <column name="name" value="Ana"/>
+            <column name="email" value="ana@empresa.example"/>
+            <column name="password_hash" value="${demoPasswordHash}"/>
+            <column name="must_change_password" valueBoolean="false"/>
+            <column name="role" value="ADMINISTRATOR"/>
+        </insert>
+        <insert tableName="users">
+            <column name="name" value="Rui"/>
+            <column name="email" value="rui@empresa.example"/>
+            <column name="password_hash" value="${demoPasswordHash}"/>
+            <column name="must_change_password" valueBoolean="false"/>
+            <column name="role" value="MANAGER"/>
+        </insert>
+        <insert tableName="users">
+            <column name="name" value="Sofia"/>
+            <column name="email" value="sofia@empresa.example"/>
+            <column name="password_hash" value="${demoPasswordHash}"/>
+            <column name="must_change_password" valueBoolean="false"/>
+            <column name="role" value="MANAGER"/>
+        </insert>
+        <insert tableName="users">
+            <column name="name" value="Tiago"/>
+            <column name="email" value="tiago@empresa.example"/>
+            <column name="password_hash" value="${demoPasswordHash}"/>
+            <column name="must_change_password" valueBoolean="false"/>
+            <column name="role" value="MANAGER"/>
+        </insert>
+        <insert tableName="users">
+            <column name="name" value="Marta"/>
+            <column name="email" value="marta@empresa.example"/>
+            <column name="password_hash" value="${demoPasswordHash}"/>
+            <column name="must_change_password" valueBoolean="false"/>
+            <column name="role" value="MEMBER"/>
+        </insert>
+        <insert tableName="users">
+            <column name="name" value="Pedro"/>
+            <column name="email" value="pedro@empresa.example"/>
+            <column name="password_hash" value="${demoPasswordHash}"/>
+            <column name="must_change_password" valueBoolean="false"/>
+            <column name="role" value="MEMBER"/>
+        </insert>
+        <insert tableName="users">
+            <column name="name" value="João"/>
+            <column name="email" value="joao@empresa.example"/>
+            <column name="password_hash" value="${demoPasswordHash}"/>
+            <column name="must_change_password" valueBoolean="false"/>
+            <column name="role" value="MEMBER"/>
+        </insert>
+        <insert tableName="users">
+            <column name="name" value="Carlos"/>
+            <column name="email" value="carlos@empresa.example"/>
+            <column name="password_hash" value="${demoPasswordHash}"/>
+            <column name="must_change_password" valueBoolean="false"/>
+            <column name="role" value="OBSERVER"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="100-demo-teams" author="matriz" context="demo">
+        <comment>Equipas de partida e quem lhes pertence.</comment>
+        <insert tableName="teams">
+            <column name="name" value="Logística Norte"/>
+        </insert>
+        <insert tableName="teams">
+            <column name="name" value="Compras"/>
+        </insert>
+        <sql>
+            INSERT INTO team_members (team_id, user_id)
+            SELECT t.id, u.id
+            FROM (VALUES
+                    ('Logística Norte', 'rui@empresa.example'),
+                    ('Logística Norte', 'sofia@empresa.example'),
+                    ('Logística Norte', 'marta@empresa.example'),
+                    ('Logística Norte', 'pedro@empresa.example'),
+                    ('Compras', 'tiago@empresa.example'),
+                    ('Compras', 'marta@empresa.example'),
+                    ('Compras', 'joao@empresa.example')
+                 ) AS v(team_name, email)
+            JOIN teams t ON t.name = v.team_name
+            JOIN users u ON u.email = v.email;
+        </sql>
+    </changeSet>
+
+    <changeSet id="100-demo-projects" author="matriz" context="demo">
+        <comment>Projetos de partida. "Armazém Sul" está arquivado.</comment>
+        <sql>
+            INSERT INTO projects (team_id, manager_id, name, description, start_date, expected_end_date, status)
+            SELECT t.id, u.id, v.name, v.description, CURRENT_DATE + v.start_offset, CURRENT_DATE + v.end_offset, v.status
+            FROM (VALUES
+                    ('Novo armazém', 'Logística Norte', 'rui@empresa.example', 'Preparar a abertura do novo armazém da zona norte.', -30, 43, 'ACTIVE'),
+                    ('Frota', 'Logística Norte', 'sofia@empresa.example', NULL, -10, NULL, 'ACTIVE'),
+                    ('Armazém Sul', 'Logística Norte', 'rui@empresa.example', 'Mudança do armazém sul, já terminada.', -200, -60, 'ARCHIVED'),
+                    ('Fornecedores', 'Compras', 'tiago@empresa.example', 'Rever a lista e as condições dos fornecedores.', -15, 60, 'ACTIVE')
+                 ) AS v(name, team_name, manager_email, description, start_offset, end_offset, status)
+            JOIN teams t ON t.name = v.team_name
+            JOIN users u ON u.email = v.manager_email;
+        </sql>
+    </changeSet>
+
+    <changeSet id="100-demo-tasks" author="matriz" context="demo">
+        <comment>Tarefas. "Novo armazém": 10 tarefas, 6 concluídas, 2 atrasadas (como no wireframe). "Frota" não tem tarefas.</comment>
+        <sql>
+            INSERT INTO tasks (project_id, title, description, due_date, priority, status)
+            SELECT p.id, v.title, v.description, CURRENT_DATE + v.due_offset, v.priority, v.status
+            FROM (VALUES
+                    ('Novo armazém', 'Pedir orçamento de estantes', 'Pedir a pelo menos dois fornecedores.', 5, 'HIGH', 'IN_PROGRESS'),
+                    ('Novo armazém', 'Contratar transporte', NULL, -2, 'MEDIUM', 'TODO'),
+                    ('Novo armazém', 'Rever contrato de arrendamento', NULL, -1, 'HIGH', 'IN_PROGRESS'),
+                    ('Novo armazém', 'Instalar sistema de alarme', NULL, NULL, 'LOW', 'TODO'),
+                    ('Novo armazém', 'Escolher localização', NULL, -25, 'HIGH', 'DONE'),
+                    ('Novo armazém', 'Aprovar orçamento inicial', NULL, -20, 'HIGH', 'DONE'),
+                    ('Novo armazém', 'Medir o espaço', NULL, -18, 'MEDIUM', 'DONE'),
+                    ('Novo armazém', 'Pedir licença municipal', NULL, -12, 'MEDIUM', 'DONE'),
+                    ('Novo armazém', 'Definir layout', NULL, -8, 'LOW', 'DONE'),
+                    ('Novo armazém', 'Encomendar empilhador', NULL, -4, 'MEDIUM', 'DONE'),
+                    ('Armazém Sul', 'Transferir stock', NULL, -90, 'HIGH', 'DONE'),
+                    ('Armazém Sul', 'Devolver chaves', NULL, -70, 'MEDIUM', 'DONE'),
+                    ('Armazém Sul', 'Cancelar contratos de energia', NULL, -65, 'MEDIUM', 'DONE'),
+                    ('Armazém Sul', 'Arquivar documentação', NULL, -61, 'LOW', 'DONE'),
+                    ('Fornecedores', 'Avaliar fornecedores atuais', NULL, 10, 'HIGH', 'IN_PROGRESS'),
+                    ('Fornecedores', 'Negociar prazos de pagamento', NULL, 15, 'MEDIUM', 'TODO'),
+                    ('Fornecedores', 'Atualizar lista de contactos', NULL, NULL, 'LOW', 'TODO')
+                 ) AS v(project_name, title, description, due_offset, priority, status)
+            JOIN projects p ON p.name = v.project_name;
+        </sql>
+    </changeSet>
+
+    <changeSet id="100-demo-task-assignees" author="matriz" context="demo">
+        <comment>Responsáveis. "Pedir orçamento de estantes" tem dois (RN14). Algumas tarefas ficam "Sem responsável".</comment>
+        <sql>
+            INSERT INTO task_assignees (task_id, user_id)
+            SELECT t.id, u.id
+            FROM (VALUES
+                    ('Novo armazém', 'Pedir orçamento de estantes', 'marta@empresa.example'),
+                    ('Novo armazém', 'Pedir orçamento de estantes', 'pedro@empresa.example'),
+                    ('Novo armazém', 'Contratar transporte', 'pedro@empresa.example'),
+                    ('Novo armazém', 'Rever contrato de arrendamento', 'marta@empresa.example'),
+                    ('Novo armazém', 'Escolher localização', 'rui@empresa.example'),
+                    ('Novo armazém', 'Aprovar orçamento inicial', 'rui@empresa.example'),
+                    ('Novo armazém', 'Medir o espaço', 'pedro@empresa.example'),
+                    ('Novo armazém', 'Pedir licença municipal', 'marta@empresa.example'),
+                    ('Novo armazém', 'Definir layout', 'sofia@empresa.example'),
+                    ('Novo armazém', 'Encomendar empilhador', 'pedro@empresa.example'),
+                    ('Armazém Sul', 'Transferir stock', 'pedro@empresa.example'),
+                    ('Armazém Sul', 'Devolver chaves', 'marta@empresa.example'),
+                    ('Fornecedores', 'Avaliar fornecedores atuais', 'joao@empresa.example'),
+                    ('Fornecedores', 'Negociar prazos de pagamento', 'marta@empresa.example')
+                 ) AS v(project_name, task_title, email)
+            JOIN projects p ON p.name = v.project_name
+            JOIN tasks t ON t.project_id = p.id AND t.title = v.task_title
+            JOIN users u ON u.email = v.email;
+        </sql>
+    </changeSet>
+
+    <changeSet id="100-demo-task-comments" author="matriz" context="demo">
+        <comment>Comentários (US19).</comment>
+        <sql>
+            INSERT INTO task_comments (task_id, author_id, content, created_at)
+            SELECT t.id, u.id, v.content, CURRENT_TIMESTAMP + v.age
+            FROM (VALUES
+                    ('Pedir orçamento de estantes', 'rui@empresa.example', 'Preciso disto até sexta.', INTERVAL '-1 day'),
+                    ('Pedir orçamento de estantes', 'marta@empresa.example', 'Já pedi dois orçamentos.', INTERVAL '-2 hours')
+                 ) AS v(task_title, email, content, age)
+            JOIN projects p ON p.name = 'Novo armazém'
+            JOIN tasks t ON t.project_id = p.id AND t.title = v.task_title
+            JOIN users u ON u.email = v.email;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

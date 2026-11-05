@@ -1,0 +1,22 @@
+# PostgreSQL local para desenvolvimento (DA03, DA30).
+# Os valores vêm do ficheiro .env (copiar de .env.example).
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ${MATRIZ_DB_NAME:-matriz}
+      POSTGRES_USER: ${MATRIZ_DB_USER:-matriz}
+      POSTGRES_PASSWORD: ${MATRIZ_DB_PASSWORD:?Defina MATRIZ_DB_PASSWORD no ficheiro .env}
+    ports:
+      - "${MATRIZ_DB_PORT:-5432}:5432"
+    volumes:
+      # A partir do PostgreSQL 18, a imagem guarda os dados em /var/lib/postgresql/18/docker.
+      - matriz-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  matriz-data:

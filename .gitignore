@@ -1,6 +1,5 @@
 # .gitignore da Matriz
-# Versão básica, sem tecnologia escolhida.
-# As entradas da linguagem e da framework entram depois da Aula 2 (DP01).
+# Stack em docs/architecture.md (DA02, DA28). O backend/ e o frontend/ têm também o seu .gitignore.
 
 # IDE e editores
 .idea/
@@ -25,3 +24,12 @@ desktop.ini
 *.log
 *.tmp
 tmp/
+
+# Backend (Maven, DA28)
+backend/target/
+
+# Frontend (Node, DA28)
+frontend/node_modules/
+
+# Build do frontend copiado para o backend (DA28): gera-se, não se versiona
+backend/src/main/resources/static/

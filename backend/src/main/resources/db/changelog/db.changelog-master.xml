@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Changelog principal da Matriz (DA30).
+  O esquema segue docs/database.md. Mudar o modelo exige atualizar esse documento
+  na mesma alteração (AGENTS.md).
+
+  Os changesets de demonstração têm o contexto "demo" e só correm no perfil demo.
+  Nos outros perfis, spring.liquibase.contexts=default impede que corram.
+-->
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <include file="changes/001-extensions-and-collation.xml" relativeToChangelogFile="true"/>
+    <include file="changes/002-accounts-and-teams.xml" relativeToChangelogFile="true"/>
+    <include file="changes/003-projects.xml" relativeToChangelogFile="true"/>
+    <include file="changes/004-tasks.xml" relativeToChangelogFile="true"/>
+
+    <include file="demo/100-demo-data.xml" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>

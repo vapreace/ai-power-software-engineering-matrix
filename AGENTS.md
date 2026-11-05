@@ -6,7 +6,7 @@ Instruções para agentes de IA que trabalham neste repositório.
 
 A Matriz é uma aplicação de gestão de projetos e tarefas para equipas.
 
-Fase atual: **Ficha PL 03**. Âmbito conciliado e plano de implementação feito (exercício 1). Ainda não existe código. Segue os incrementos de `docs/implementation-plan.md` e atualiza o estado do incremento no fim.
+Fase atual: **Ficha PL 03**, implementação. Segue os incrementos de `docs/implementation-plan.md` e atualiza o estado do incremento no fim.
 
 Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java com Spring Boot 4 e API REST; frontend em Vue 3 com TypeScript e Vite; base de dados PostgreSQL; autenticação com sessão no servidor.
 
@@ -93,7 +93,25 @@ Indica sempre:
 ## Validação
 
 - Quando terminares uma história, indica que está "pronta para revisão". Só uma pessoa da equipa a marca como concluída (`docs/user-stories.md`, secção 4).
-- A ferramenta de build, os pacotes e as ferramentas de testes estão decididos (`docs/architecture.md`, DA28, DA30 e DA31). Os comandos entram neste ficheiro no exercício 2 da Ficha 03, quando o projeto existir. Até lá, não assumas nenhum comando e descreve no relatório as verificações manuais que fizeste. A estratégia completa de testes fica para o Módulo 4 (DP09).
+- Antes de dar uma tarefa como pronta, corre os testes e indica o resultado real. Se não conseguires correr um comando, diz qual e porquê.
+- A estratégia completa de testes fica para o Módulo 4 (DP09). Até lá, seguem-se DA31 e os testes previstos em `docs/implementation-plan.md`.
+
+## Comandos
+
+Stack e versões em `docs/architecture.md` (DA28, DA30, DA31). Os comandos são para Git Bash.
+
+| Para quê | Comando | Onde |
+|----------|---------|------|
+| Arrancar a base de dados | `docker compose up -d` | raiz |
+| Testes do backend, incluindo o de arquitetura (precisam do Docker) | `./mvnw verify` | `backend/` |
+| Arrancar o backend com os dados de demonstração | `./mvnw spring-boot:run -Dspring-boot.run.profiles=demo` | `backend/` |
+| Verificar os tipos do frontend | `npm run type-check` | `frontend/` |
+| Build do frontend (vai para `backend/src/main/resources/static`) | `npm run build` | `frontend/` |
+| Arrancar o frontend em desenvolvimento | `npm run dev` | `frontend/` |
+
+Pacotes do backend: `pt.matriz`, com um subpacote por módulo (`access`, `accounts`, `teams`, `projects`, `tasks`, `tracking`) e `common`. A interface pública de cada módulo fica no pacote raiz do módulo; as camadas ficam em `api`, `application`, `domain` e `persistence`. As dependências permitidas estão no `package-info.java` de cada módulo.
+
+O esquema da base de dados muda só com um changeset Liquibase novo em `backend/src/main/resources/db/changelog/`. Nunca alteres um changeset que já correu.
 
 ## Estilo
 
@@ -103,4 +121,4 @@ Indica sempre:
 
 ## Manutenção deste ficheiro
 
-A stack e as convenções foram acrescentadas na Ficha PL 02. Este ficheiro será atualizado no início da Ficha 03, com a ferramenta de build, os comandos e os nomes dos pacotes, e no Módulo 4, com os comandos de testes (DP09).
+A stack e as convenções foram acrescentadas na Ficha PL 02. Os comandos e os pacotes foram acrescentados na Ficha PL 03 (incremento I0). No Módulo 4 entra a estratégia de testes (DP09).

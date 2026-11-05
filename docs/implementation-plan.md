@@ -80,7 +80,7 @@ O exercício 7 (frontend) não fica só no I5: cada incremento entrega a sua par
 
 | Inc. | Objetivo | Histórias | Ficha PL 03 | Estado |
 |------|----------|-----------|-------------|--------|
-| I0 | Projeto executável, esquema e seed | | Ex. 2 | Por fazer |
+| I0 | Projeto executável, esquema e seed | | Ex. 2 | Pronto para revisão |
 | I1 | Entrar, sair, utilizador autenticado | US01 | Ex. 3 | Por fazer |
 | I2 | Gestão de projetos | US04, US12, US15, US17 (editar), US20, US22 | Ex. 4 | Por fazer |
 | I3 | Gestão de tarefas | US05, US07 (gestor), US10, US11 (sem o filtro por responsável), US16 | Ex. 5 | Por fazer |

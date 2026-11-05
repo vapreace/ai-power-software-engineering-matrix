@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tabelas dos módulos Contas e Equipas (docs/database.md, secções 3.1 a 3.3). -->
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="002-users" author="matriz">
+        <comment>Contas (RF02, RN04, RN16, RN18, RN28, DA25, DA26).</comment>
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_users"/>
+            </column>
+            <column name="name" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="TEXT">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_users_email"/>
+            </column>
+            <column name="password_hash" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="must_change_password" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="TEXT" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            ALTER TABLE users
+                ADD CONSTRAINT ck_users_name CHECK (char_length(name) BETWEEN 1 AND 100),
+                ADD CONSTRAINT ck_users_email CHECK (char_length(email) BETWEEN 1 AND 254 AND email = lower(email)),
+                ADD CONSTRAINT ck_users_role CHECK (role IN ('ADMINISTRATOR', 'MANAGER', 'MEMBER', 'OBSERVER')),
+                ADD CONSTRAINT ck_users_status CHECK (status IN ('ACTIVE', 'DEACTIVATED'))
+        </sql>
+        <rollback>
+            <dropTable tableName="users"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="002-teams" author="matriz">
+        <comment>Equipas (RF05, RN03, DA10). Nome único sem distinguir maiúsculas.</comment>
+        <createTable tableName="teams">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_teams"/>
+            </column>
+            <column name="name" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            ALTER TABLE teams ADD CONSTRAINT ck_teams_name CHECK (char_length(name) BETWEEN 1 AND 100);
+            CREATE UNIQUE INDEX ux_teams_name_lower ON teams (lower(name));
+        </sql>
+        <rollback>
+            <dropTable tableName="teams"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="002-team-members" author="matriz">
+        <comment>Pertença a uma equipa (RF06, RN02, RN26). Remover preenche removed_at (RN32, DA29).</comment>
+        <createTable tableName="team_members">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_team_members"/>
+            </column>
+            <column name="team_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_team_members_team" references="teams(id)"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_team_members_user" references="users(id)"/>
+            </column>
+            <column name="removed_at" type="TIMESTAMP WITH TIME ZONE"/>
+        </createTable>
+        <sql>
+            CREATE UNIQUE INDEX ux_team_members_active ON team_members (team_id, user_id) WHERE removed_at IS NULL;
+        </sql>
+        <createIndex tableName="team_members" indexName="ix_team_members_user">
+            <column name="user_id"/>
+        </createIndex>
+        <rollback>
+            <dropTable tableName="team_members"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

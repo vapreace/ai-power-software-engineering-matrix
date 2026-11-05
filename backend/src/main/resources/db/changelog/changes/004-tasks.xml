@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tabelas do módulo Tarefas (docs/database.md, secções 3.5 a 3.7). -->
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="004-tasks" author="matriz">
+        <comment>Tarefas (RF12, RF14, RF15, RN11 a RN13, RN19, RN20, RN32, DA05, DA29).</comment>
+        <createTable tableName="tasks">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_tasks"/>
+            </column>
+            <column name="project_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_tasks_project" references="projects(id)"/>
+            </column>
+            <column name="title" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="due_date" type="DATE"/>
+            <column name="priority" type="TEXT" defaultValue="MEDIUM">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="TEXT" defaultValue="TODO">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="TIMESTAMP WITH TIME ZONE"/>
+        </createTable>
+        <sql>
+            ALTER TABLE tasks
+                ADD CONSTRAINT ck_tasks_title CHECK (char_length(title) BETWEEN 1 AND 200),
+                ADD CONSTRAINT ck_tasks_description CHECK (description IS NULL OR char_length(description) &lt;= 2000),
+                ADD CONSTRAINT ck_tasks_priority CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH')),
+                ADD CONSTRAINT ck_tasks_status CHECK (status IN ('TODO', 'IN_PROGRESS', 'DONE'))
+        </sql>
+        <createIndex tableName="tasks" indexName="ix_tasks_project_status">
+            <column name="project_id"/>
+            <column name="status"/>
+        </createIndex>
+        <rollback>
+            <dropTable tableName="tasks"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="004-task-assignees" author="matriz">
+        <comment>Responsáveis de uma tarefa (RF13, RN14). Remover preenche removed_at (RN32, DA29).</comment>
+        <createTable tableName="task_assignees">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_task_assignees"/>
+            </column>
+            <column name="task_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_task_assignees_task" references="tasks(id)"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_task_assignees_user" references="users(id)"/>
+            </column>
+            <column name="removed_at" type="TIMESTAMP WITH TIME ZONE"/>
+        </createTable>
+        <sql>
+            CREATE UNIQUE INDEX ux_task_assignees_active ON task_assignees (task_id, user_id) WHERE removed_at IS NULL;
+        </sql>
+        <createIndex tableName="task_assignees" indexName="ix_task_assignees_user">
+            <column name="user_id"/>
+        </createIndex>
+        <rollback>
+            <dropTable tableName="task_assignees"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="004-task-comments" author="matriz">
+        <comment>Comentários (RF19, RN30). Não se editam nem se apagam.</comment>
+        <createTable tableName="task_comments">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_task_comments"/>
+            </column>
+            <column name="task_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_task_comments_task" references="tasks(id)"/>
+            </column>
+            <column name="author_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_task_comments_author" references="users(id)"/>
+            </column>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            ALTER TABLE task_comments ADD CONSTRAINT ck_task_comments_content CHECK (char_length(content) BETWEEN 1 AND 2000)
+        </sql>
+        <createIndex tableName="task_comments" indexName="ix_task_comments_task">
+            <column name="task_id"/>
+        </createIndex>
+        <rollback>
+            <dropTable tableName="task_comments"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,30 @@
+# Configuração da Matriz (DA30).
+# Os valores vêm de variáveis de ambiente ou do ficheiro .env da raiz (ver .env.example).
+# Nunca escrever credenciais reais neste ficheiro (IA01).
+spring:
+  application:
+    name: matriz
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
+  datasource:
+    url: jdbc:postgresql://${MATRIZ_DB_HOST:localhost}:${MATRIZ_DB_PORT:5432}/${MATRIZ_DB_NAME:matriz}
+    username: ${MATRIZ_DB_USER:matriz}
+    password: ${MATRIZ_DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # O esquema é do Liquibase (DA30). O Hibernate só confirma que as entidades batem certo.
+      ddl-auto: validate
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    # Sem contexto definido, o Liquibase corria também os dados de demonstração.
+    contexts: default
+  mvc:
+    problemdetails:
+      enabled: true
+
+matriz:
+  # Fuso horário fixo da organização (DA24).
+  time-zone: Europe/Lisbon

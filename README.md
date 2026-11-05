@@ -2,7 +2,7 @@
 
 Aplicação de gestão de projetos e tarefas para equipas, desenvolvida no curso **AI-Powered Software Engineering: From Mindset to Delivery**.
 
-> Fase atual: **Ficha PL 03**. Âmbito conciliado e plano de implementação feito (exercício 1). Ainda não existe código.
+> Fase atual: **Ficha PL 03**. Exercício 1 concluído; exercício 2 (incremento I0, esqueleto e base de dados) em curso.
 
 ---
 
@@ -52,6 +52,51 @@ Fora do MVP: quadro, histórico, registo das ações do Administrador, pesquisa 
                          tarefas                5. Atualiza estado    atrasadas
 ```
 
+## Como executar
+
+Requisitos: Java 21, Docker e Node 22.12 ou mais recente. Os comandos são para o Git Bash e começam na raiz do repositório.
+
+```bash
+# 1. Configuração local (só da primeira vez). Mudar MATRIZ_DB_PASSWORD no .env.
+cp .env.example .env
+
+# 2. Base de dados (PostgreSQL 18)
+docker compose up -d
+
+# 3. Backend com os dados de demonstração, em http://localhost:8080
+cd backend
+./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
+
+# 4. Frontend, noutro terminal, em http://localhost:5173
+cd frontend
+npm install
+npm run dev
+```
+
+| Tarefa | Comando | Onde |
+|--------|---------|------|
+| Testes (precisam do Docker) | `./mvnw verify` | `backend/` |
+| Verificar os tipos do frontend | `npm run type-check` | `frontend/` |
+| Build para entregar | `npm run build` e depois `./mvnw package` | `frontend/`, depois `backend/` |
+| Apagar a base de dados local | `docker compose down -v` | raiz |
+
+O Liquibase cria o esquema no arranque do backend (DA30). Sem o perfil `demo`, a base de dados fica vazia. Os dados de demonstração entram uma só vez: reiniciar o backend não os repete. O build para entregar gera `backend/target/matriz-0.0.1-SNAPSHOT.jar`, que serve também o frontend.
+
+### Contas de demonstração
+
+São as pessoas de partida de [user-stories.md](docs/user-stories.md), com dados fictícios (PRIV03). A palavra-passe de todas é `matriz-demo-2026`. A entrada na aplicação chega no incremento I1.
+
+| Email | Papel | Equipas |
+|-------|-------|---------|
+| ana@empresa.example | Administrador | |
+| rui@empresa.example | Gestor | Logística Norte |
+| sofia@empresa.example | Gestor | Logística Norte |
+| tiago@empresa.example | Gestor | Compras |
+| marta@empresa.example | Membro | Logística Norte, Compras |
+| pedro@empresa.example | Membro | Logística Norte |
+| joao@empresa.example | Membro | Compras |
+| carlos@empresa.example | Observador | |
+
 ## Organização da documentação
 
 ```
@@ -67,6 +112,16 @@ Fora do MVP: quadro, histórico, registo das ações do Administrador, pesquisa 
     ├── database.md        Que dados a Matriz guarda
     ├── implementation-plan.md  Incrementos da implementação e o seu estado
     └── ui/                Navegação, ecrãs e wireframe da interface
+```
+
+Código:
+
+```
+.
+├── compose.yaml           PostgreSQL local
+├── .env.example           Configuração com valores fictícios
+├── backend/               Spring Boot 4 com Maven (DA28)
+└── frontend/              Vue 3 com Vite (DA28)
 ```
 
 Cada tipo de informação tem **um único documento de referência**, para evitar contradições:
@@ -123,6 +178,6 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | API | Contrato completo, 34 operações (openapi.yaml 0.3.0) |
 | Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.4) |
 | Plano de implementação | 8 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
-| Implementação | Ainda não iniciada. Começa no incremento I0 (Ficha PL 03, exercício 2) |
+| Implementação | Em curso: incremento I0, esqueleto e base de dados (Ficha PL 03, exercício 2) |
 
 As decisões técnicas estão em [architecture.md, secção 9](docs/architecture.md#9-decisões-técnicas). As que faltam estão em [constraints.md, secção 4](docs/constraints.md#4-decisões-técnicas-pendentes).

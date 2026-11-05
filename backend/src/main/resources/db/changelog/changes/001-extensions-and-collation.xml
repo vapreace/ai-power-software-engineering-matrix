@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="001-unaccent" author="matriz">
+        <comment>Extensão unaccent para a pesquisa de projetos sem acentos (RN34, DA32).</comment>
+        <sql>CREATE EXTENSION IF NOT EXISTS unaccent</sql>
+        <rollback>DROP EXTENSION IF EXISTS unaccent</rollback>
+    </changeSet>
+
+    <changeSet id="001-collation-ci-ai" author="matriz">
+        <comment>Collation ICU que ignora maiúsculas e acentos, usada só nas ordenações por nome e título (DA14, DA27, DA33, RN24).</comment>
+        <sql>CREATE COLLATION IF NOT EXISTS matriz_ci_ai (provider = icu, locale = 'pt-PT-u-ks-level1', deterministic = false)</sql>
+        <rollback>DROP COLLATION IF EXISTS matriz_ci_ai</rollback>
+    </changeSet>
+
+</databaseChangeLog>
