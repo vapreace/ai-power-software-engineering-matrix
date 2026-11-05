@@ -1,6 +1,6 @@
 # Requisitos da Matriz
 
-> **Versão:** 0.6 (revisão crítica, Ficha PL 02, exercício 5)
+> **Versão:** 0.7 (conciliação com o âmbito da Ficha PL 03, exercício 1)
 > **Estado:** em validação. Nada deste documento foi ainda confirmado pelo cliente, exceto o que está marcado com origem **C**.
 
 ## Como ler este documento
@@ -84,7 +84,8 @@ As definições só explicam o significado dos termos. As regras sobre esses ter
 | **Membro (papel)** | Papel de quem executa tarefas nos projetos das equipas a que pertence. Só os papéis Gestor e Membro pertencem a equipas (RN26). |
 | **Projeto** | Conjunto de tarefas relativas a um trabalho de uma equipa. |
 | **Tarefa** | Unidade de trabalho de um projeto. |
-| **Responsável** | Utilizador que executa a tarefa. |
+| **Responsável** | Utilizador associado a uma tarefa para a executar. Uma tarefa pode ter vários responsáveis. |
+| **Sem responsável** | Situação de uma tarefa que não tem nenhum responsável. |
 | **Gestor do projeto** | Utilizador com papel Gestor indicado no campo "Gestor" do projeto. |
 | **Sem gestor** | Valor do campo "Gestor" quando o projeto não tem gestor válido (RN22). Não é um estado do projeto. |
 | **Conta ativa** | Conta que não foi desativada. |
@@ -92,7 +93,8 @@ As definições só explicam o significado dos termos. As regras sobre esses ter
 | **Tarefa aberta** | Tarefa com estado "Por fazer" ou "Em curso". |
 | **Tarefa atrasada** | Tarefa aberta com prazo **anterior** à data atual. Uma tarefa com prazo igual à data atual **não** está atrasada. Uma tarefa sem prazo **nunca** está atrasada. |
 | **Progresso do projeto** | (tarefas concluídas ÷ total de tarefas) × 100, **arredondado para baixo** à unidade. Só mostra 100% quando todas as tarefas estão concluídas. Um projeto sem tarefas mostra "Sem tarefas". |
-| **Projetos visíveis** | Membro e Gestor: projetos das equipas a que pertencem. Administrador e Observador: todos os projetos. |
+| **Projetos visíveis** | Membro e Gestor: projetos das equipas a que pertencem. Administrador e Observador: todos os projetos. Os projetos eliminados nunca são visíveis. |
+| **Eliminado** | Projeto ou tarefa que deixou de aparecer na aplicação, mas continua guardado (RN32). Para os utilizadores, é como se não existisse. |
 
 ---
 
@@ -118,14 +120,16 @@ Origem: **D** (os quatro papéis). Só existem utilizadores internos à organiza
 | Ver quem pertence a cada equipa | Todas | Equipas a que pertence | Equipas a que pertence | Todas |
 | Criar projeto | ✔ (qualquer equipa) | ✔ (equipas a que pertence) | | |
 | Editar ou mudar o estado de um projeto | ✔ | ✔ (projetos que gere) | | |
+| Eliminar um projeto | ✔ | ✔ (projetos que gere) | | |
 | Mudar o gestor de um projeto | ✔ | | | |
 | Criar, editar, apagar e atribuir tarefas | ✔ | ✔ (projetos que gere) | | |
 | Mudar o estado de uma tarefa | ✔ | ✔ (projetos que gere e tarefas de que é responsável) | ✔ (tarefas de que é responsável) | |
-| Ver projetos e tarefas | Todos | Projetos visíveis | Projetos visíveis | Todos |
+| Comentar uma tarefa | ✔ | ✔ (projetos visíveis) | ✔ (projetos visíveis) | |
+| Ver projetos, tarefas e comentários | Todos | Projetos visíveis | Projetos visíveis | Todos |
 
 Quando o Administrador cria um projeto, indica como gestor um utilizador com papel Gestor e conta ativa que pertença à equipa do projeto (RN21, RN27). Num projeto "Sem gestor", as permissões do gestor passam para o Administrador (RN22).
 
-As permissões aplicam-se dentro dos limites das regras de negócio. Por exemplo, ninguém altera um projeto arquivado (RN09).
+As permissões aplicam-se dentro dos limites das regras de negócio. Por exemplo, ninguém altera um projeto arquivado (RN09), mas o projeto pode ser eliminado (RN31).
 
 ---
 
@@ -157,12 +161,20 @@ classDiagram
         prioridade: Baixa | Média | Alta
         estado
     }
+    class Comentario["Comentário"] {
+        texto
+        dataHora
+    }
     Utilizador "*" -- "*" Equipa : pertence
     Equipa "1" -- "*" Projeto : tem
     Utilizador "0..1" -- "*" Projeto : é gestor
     Projeto "1" -- "*" Tarefa : tem
-    Utilizador "0..1" -- "*" Tarefa : é responsável
+    Utilizador "*" -- "*" Tarefa : é responsável
+    Tarefa "1" -- "*" Comentario : tem
+    Utilizador "1" -- "*" Comentario : é autor
 ```
+
+Projetos e tarefas eliminados continuam guardados (RN32), mas ficam fora de todas as vistas.
 
 ### 4.1 Estados do projeto
 
@@ -176,6 +188,8 @@ stateDiagram-v2
 ```
 
 "Sem gestor" não é um estado: é um valor do campo gestor e pode acontecer em qualquer estado do projeto.
+
+Eliminar também não é um estado: um projeto pode ser eliminado em qualquer estado e deixa de aparecer (RN31).
 
 ### 4.2 Estados da tarefa
 
@@ -211,21 +225,23 @@ Três estados: **Por fazer**, **Em curso**, **Concluída**. Qualquer mudança en
 | RF09 | Ver a lista de projetos visíveis, com filtro por estado. Cada projeto mostra equipa, gestor, estado, data de fim prevista, progresso e nº de tarefas atrasadas. | Ponto de entrada para gestores e equipas. | Must | D |
 | RF10 | Projetos partilhados entre várias equipas. | Necessidade provável, mas complica as permissões. | Could | D |
 | RF11 | Marcos e fases num projeto. | Útil em projetos longos, dispensável no início. | Could | D |
+| RF40 | Pesquisar projetos pelo nome, na lista de projetos (RN34). | Encontrar um projeto sem percorrer a lista. Vem do âmbito da Ficha PL 03. | Must | C, D |
+| RF41 | Eliminar um projeto (RN31). | Retirar projetos criados por engano ou que deixaram de interessar. Vem do âmbito da Ficha PL 03. | Must | C, D |
 
 ### 5.4 Tarefas
 
 | ID | Requisito | Justificação | Prior. | Origem |
 |----|-----------|--------------|:------:|:------:|
 | RF12 | Criar, editar e apagar tarefas. | Pedido do cliente: "gerir tarefas". | Must | C |
-| RF13 | Atribuir, mudar ou retirar o responsável de uma tarefa. | Resolve "quem está a fazer o quê". | Must | D |
+| RF13 | Associar um ou vários responsáveis a uma tarefa e remover cada associação. | Resolve "quem está a fazer o quê". Vários responsáveis por tarefa vêm do âmbito da Ficha PL 03. | Must | C, D |
 | RF14 | Definir prazo e prioridade de uma tarefa. | Sem prazo não é possível identificar atrasos. A prioridade indica o que fazer primeiro entre tarefas com o mesmo prazo (O1, RN24). | Must | D |
 | RF15 | Mudar o estado de uma tarefa. | Base do cálculo do progresso. | Must | D |
-| RF16 | Ver a lista de tarefas de um projeto, com filtros por responsável, estado e atraso. | Vista mínima para o gestor acompanhar o projeto. | Must | D |
+| RF16 | Ver a lista de tarefas de um projeto, com filtros por responsável, estado, prioridade e atraso. | Vista mínima para o gestor acompanhar o projeto. O filtro por prioridade vem do âmbito da Ficha PL 03. | Must | C, D |
 | RF17 | Ver "As minhas tarefas": as tarefas de que o utilizador é responsável em todos os projetos ativos, com opção de incluir as concluídas (RN25). | Cada pessoa precisa de um único sítio para ver o seu trabalho. | Must | D |
 | RF18 | Vista de quadro (colunas por estado). | Vista visual muito usada, mas a lista cobre a necessidade. | Should | D |
-| RF19 | Comentários em tarefas. | Reduz a troca de emails sobre uma tarefa. | Should | D |
+| RF19 | Adicionar e ver comentários numa tarefa, com autor e data e hora (RN30). | Reduz a troca de emails sobre uma tarefa. Entrou no MVP pelo âmbito da Ficha PL 03. | Must | C, D |
 | RF20 | Histórico de alterações de cada tarefa. | Permite saber quem mudou o quê e quando. | Should | D |
-| RF21 | Pesquisa por texto. | Necessária quando o volume de tarefas cresce. | Should | D |
+| RF21 | Pesquisa por texto nas tarefas e nos comentários. | Necessária quando o volume de tarefas cresce. A pesquisa de projetos pelo nome é a RF40. | Should | D |
 | RF22 | Anexos em tarefas. | Útil, mas implica armazenamento e regras de acesso. | Could | D |
 | RF23 | Subtarefas. | Útil para dividir tarefas grandes. | Could | D |
 | RF24 | Etiquetas. | Agrupamento livre de tarefas. | Could | D |
@@ -238,7 +254,7 @@ Três estados: **Por fazer**, **Em curso**, **Concluída**. Qualquer mudança en
 |----|-----------|--------------|:------:|:------:|
 | RF27 | Mostrar o progresso de cada projeto (secção 2). | Pedido do cliente: "acompanhar o progresso". | Must | C, D |
 | RF28 | Marcar as tarefas atrasadas e mostrar quantas existem por projeto. | Responde ao problema de falta de visibilidade. | Must | D |
-| RF29 | Painel geral com todos os projetos visíveis. | Necessário para Observadores e gestores com vários projetos. | Should | D |
+| RF29 | Painel inicial com os projetos visíveis e as contagens de tarefas por estado, com acesso ao detalhe de cada projeto (RN33). | Necessário para Observadores e gestores com vários projetos. Entrou no MVP pelo âmbito da Ficha PL 03. | Must | C, D |
 | RF30 | Vistas de calendário e cronograma. | Úteis, mas não essenciais. | Could | D |
 | RF31 | Evolução do progresso ao longo do tempo. | Relatórios para a direção. | Could | D |
 | RF32 | Exportar relatórios. | Pedido provável, sem urgência. | Could | D |
@@ -272,20 +288,20 @@ Os IDs não são renumerados. As regras novas são acrescentadas no fim.
 | RN06 | Projeto: nome, equipa e data de início são obrigatórios. Descrição e data de fim prevista são opcionais. A data de fim prevista não pode ser anterior à data de início. |
 | RN07 | Um projeto novo fica no estado "Ativo". As transições permitidas estão na secção 4.1. |
 | RN08 | Só projetos "Ativo" aceitam novas tarefas. |
-| RN09 | Num projeto "Concluído" ou "Arquivado", nem o projeto nem as suas tarefas podem ser alterados. Exceções: a mudança de estado do projeto (secção 4.1), as alterações automáticas de RN16, RN17, RN22 e RN23, e a mudança de gestor pelo Administrador (RN21). |
+| RN09 | Num projeto "Concluído" ou "Arquivado", nem o projeto nem as suas tarefas podem ser alterados. Exceções: a mudança de estado do projeto (secção 4.1), as alterações automáticas de RN16, RN17, RN22 e RN23, a mudança de gestor pelo Administrador (RN21) e a eliminação do projeto (RN31). |
 | RN10 | Concluir um projeto com tarefas abertas é permitido, mas exige confirmação com o número de tarefas abertas. Arquivar um projeto concluído não pede confirmação. |
 | RN11 | Tarefa: o título é obrigatório e tem 1 a 200 caracteres, depois de ignorar os espaços no início e no fim. Cada carácter conta como um, incluindo letras acentuadas e emojis simples: o texto é normalizado e conta-se cada código Unicode (DA11, LIM13). Descrição e prazo são opcionais. A prioridade existe sempre (Baixa, Média ou Alta): se não for indicada, fica "Média". |
 | RN12 | Uma tarefa nova fica "Por fazer". Os estados podem mudar em qualquer direção. |
 | RN13 | O prazo de uma tarefa não pode ser anterior à data atual. A validação só se aplica quando o prazo é definido ou mudado. Editar outros campos de uma tarefa já atrasada é permitido. Retirar o prazo é sempre permitido. |
-| RN14 | Uma tarefa tem no máximo um responsável. O responsável tem de ter conta ativa, pertencer à equipa do projeto e ter papel Gestor ou Membro. |
-| RN15 | O responsável de uma tarefa pode mudar o seu estado, qualquer que seja o seu papel. Um utilizador com papel Membro só muda o estado das tarefas de que é responsável. |
-| RN16 | Contas são desativadas, nunca apagadas. Ao desativar, as tarefas abertas da pessoa ficam "Sem responsável" e as concluídas mantêm o seu nome. |
-| RN17 | Ao remover uma pessoa de uma equipa, as suas tarefas abertas nos projetos dessa equipa ficam "Sem responsável". |
+| RN14 | Uma tarefa pode ter vários responsáveis ou nenhum ("Sem responsável"). Cada responsável tem de ter conta ativa, pertencer à equipa do projeto e ter papel Gestor ou Membro. A mesma pessoa não pode ser associada duas vezes à mesma tarefa. |
+| RN15 | Qualquer responsável de uma tarefa pode mudar o seu estado, qualquer que seja o seu papel. Um utilizador com papel Membro só muda o estado das tarefas de que é responsável. |
+| RN16 | Contas são desativadas, nunca apagadas. Ao desativar, a pessoa deixa de ser responsável pelas suas tarefas abertas (as que ficam sem nenhum responsável ficam "Sem responsável") e as tarefas concluídas mantêm o seu nome. |
+| RN17 | Ao remover uma pessoa de uma equipa, a pessoa deixa de ser responsável pelas suas tarefas abertas nos projetos dessa equipa (as que ficam sem nenhum responsável ficam "Sem responsável"). |
 | RN18 | Tem de existir sempre pelo menos um Administrador ativo. Não é possível desativar o último nem mudar o seu papel. Um Administrador pode desativar a própria conta se existir outro Administrador ativo. |
-| RN19 | Apagar uma tarefa exige confirmação e é definitivo. |
+| RN19 | Apagar uma tarefa exige confirmação e é definitivo: a tarefa deixa de aparecer e não se recupera na aplicação. Os dados continuam guardados (RN32). |
 | RN20 | Uma tarefa pertence sempre a um projeto. |
 | RN21 | O gestor de um projeto tem de ter conta ativa, pertencer à equipa do projeto e ter papel Gestor. Só o Administrador muda o gestor de um projeto. A equipa de um projeto não pode ser mudada. |
-| RN22 | Se o gestor de um projeto deixar de cumprir RN21 (conta desativada, removido da equipa ou papel mudado), o projeto fica "Sem gestor". Até haver novo gestor, só o Administrador edita o projeto e cria, edita, apaga ou atribui as suas tarefas. Os responsáveis continuam a mudar o estado das suas tarefas (RN15). |
+| RN22 | Se o gestor de um projeto deixar de cumprir RN21 (conta desativada, removido da equipa ou papel mudado), o projeto fica "Sem gestor". Até haver novo gestor, só o Administrador edita ou elimina o projeto e cria, edita, apaga ou atribui as suas tarefas. Os responsáveis continuam a mudar o estado das suas tarefas (RN15). |
 | RN23 | Ao mudar o papel de uma conta: se deixar de ser Gestor, os projetos que gere ficam "Sem gestor" (RN22). Se passar a Observador ou Administrador, deixa de pertencer às suas equipas (RN26) e aplica-se RN17. |
 | RN24 | "As minhas tarefas" ordena por prazo, do mais próximo para o mais distante, com as tarefas sem prazo no fim. Em caso de empate, ordena por prioridade (Alta, Média, Baixa), depois por título, por ordem alfabética sem distinguir maiúsculas nem acentos, e por fim pela ordem de criação. |
 | RN25 | "As minhas tarefas" mostra, por omissão, as tarefas abertas de que o utilizador é responsável em projetos "Ativo". O filtro "Incluir concluídas" acrescenta as tarefas concluídas desses projetos. As tarefas de projetos "Concluído" ou "Arquivado" não aparecem. A lista de projetos esconde, por omissão, os projetos "Arquivado". |
@@ -293,6 +309,11 @@ Os IDs não são renumerados. As regras novas são acrescentadas no fim.
 | RN27 | Quando um Gestor cria um projeto, fica gestor desse projeto. Quando o Administrador cria um projeto, tem de indicar o gestor (RN21). Uma equipa sem nenhum Gestor com conta ativa não pode ter projetos novos. |
 | RN28 | O Administrador pode editar o nome e o email de uma conta (o email continua único, RN04) e reativar uma conta desativada. A conta reativada mantém o papel e as equipas. As tarefas que ficaram "Sem responsável" na desativação não voltam a ser atribuídas automaticamente. |
 | RN29 | Comprimentos máximos, depois de ignorar os espaços no início e no fim: nome de pessoa 100, email 254, nome de equipa 100, nome de projeto 100, descrição de projeto 1000 e descrição de tarefa 2000 caracteres. Os nomes não podem ficar vazios. Os caracteres contam-se como na RN11. |
+| RN30 | Comentários. Podem comentar uma tarefa o Administrador e as pessoas que pertencem à equipa do projeto (papéis Gestor e Membro, RN26). O Observador não comenta. O texto é obrigatório e tem 1 a 2000 caracteres, depois de ignorar os espaços no início e no fim, contados como na RN11. O autor é sempre quem está autenticado e a data e hora vêm do Relógio da organização (RNF06). Os comentários não se editam nem se apagam e aparecem do mais antigo para o mais recente. Projetos "Concluído" ou "Arquivado" não aceitam comentários (RN09). |
+| RN31 | Eliminar um projeto. Podem eliminar o Administrador e o gestor do projeto; num projeto "Sem gestor", só o Administrador (RN22). É permitido em qualquer estado do projeto (exceção a RN09). Exige confirmação com o número de tarefas do projeto, no singular ou no plural. O projeto, as suas tarefas, os responsáveis e os comentários deixam de aparecer em todas as listas, contagens, no painel e em "As minhas tarefas". Não se recupera na aplicação. |
+| RN32 | Nenhuma operação apaga dados da base de dados. Eliminar um projeto ou apagar uma tarefa marca o registo como eliminado, com a data e hora. Retirar uma pessoa de uma equipa ou retirar um responsável de uma tarefa marca a associação como removida, com a data e hora. Um registo eliminado ou uma associação removida é tratado como inexistente em todas as operações, listas, contagens, progresso e atrasos. Os responsáveis e os comentários de uma tarefa ou de um projeto eliminado continuam guardados, mas deixam de aparecer. |
+| RN33 | O painel inicial mostra os mesmos projetos que a lista de projetos mostra por omissão (RN25: sem os "Arquivado"), pela mesma ordem. Para cada projeto, mostra o número de tarefas "Por fazer", "Em curso" e "Concluída". Mostra também os totais desses projetos. As contagens incluem todas as tarefas não eliminadas desses projetos. |
+| RN34 | A pesquisa de projetos procura o texto em qualquer parte do nome, sem distinguir maiúsculas nem acentos, depois de ignorar os espaços no início e no fim. Combina-se com o filtro por estado. Uma pesquisa vazia mostra todos os projetos do filtro. Só devolve projetos visíveis. |
 
 ---
 
@@ -306,7 +327,7 @@ Os requisitos de segurança e privacidade estão em [constraints.md, secção 3]
 | RNF02 | Idioma | A interface está em português. | Revisão de todos os textos visíveis. | P10 |
 | RNF03 | Capacidade | Suporta o volume de referência: 300 utilizadores, 20 equipas, 200 projetos e 10 000 tarefas. | Teste com dados fictícios neste volume. | P05 |
 | RNF04 | Desempenho | Com o volume de RNF03 e 20 utilizadores em simultâneo, 95% dos pedidos às páginas do MVP respondem em menos de 2 segundos. | Teste de carga no ambiente de testes, com dados fictícios. | P05 |
-| RNF05 | Integridade | Nenhuma operação apaga contas. As tarefas concluídas mantêm o responsável original. | Testes de US14. | D |
+| RNF05 | Integridade | Nenhuma operação apaga dados (RN32). As tarefas concluídas mantêm os responsáveis originais. | Testes de US14, US16 e US20. | D |
 | RNF06 | Datas | Todas as regras de datas usam a data atual da organização (secção 2). | Testes de US05 e US10 com data fixa. | D |
 | RNF07 | Verificabilidade | Cada critério de aceitação de [user-stories.md](user-stories.md) pode ser verificado por um teste automático. | Revisão dos testes antes de fechar cada história. | D |
 
@@ -320,11 +341,13 @@ Permitir que uma equipa substitua a folha de cálculo de acompanhamento por uma 
 
 ### 8.2 Requisitos incluídos
 
-16 requisitos **Must**: RF01, RF02, RF03, RF05, RF06, RF07, RF08, RF09, RF12, RF13, RF14, RF15, RF16, RF17, RF27, RF28.
+20 requisitos **Must**: RF01, RF02, RF03, RF05, RF06, RF07, RF08, RF09, RF12, RF13, RF14, RF15, RF16, RF17, RF19, RF27, RF28, RF29, RF40, RF41.
+
+O enunciado da Ficha PL 03 (origem **C**) define o âmbito mínimo da implementação. Para o cumprir, RF19 (comentários) e RF29 (painel inicial) passaram de Should para Must, entraram RF40 (pesquisar projetos) e RF41 (eliminar projeto), RF13 passou a aceitar vários responsáveis (RN14) e RF16 ganhou o filtro por prioridade. Nenhum requisito saiu do MVP.
 
 Também fazem parte do MVP:
 
-- todas as regras de negócio (RN01 a RN29);
+- todas as regras de negócio (RN01 a RN34);
 - os requisitos não funcionais RNF01 a RNF07;
 - os requisitos de segurança SEG01 a SEG09 e de privacidade PRIV01 a PRIV03 ([constraints.md, secção 3](constraints.md#3-requisitos-de-segurança-e-privacidade)).
 
@@ -344,7 +367,7 @@ Também fazem parte do MVP:
 
 O MVP está concluído quando:
 
-1. todos os critérios de aceitação das histórias US01 a US18 ([user-stories.md](user-stories.md)) são verificados com sucesso;
+1. todos os critérios de aceitação das histórias US01 a US22 ([user-stories.md](user-stories.md)) são verificados com sucesso;
 2. os requisitos SEG e PRIV são verificados como indica a coluna "Verificação" de [constraints.md](constraints.md#3-requisitos-de-segurança-e-privacidade).
 
 A US15 depende da validação do papel Observador (secção 3).
@@ -358,10 +381,8 @@ A US15 depende da validação do papel Observador (secção 3).
 | ID | Funcionalidade |
 |----|----------------|
 | RF18 | Vista de quadro |
-| RF19 | Comentários |
 | RF20 | Histórico de alterações |
 | RF21 | Pesquisa por texto |
-| RF29 | Painel geral |
 | RF39 | Registo das ações do Administrador |
 | RF33 | Avisos dentro da aplicação |
 
@@ -382,8 +403,8 @@ RF04, RF10, RF11, RF22, RF23, RF24, RF25, RF30, RF31, RF32, RF34, RF35.
 
 | Fase | Nº de requisitos |
 |------|:----------------:|
-| MVP (Must) | 16 |
-| Versão 1.1 (Should) | 7 |
+| MVP (Must) | 20 |
+| Versão 1.1 (Should) | 5 |
 | Futuro (Could) | 12 |
 | Não planeado (Won't) | 4 |
-| **Total** | **39** |
+| **Total** | **41** |

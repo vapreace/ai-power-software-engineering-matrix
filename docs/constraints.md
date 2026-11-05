@@ -1,6 +1,6 @@
 # Restrições, pressupostos e decisões pendentes
 
-> **Versão:** 0.9 (revisão final, Ficha PL 02)
+> **Versão:** 1.0 (conciliação com o âmbito da Ficha PL 03, exercício 1)
 > **Estado:** em validação. Os pressupostos deste documento **não são requisitos confirmados**.
 
 Documentos relacionados:
@@ -25,6 +25,7 @@ São factos. Não dependem de validação.
 | R05 | A linguagem, a framework, a base de dados e a arquitetura são escolhidas na Aula 2 (Conceção, Arquitetura e Prototipagem). | Ficha PL 01 |
 | R06 | A documentação é escrita em Markdown, em português, e versionada no repositório Git do projeto. | Ficha PL 01 |
 | R07 | A IA é usada em todas as fases com validação humana: a IA propõe, a equipa decide e valida. | Módulo 1 |
+| R08 | A implementação cobre, no mínimo, o âmbito funcional da Ficha PL 03: entrar, sair e consultar o utilizador autenticado; gerir projetos (incluindo eliminar); gerir tarefas com estado e prioridade; vários responsáveis por tarefa; comentários; pesquisa de projetos pelo nome e filtros de tarefas por estado e prioridade; painel inicial. Exige também pelo menos três testes automáticos. A conciliação com o MVP está em [requirements.md, secção 8.2](requirements.md#82-requisitos-incluídos). | Ficha PL 03 |
 
 ---
 
@@ -88,13 +89,15 @@ Dados pessoais guardados no MVP:
 | Palavra-passe (protegida, SEG03) | Entrar na aplicação. |
 | Email e endereço IP de tentativas de entrada falhadas (só em memória, até 15 minutos, DA26) | Limitar tentativas repetidas (SEG09). |
 | Papel e equipas | Aplicar as permissões. |
-| Responsável de cada tarefa e gestor de cada projeto | Saber quem executa e quem gere o trabalho. |
+| Responsáveis de cada tarefa e gestor de cada projeto | Saber quem executa e quem gere o trabalho. |
+| Autor, data e hora e texto de cada comentário (RN30) | Combinar o trabalho de uma tarefa. O texto pode conter dados pessoais escritos pelos utilizadores (ver riscos). |
 | Texto livre de títulos e descrições | Descrever o trabalho. Pode conter dados pessoais escritos pelos utilizadores (ver riscos). |
 
 **Riscos identificados:**
 
 - RN16 mantém o nome de uma pessoa desativada nas tarefas concluídas. Isto pode entrar em conflito com o direito ao apagamento do RGPD. Tem de ser validado antes de fechar DP11.
-- Títulos e descrições de tarefas são texto livre. Os utilizadores podem escrever lá dados pessoais. Tem de ser considerado em DP11.
+- Títulos e descrições de tarefas e o texto dos comentários são texto livre. Os utilizadores podem escrever lá dados pessoais. Tem de ser considerado em DP11.
+- Projetos e tarefas eliminados continuam guardados, com os responsáveis e os comentários, e as pertenças a equipas e os responsáveis retirados também (RN32). Isto aumenta os dados pessoais guardados e não tem prazo de conservação definido. Tem de ser resolvido em DP11.
 
 ### 3.3 Desenvolvimento com apoio de IA
 
@@ -117,14 +120,14 @@ As decisões tomadas na Aula 2 estão em [architecture.md](architecture.md) (sec
 | DP01 | Linguagem e framework (backend e frontend). | Resolvida: DA02 | Todo o desenvolvimento |
 | DP02 | Arquitetura da aplicação. | Resolvida: DA01, DA06 | Todo o desenvolvimento |
 | DP03 | Base de dados e modelo de dados físico. | Resolvida: DA03 e database.md (DA08 a DA14) | Modelo de domínio (requirements.md, secção 4) |
-| DP04 | Desenho da API. | Parcial: DA15 a DA20, DA27 e openapi.yaml. As restantes operações detalham-se na Ficha 03 | Todas as histórias |
-| DP05 | Protótipo da interface. | Parcial: DA21 a DA23 e wireframe da lista de projetos (ui/README.md). Os restantes ecrãs na Ficha 03 | RNF01, todas as histórias |
+| DP04 | Desenho da API. | Resolvida: DA15 a DA20, DA27, DA33 e openapi.yaml 0.3.0 (Ficha PL 03, exercício 1) | Todas as histórias |
+| DP05 | Protótipo da interface. | Resolvida: DA21 a DA23, DA34, wireframe da lista de projetos e ecrãs do MVP (ui/README.md 0.4, Ficha PL 03, exercício 1) | RNF01, todas as histórias |
 | DP06 | Mecanismo de autenticação, regras mínimas da palavra-passe, duração da sessão, expiração por inatividade e mecanismo de SEG09 (limites, duração, desbloqueio). | Resolvida: DA04, DA26 | RF01, SEG01, SEG07, SEG08, SEG09, PRIV01 |
 | DP07 | Como se dá o acesso inicial a uma conta nova e como se repõe o acesso (palavra-passe esquecida ou conta bloqueada). Tem de estar decidida antes de implementar US02. | Resolvida: DA25 | RF02, US02, SEG09 |
 | DP08 | Fuso horário fixo ou configurável pelo Administrador. | Resolvida: DA24 | P12, RNF06 |
-| DP09 | Estratégia e ferramentas de testes. | Módulo 4 | RNF07 |
+| DP09 | Estratégia e ferramentas de testes. | Parcial: ferramentas e testes mínimos exigidos pela Ficha PL 03 em [architecture.md](architecture.md#9-decisões-técnicas) (DA31). Estratégia completa no Módulo 4 | RNF07, R08 |
 | DP10 | Ambientes, alojamento e pipeline de integração e entrega contínua. | Módulo 5 | |
-| DP11 | Conformidade com o RGPD: prazos de conservação (incluindo o texto das tarefas), tratamento de contas desativadas, informação aos colaboradores, base legal, e forma de exercer os direitos de acesso e de retificação. | Antes do piloto | PRIV02, RN16, RN28 |
+| DP11 | Conformidade com o RGPD: prazos de conservação (incluindo o texto das tarefas e dos comentários, os registos eliminados e as associações removidas, RN32), tratamento de contas desativadas, informação aos colaboradores, base legal, e forma de exercer os direitos de acesso e de retificação. | Antes do piloto | PRIV02, RN16, RN28 |
 | DP12 | Requisitos de acessibilidade e disponibilidade (horário, tempo de recuperação). | Antes do piloto | RNF |
 | DP13 | Tratamento de alterações simultâneas: o que acontece quando alguém grava uma tarefa ou um projeto que outra pessoa alterou ou apagou entretanto. | Resolvida: DA05 | P11, LIM11 |
 
@@ -141,7 +144,7 @@ As decisões tomadas na Aula 2 estão em [architecture.md](architecture.md) (sec
 | LIM03 | Um projeto pertence a uma só equipa e não muda de equipa (RN01, RN21). | Trabalho entre equipas exige um projeto por equipa. |
 | LIM04 | Só utilizadores internos (RF38). | Clientes e fornecedores não têm acesso. |
 | LIM05 | Sem migração de dados. | Cada equipa começa do zero. |
-| LIM06 | Apagar uma tarefa é definitivo (RN19). | Não há recuperação. |
+| LIM06 | Apagar uma tarefa ou eliminar um projeto é definitivo para os utilizadores (RN19, RN31). | Não há recuperação na aplicação. Os dados continuam guardados (RN32). |
 | LIM07 | Sem histórico de alterações das tarefas nem registo das ações do Administrador (RF20 e RF39 só na versão 1.1). | No MVP não se sabe quem mudou o quê. |
 | LIM08 | Sem subtarefas, dependências nem registo de tempo. | Planeamento avançado fica fora do MVP. |
 | LIM09 | Um único fuso horário (P12). | Equipas noutros fusos podem ver atrasos com um dia de diferença. |
@@ -150,6 +153,8 @@ As decisões tomadas na Aula 2 estão em [architecture.md](architecture.md) (sec
 | LIM12 | Uma equipa sem nenhum Gestor com conta ativa não pode ter projetos novos (RN27). | O Administrador tem de adicionar um Gestor à equipa primeiro. |
 | LIM13 | Os limites de texto contam códigos Unicode (DA11). | Emojis compostos (bandeiras, famílias) contam mais do que um carácter: um título com esses emojis chega ao limite mais cedo. |
 | LIM14 | O limite de tentativas de entrada conta por email e endereço IP, só em memória (DA26). | Pessoas que saem pelo mesmo endereço IP partilham o contador de um email. Reiniciar a aplicação limpa os contadores. |
+| LIM15 | Os registos eliminados e as associações removidas ficam guardados sem prazo de conservação (RN32). | A base de dados cresce e guarda dados pessoais que já não aparecem. O prazo fica para DP11. |
+| LIM16 | Os comentários não se editam nem se apagam (RN30). | Um comentário errado corrige-se com outro comentário. |
 
 ### 5.2 Itens retirados
 

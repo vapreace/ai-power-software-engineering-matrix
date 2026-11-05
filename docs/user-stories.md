@@ -1,6 +1,6 @@
 # User Stories do MVP
 
-> **Versão:** 0.5 (revisão final, Ficha PL 02)
+> **Versão:** 0.6 (conciliação com o âmbito da Ficha PL 03, exercício 1)
 > **Estado:** em validação com o Product Owner.
 
 ## Como ler este documento
@@ -11,6 +11,7 @@
 - Os nomes usados nos exemplos e os emails são fictícios. Os emails usam o domínio reservado `empresa.example`.
 - **"Recusado"** (operação recusada): a operação não altera nada e aparece uma mensagem de erro. Quando o texto da mensagem importa, o cenário indica-o.
 - **"Acesso recusado"**: a pessoa não vê os dados pedidos e aparece a mensagem "Não tem acesso a esta página."
+- Salvo indicação em contrário, cada tarefa referida num cenário tem um único responsável (RN14 admite vários).
 - Salvo indicação em contrário no `Given`, vale a situação de partida das duas tabelas seguintes e a data atual é **2026-11-10**.
 
 ### Pessoas de partida
@@ -39,7 +40,7 @@
 
 ## 1. Backlog priorizado
 
-Todas as histórias são **Must** e fazem parte do MVP. A US15 depende da validação do papel Observador ([requirements.md, secção 3](requirements.md#3-tipos-de-utilizador)). A ordem segue as dependências: primeiro o que permite testar o resto, depois o fluxo que entrega valor.
+Todas as histórias são **Must** e fazem parte do MVP. As histórias US19 a US22 vêm do âmbito da Ficha PL 03 ([requirements.md, secção 8.2](requirements.md#82-requisitos-incluídos)). A US15 depende da validação do papel Observador ([requirements.md, secção 3](requirements.md#3-tipos-de-utilizador)). A ordem segue as dependências: primeiro o que permite testar o resto, depois o fluxo que entrega valor.
 
 | Ordem | ID | História | Papel | Requisitos | Depende de |
 |:-----:|----|----------|-------|------------|------------|
@@ -48,7 +49,7 @@ Todas as histórias são **Must** e fazem parte do MVP. A US15 depende da valida
 | 3 | US03 | Criar equipa e gerir quem lhe pertence | Administrador | RF05, RF06 | US02 |
 | 4 | US04 | Criar projeto | Gestor, Administrador | RF07 | US03 |
 | 5 | US05 | Criar tarefa | Gestor | RF12, RF14 | US04 |
-| 6 | US06 | Atribuir responsável | Gestor | RF13 | US05 |
+| 6 | US06 | Gerir responsáveis da tarefa | Gestor | RF13 | US05 |
 | 7 | US07 | Mudar estado da tarefa | Membro, Gestor | RF15 | US06 |
 | 8 | US08 | Ver "As minhas tarefas" | Membro | RF17 | US06 |
 | 9 | US09 | Ver progresso do projeto | Gestor | RF27 | US07 |
@@ -61,6 +62,10 @@ Todas as histórias são **Must** e fazem parte do MVP. A US15 depende da valida
 | 16 | US18 | Mudar papel de uma conta | Administrador | RF02 | US17 |
 | 17 | US15 | Consultar todos os projetos | Observador | RF03, RF09 | US09 |
 | 18 | US16 | Editar e apagar tarefa | Gestor | RF12 | US05 |
+| 19 | US19 | Comentar tarefa | Membro, Gestor | RF19 | US05 |
+| 20 | US20 | Eliminar projeto | Gestor, Administrador | RF41 | US04 |
+| 21 | US21 | Ver o painel inicial | Todos | RF29, RF03 | US09 |
+| 22 | US22 | Pesquisar projetos | Todos | RF40, RF03 | US12 |
 
 ---
 
@@ -121,8 +126,8 @@ Scenario Outline: palavra-passe nova
   Examples:
     | n   | resultado                                                                   |
     | 11  | aparece a mensagem "A palavra-passe tem de ter entre 12 e 128 caracteres." |
-    | 12  | a palavra-passe fica definida e a Inês vê a lista de projetos              |
-    | 128 | a palavra-passe fica definida e a Inês vê a lista de projetos              |
+    | 12  | a palavra-passe fica definida e a Inês vê o painel inicial                 |
+    | 128 | a palavra-passe fica definida e a Inês vê o painel inicial                 |
     | 129 | aparece a mensagem "A palavra-passe tem de ter entre 12 e 128 caracteres." |
 
 Scenario Outline: tentativas repetidas
@@ -431,41 +436,61 @@ Scenario Outline: comprimento da descrição
 
 ---
 
-### US06 Atribuir responsável
+### US06 Gerir responsáveis da tarefa
 
-> **Como** Gestor, **quero** atribuir ou mudar o responsável de uma tarefa, **para** que fique claro quem a executa.
+> **Como** Gestor, **quero** associar uma ou várias pessoas a uma tarefa e remover cada associação, **para** que fique claro quem a executa.
 
-**Requisitos:** RF13 · **Regras:** RN14, RN26
+**Requisitos:** RF13 · **Regras:** RN14, RN26 · **Segurança:** SEG02
 
 ```gherkin
-Scenario: atribuir
+Scenario: associar um responsável
   Given a tarefa "Pedir orçamento de estantes" do projeto "Novo armazém" está "Sem responsável"
-  When o Rui atribui a tarefa à Marta
-  Then o responsável passa a ser a Marta
+  When o Rui associa a Marta à tarefa
+  Then a Marta passa a ser responsável pela tarefa
   And a tarefa aparece em "As minhas tarefas" da Marta
 
-Scenario: mudar de responsável
+Scenario: associar vários responsáveis
   Given a Marta é responsável pela tarefa "Pedir orçamento de estantes"
-  When o Rui muda o responsável para o Pedro
-  Then o responsável passa a ser o Pedro
-  And a tarefa aparece em "As minhas tarefas" do Pedro
-  And deixa de aparecer em "As minhas tarefas" da Marta
+  When o Rui associa também o Pedro à tarefa
+  Then a tarefa tem como responsáveis a Marta e o Pedro
+  And a tarefa aparece em "As minhas tarefas" da Marta e do Pedro
+
+Scenario: associar a mesma pessoa duas vezes
+  Given a Marta é responsável pela tarefa "Pedir orçamento de estantes"
+  When o Rui tenta associar de novo a Marta à tarefa
+  Then a associação é recusada
+  And a Marta aparece uma só vez como responsável
 
 Scenario Outline: responsável inválido
   Given <situação>
-  When o Rui tenta atribuir uma tarefa do projeto "Novo armazém" a <pessoa>
-  Then a atribuição é recusada
+  When o Rui tenta associar <pessoa> a uma tarefa do projeto "Novo armazém"
+  Then a associação é recusada
 
   Examples:
     | pessoa    | situação                                 |
     | o João    | o João não pertence a "Logística Norte"  |
     | o Pedro   | a conta do Pedro está desativada         |
 
-Scenario: retirar responsável
-  Given a Marta é responsável pela tarefa "Pedir orçamento de estantes"
-  When o Rui retira o responsável
+Scenario: remover um de vários responsáveis
+  Given a Marta e o Pedro são responsáveis pela tarefa "Pedir orçamento de estantes"
+  When o Rui remove a Marta da tarefa
+  Then o Pedro continua responsável pela tarefa
+  And a tarefa deixa de aparecer em "As minhas tarefas" da Marta
+
+Scenario: remover o último responsável
+  Given a Marta é a única responsável pela tarefa "Pedir orçamento de estantes"
+  When o Rui remove a Marta da tarefa
   Then a tarefa fica "Sem responsável"
   And deixa de aparecer em "As minhas tarefas" da Marta
+
+Scenario Outline: sem permissão
+  When <utilizador> tenta associar o Pedro a uma tarefa do projeto "Novo armazém"
+  Then a associação é recusada
+
+  Examples:
+    | utilizador              |
+    | a Marta (Membro)        |
+    | a Sofia (outro Gestor)  |
 ```
 
 ---
@@ -654,24 +679,24 @@ Scenario Outline: contagem no projeto
 
 ### US11 Filtrar tarefas do projeto
 
-> **Como** Gestor, **quero** filtrar as tarefas de um projeto por responsável, estado e atraso, **para** encontrar as tarefas que preciso de acompanhar.
+> **Como** Gestor, **quero** filtrar as tarefas de um projeto por responsável, estado, prioridade e atraso, **para** encontrar as tarefas que preciso de acompanhar.
 
 **Requisitos:** RF16
 
 ```gherkin
 Background:
   Given o projeto "Novo armazém" tem exatamente estas tarefas:
-    | título | responsável     | estado    | prazo      |
-    | T1     | Marta           | Por fazer | 2026-11-09 |
-    | T2     | Marta           | Em curso  | 2026-11-20 |
-    | T3     | Marta           | Concluída | 2026-11-05 |
-    | T4     | Marta           | Concluída | 2026-11-08 |
-    | T5     | Pedro           | Em curso  | 2026-11-08 |
-    | T6     | Pedro           | Concluída | 2026-11-01 |
-    | T7     | Sem responsável | Por fazer | 2026-11-15 |
-    | T8     | Sem responsável | Por fazer | sem prazo  |
-    | T9     | Sem responsável | Concluída | 2026-11-03 |
-    | T10    | Pedro           | Concluída | 2026-11-02 |
+    | título | responsáveis    | estado    | prioridade | prazo      |
+    | T1     | Marta           | Por fazer | Alta       | 2026-11-09 |
+    | T2     | Marta, Pedro    | Em curso  | Média      | 2026-11-20 |
+    | T3     | Marta           | Concluída | Baixa      | 2026-11-05 |
+    | T4     | Marta           | Concluída | Média      | 2026-11-08 |
+    | T5     | Pedro           | Em curso  | Alta       | 2026-11-08 |
+    | T6     | Pedro           | Concluída | Média      | 2026-11-01 |
+    | T7     | Sem responsável | Por fazer | Baixa      | 2026-11-15 |
+    | T8     | Sem responsável | Por fazer | Média      | sem prazo  |
+    | T9     | Sem responsável | Concluída | Média      | 2026-11-03 |
+    | T10    | Pedro           | Concluída | Baixa      | 2026-11-02 |
 
 Scenario Outline: filtros
   When o Rui filtra por <filtros>
@@ -683,6 +708,9 @@ Scenario Outline: filtros
     | "Atrasadas"                            | T1, T5       |
     | responsável "Marta" e "Atrasadas"      | T1           |
     | "Sem responsável"                      | T7, T8, T9   |
+    | prioridade "Alta"                      | T1, T5       |
+    | estado "Por fazer" e prioridade "Baixa" | T7          |
+    | responsável "Pedro" e estado "Em curso" | T2, T5      |
 
 Scenario: sem resultados
   When o Rui filtra por responsável "Pedro" e estado "Por fazer"
@@ -690,7 +718,7 @@ Scenario: sem resultados
   And vê a mensagem "Nenhuma tarefa corresponde aos filtros"
 ```
 
-Vários filtros aplicam-se ao mesmo tempo: a tarefa tem de cumprir todos.
+Vários filtros aplicam-se ao mesmo tempo: a tarefa tem de cumprir todos. O filtro por responsável mostra as tarefas em que essa pessoa é um dos responsáveis.
 
 ---
 
@@ -986,7 +1014,7 @@ Scenario Outline: não altera nada
 
 > **Como** Gestor, **quero** editar e apagar tarefas de um projeto que giro, **para** corrigir o planeamento.
 
-**Requisitos:** RF12 · **Regras:** RN11, RN13, RN19 · **Segurança:** SEG02 · **Decisões:** DA05
+**Requisitos:** RF12 · **Regras:** RN11, RN13, RN19, RN32 · **Segurança:** SEG02 · **Decisões:** DA05
 
 ```gherkin
 Scenario: editar
@@ -1013,7 +1041,7 @@ Scenario: retirar o prazo de uma tarefa atrasada
 Scenario: apagar com confirmação
   Given o projeto "Novo armazém" tem 10 tarefas, 6 concluídas
   When o Rui apaga uma tarefa aberta e confirma
-  Then a tarefa deixa de existir
+  Then a tarefa deixa de aparecer na lista do projeto
   And o progresso passa a "66% (6 de 9 concluídas)"
 
 Scenario: cancelar apagar
@@ -1047,6 +1075,211 @@ Scenario: tarefa apagada entretanto
 
 ---
 
+### US19 Comentar tarefa
+
+> **Como** Membro, **quero** comentar uma tarefa e ver os comentários dos outros, **para** combinar o trabalho sem trocar emails.
+
+**Requisitos:** RF19 · **Regras:** RN09, RN30 · **Segurança:** SEG02, SEG06
+
+```gherkin
+Scenario: comentar
+  Given a data e hora atuais são 2026-11-10 14:30
+  When a Marta comenta "Já pedi dois orçamentos." na tarefa "Pedir orçamento de estantes" do projeto "Novo armazém"
+  Then o comentário aparece na tarefa com o texto "Já pedi dois orçamentos.", a autora Marta e a data e hora 10/11/2026 14:30
+
+Scenario: ordem dos comentários
+  Given a tarefa "Pedir orçamento de estantes" tem um comentário do Rui de 2026-11-09 10:00
+  When a Marta comenta a tarefa em 2026-11-10 14:30
+  Then os comentários aparecem por esta ordem: Rui, Marta
+
+Scenario: o autor é quem está autenticado
+  When a Marta envia um comentário com o Pedro indicado como autor
+  Then o comentário fica com a Marta como autora
+
+Scenario: comentários guardados
+  Given a Marta comentou a tarefa "Pedir orçamento de estantes"
+  When o Rui abre de novo a tarefa
+  Then vê o comentário da Marta, com a autora e a data e hora
+
+Scenario: o Observador lê os comentários
+  Given a Marta comentou a tarefa "Pedir orçamento de estantes"
+  When o Carlos abre a tarefa
+  Then vê o comentário da Marta
+
+Scenario Outline: texto inválido
+  When a Marta comenta uma tarefa do projeto "Novo armazém" com <texto>
+  Then o comentário é recusado
+
+  Examples:
+    | texto            |
+    | texto vazio      |
+    | só espaços       |
+    | 2001 caracteres  |
+
+Scenario: texto no limite
+  When a Marta comenta uma tarefa do projeto "Novo armazém" com 2000 caracteres
+  Then o comentário fica guardado
+
+Scenario: texto com código
+  When a Marta comenta "<b>urgente</b>" numa tarefa do projeto "Novo armazém"
+  Then o comentário aparece exatamente como "<b>urgente</b>"
+
+Scenario Outline: sem permissão
+  When <utilizador> tenta comentar uma tarefa do projeto "Novo armazém"
+  Then o comentário é recusado
+
+  Examples:
+    | utilizador                                 |
+    | o João (não pertence a "Logística Norte")  |
+    | o Carlos (Observador)                      |
+
+Scenario: projeto fechado
+  When a Marta tenta comentar uma tarefa do projeto "Armazém Sul"
+  Then o comentário é recusado
+```
+
+---
+
+### US20 Eliminar projeto
+
+> **Como** Gestor, **quero** eliminar um projeto que giro, **para** retirar da lista projetos criados por engano ou que deixaram de interessar.
+
+**Requisitos:** RF41 · **Regras:** RN09, RN22, RN31, RN32 · **Segurança:** SEG02
+
+```gherkin
+Scenario: eliminar com confirmação
+  Given o projeto "Novo armazém" tem 10 tarefas
+  And a Marta é responsável por uma tarefa aberta desse projeto
+  When o Rui escolhe eliminar o projeto "Novo armazém"
+  Then aparece a confirmação "Eliminar o projeto «Novo armazém» e as suas 10 tarefas? Esta ação não pode ser desfeita."
+  When o Rui confirma
+  Then o projeto deixa de aparecer na lista de projetos e no painel
+  And a tarefa deixa de aparecer em "As minhas tarefas" da Marta
+
+Scenario: cancelar
+  When o Rui escolhe eliminar o projeto "Novo armazém" e cancela
+  Then o projeto mantém-se, com as suas tarefas
+
+Scenario Outline: texto da confirmação
+  Given o projeto "Frota" tem <n> tarefas
+  When a Sofia escolhe eliminar o projeto "Frota"
+  Then aparece a confirmação "<texto>"
+
+  Examples:
+    | n | texto                                                                          |
+    | 0 | Eliminar o projeto «Frota»? Esta ação não pode ser desfeita.                    |
+    | 1 | Eliminar o projeto «Frota» e a sua tarefa? Esta ação não pode ser desfeita.     |
+
+Scenario: os dados continuam guardados
+  Given o Rui eliminou o projeto "Novo armazém"
+  Then o projeto, as suas tarefas, os responsáveis e os comentários continuam guardados na base de dados, marcados como eliminados
+
+Scenario: abrir um projeto eliminado
+  Given o Rui eliminou o projeto "Novo armazém"
+  When a Marta abre o endereço do projeto "Novo armazém"
+  Then aparece a mensagem "O projeto não existe."
+
+Scenario: eliminar um projeto arquivado
+  When o Rui elimina o projeto "Armazém Sul" e confirma
+  Then o projeto deixa de aparecer, mesmo com o filtro de estado "Arquivado"
+
+Scenario Outline: sem permissão
+  When <utilizador> tenta eliminar o projeto "Novo armazém"
+  Then a operação é recusada
+  And o projeto mantém-se
+
+  Examples:
+    | utilizador              |
+    | a Marta (Membro)        |
+    | a Sofia (outro Gestor)  |
+    | o Carlos (Observador)   |
+
+Scenario: projeto sem gestor
+  Given o projeto "Novo armazém" está "Sem gestor"
+  When a Ana elimina o projeto e confirma
+  Then o projeto deixa de aparecer
+```
+
+---
+
+### US21 Ver o painel inicial
+
+> **Como** Gestor, **quero** ver ao entrar os projetos que acompanho e quantas tarefas há em cada estado, **para** saber logo onde está o trabalho.
+
+**Requisitos:** RF29, RF03 · **Regras:** RN25, RN33 · **Segurança:** SEG02
+
+```gherkin
+Background:
+  Given os projetos têm estas tarefas:
+    | projeto       | Por fazer | Em curso | Concluída |
+    | Novo armazém  | 2         | 2        | 6         |
+    | Frota         | 1         | 0        | 0         |
+    | Armazém Sul   | 0         | 0        | 4         |
+    | Fornecedores  | 3         | 1        | 1         |
+
+Scenario: painel do Gestor
+  When o Rui entra na aplicação
+  Then vê o painel com o seu nome e o papel Gestor
+  And vê os projetos "Frota" e "Novo armazém", com as contagens da tabela
+  And vê os totais: 3 "Por fazer", 2 "Em curso" e 6 "Concluída"
+  And não vê o projeto arquivado "Armazém Sul" nem o projeto "Fornecedores"
+
+Scenario: painel do Observador
+  When o Carlos entra na aplicação
+  Then vê os projetos "Fornecedores", "Frota" e "Novo armazém"
+  And vê os totais: 6 "Por fazer", 3 "Em curso" e 7 "Concluída"
+
+Scenario: abrir o detalhe
+  When o Rui escolhe o projeto "Novo armazém" no painel
+  Then abre o detalhe do projeto "Novo armazém"
+
+Scenario: contagens atualizadas
+  When o Rui cria uma tarefa no projeto "Novo armazém" e volta ao painel
+  Then o projeto "Novo armazém" mostra 3 "Por fazer", sem ser preciso recarregar a página
+
+Scenario: sem projetos
+  Given o Tiago foi removido da equipa "Compras" e não pertence a nenhuma equipa
+  When o Tiago entra na aplicação
+  Then vê a mensagem "Não há projetos para mostrar"
+```
+
+---
+
+### US22 Pesquisar projetos
+
+> **Como** Membro, **quero** pesquisar projetos pelo nome, **para** encontrar depressa o projeto que procuro.
+
+**Requisitos:** RF40, RF03 · **Regras:** RN25, RN34 · **Segurança:** SEG02
+
+```gherkin
+Scenario Outline: pesquisar
+  When a Marta pesquisa <texto> na lista de projetos
+  Then vê apenas os projetos <resultado>
+
+  Examples:
+    | texto        | resultado     |
+    | "armazém"    | Novo armazém  |
+    | "ARMAZEM"    | Novo armazém  |
+    | "  frota  "  | Frota         |
+    | "forn"       | Fornecedores  |
+
+Scenario: pesquisa com o filtro de estado
+  When a Marta liga o filtro de estado "Arquivado" e pesquisa "armazém"
+  Then vê os projetos "Armazém Sul" e "Novo armazém"
+
+Scenario: só projetos visíveis
+  When o João pesquisa "armazém"
+  Then não vê nenhum projeto
+  And vê a mensagem "Nenhum projeto corresponde à pesquisa"
+
+Scenario: pesquisa vazia
+  Given a Marta pesquisou "frota"
+  When a Marta apaga o texto da pesquisa
+  Then vê todos os projetos do filtro de estado
+```
+
+---
+
 ## 3. Casos excecionais e casos-limite
 
 Cada caso está coberto por pelo menos um cenário da história indicada.
@@ -1057,8 +1290,8 @@ Cada caso está coberto por pelo menos um cenário da história indicada.
 | E2 | Tarefa com prazo igual à data atual | Não está atrasada. | US10 | |
 | E3 | Tarefa concluída depois do prazo | Não está atrasada. | US10 | |
 | E4 | Tarefa sem prazo | Nunca está atrasada. Aparece no fim de "As minhas tarefas". | US08, US10 | RN24 |
-| E5 | Responsável desativado com tarefas abertas | Tarefas abertas ficam "Sem responsável". Concluídas mantêm o nome. | US14 | RN16 |
-| E6 | Responsável removido da equipa | Tarefas abertas nos projetos dessa equipa ficam "Sem responsável". | US03 | RN17 |
+| E5 | Responsável desativado com tarefas abertas | Deixa de ser responsável pelas tarefas abertas. As que ficam sem responsáveis ficam "Sem responsável". Concluídas mantêm o nome. | US14 | RN16 |
+| E6 | Responsável removido da equipa | Deixa de ser responsável pelas tarefas abertas nos projetos dessa equipa. As que ficam sem responsáveis ficam "Sem responsável". | US03 | RN17 |
 | E7 | Membro tenta alterar tarefa de outra pessoa | Recusado. O estado mantém-se. | US07 | RN15 |
 | E8 | Acesso direto a projeto de outra equipa | Acesso recusado. | US12 | SEG02 |
 | E9 | Concluir projeto com tarefas abertas | Pede confirmação com o número de tarefas abertas, no singular ou no plural. | US13 | RN10 |
@@ -1074,7 +1307,7 @@ Cada caso está coberto por pelo menos um cenário da história indicada.
 | E19 | Adicionar um Observador a uma equipa | Recusado. Só Gestor e Membro pertencem a equipas. | US03 | RN26 |
 | E20 | Alterar tarefas num projeto concluído | Recusado. É preciso reabrir o projeto. | US07 | RN09 |
 | E21 | Título só com espaços ou com espaços nas pontas | Só espaços é recusado. Os espaços nas pontas são retirados. | US05 | RN11 |
-| E22 | Desativar alguém com tarefa aberta num projeto arquivado | A tarefa fica "Sem responsável" (exceção a RN09). | US14 | RN09, RN16 |
+| E22 | Desativar alguém com tarefa aberta num projeto arquivado | A pessoa deixa de ser responsável pela tarefa (exceção a RN09). | US14 | RN09, RN16 |
 | E23 | Criar projeto numa equipa sem nenhum Gestor | Recusado. | US04 | RN27 |
 | E24 | Responsável num projeto "Sem gestor" | Continua a mudar o estado das suas tarefas. | US17 | RN22 |
 | E25 | Arquivar um projeto concluído com tarefas abertas | Não pede confirmação. | US13 | RN10 |
@@ -1092,6 +1325,16 @@ Cada caso está coberto por pelo menos um cenário da história indicada.
 | E37 | Sessão sem pedidos há 30 minutos | Termina. A pessoa vê a página de entrada. | US01 | DA26 |
 | E38 | Gestor com conta desativada | Não pode ser indicado como gestor nem conta como Gestor da equipa. | US04, US17 | RN21, RN27 |
 | E39 | Mudança de papel ou de equipa com sessão aberta | Tem efeito no pedido seguinte, sem ser preciso sair. | US03, US18 | SEG02, RN17, RN23 |
+| E40 | Associar a mesma pessoa duas vezes à mesma tarefa | Recusado. A pessoa aparece uma só vez. | US06 | RN14 |
+| E41 | Remover um de vários responsáveis | Os outros mantêm-se. A tarefa só fica "Sem responsável" quando não resta nenhum. | US06 | RN14 |
+| E42 | Comentário vazio, só com espaços ou com mais de 2000 caracteres | Recusado. Com 2000 é aceite. | US19 | RN30 |
+| E43 | Pedido de comentário que indica outro autor | O autor é sempre quem está autenticado. | US19 | RN30, SEG02 |
+| E44 | Comentar num projeto concluído ou arquivado | Recusado. | US19 | RN09, RN30 |
+| E45 | Eliminar um projeto arquivado | Permitido (exceção a RN09). | US20 | RN31 |
+| E46 | Abrir um projeto eliminado | "O projeto não existe." Os dados continuam guardados. | US20 | RN32 |
+| E47 | Eliminar um projeto com 0, 1 ou várias tarefas | A confirmação indica o número de tarefas, no singular ou no plural. | US20 | RN31 |
+| E48 | Pesquisa sem acentos, com maiúsculas ou com espaços nas pontas | Encontra o projeto. | US22 | RN34 |
+| E49 | Pesquisa sem resultados | "Nenhum projeto corresponde à pesquisa". | US22 | RN34 |
 
 ---
 

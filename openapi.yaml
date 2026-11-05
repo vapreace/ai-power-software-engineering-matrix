@@ -1,47 +1,676 @@
 openapi: 3.1.0
 info:
   title: Matriz API
-  version: 0.2.0
-  summary: Contrato REST simplificado do MVP da Matriz (Ficha PL 02, exercício 3).
+  version: 0.3.0
+  summary: Contrato REST do MVP da Matriz (Ficha PL 03, exercício 1).
   description: |
-    Contrato da API REST da Matriz. Documenta três operações do MVP.
-    Não implementa o servidor.
+    Contrato da API REST da Matriz. Documenta todas as operações do MVP
+    (34 operações, `docs/architecture.md`, secção 13.2). Uma operação nova ou
+    alterada entra primeiro neste ficheiro (AGENTS.md).
 
     Fontes:
 
     - Regras de negócio, permissões e definições: `docs/requirements.md`.
     - Critérios de aceitação: `docs/user-stories.md`.
     - Modelo de dados e glossário de nomes técnicos: `docs/database.md`.
-    - Convenções da API (DA15 a DA20, DA27) e lista de endpoints previstos: `docs/architecture.md`, secção 13.
+    - Convenções da API (DA15 a DA20, DA27, DA33) e lista de endpoints: `docs/architecture.md`, secção 13.
 
     Resumo das convenções:
 
-    - Autenticação por sessão no servidor, com cookie (DA04). Os pedidos que
-      alteram dados enviam também o token CSRF no cabeçalho `X-XSRF-TOKEN`.
+    - Autenticação por sessão no servidor, com cookie (DA04, DA26). Ciclo da
+      sessão: `POST /session` cria a sessão e muda o identificador; cada pedido
+      renova a sessão; a sessão termina com `DELETE /session`, ao desativar a
+      conta (SEG08), após 30 minutos sem pedidos ou ao reiniciar o backend.
+    - Os pedidos que alteram dados enviam o token CSRF no cabeçalho
+      `X-XSRF-TOKEN`, com o valor do cookie `XSRF-TOKEN`. O backend envia esse
+      cookie em todas as respostas, incluindo as respostas 401.
+    - Enquanto a palavra-passe for temporária (DA25), todas as operações
+      respondem 403 `PASSWORD_CHANGE_REQUIRED`, exceto `GET /session`,
+      `DELETE /session` e `PUT /session/password`.
     - Os erros seguem o formato Problem Details (RFC 9457), com um `code`
       estável para o frontend e uma mensagem em português em `detail` (DA16).
+      Ordem das verificações: 401, 404, 403, 400, 409 (DA17).
     - Os limites de texto contam-se depois de retirar os espaços nas pontas e
       de normalizar o texto (RN11, RN29, DA11). Por isso estão na descrição dos
       campos e não em `maxLength`.
     - Os valores de estado, papel e prioridade são os nomes técnicos do glossário
       (DA08). A interface mostra-os em português (RNF02).
+    - Projetos e tarefas eliminados, e associações removidas, respondem como
+      inexistentes: 404 ou ausência nas listas (RN32, DA29).
+    - Sem paginação: as listas vêm dentro de `items` (DA18).
+    - O frontend nunca envia a identidade de quem faz o pedido. O backend
+      obtém-na da sessão (SEG02).
 servers:
   - url: /api
     description: Mesma origem do frontend (DA02, DA15).
 tags:
+  - name: Sessão
+    description: Entrar, sair e utilizador autenticado (US01).
+  - name: Contas
+    description: Gestão de contas pelo Administrador (US02, US14, US18).
+  - name: Equipas
+    description: Equipas e quem lhes pertence (US03).
   - name: Projetos
-    description: Projetos visíveis e respetivo progresso.
+    description: Projetos visíveis, progresso, estado, gestor e eliminação.
+  - name: Painel
+    description: Painel inicial (US21).
   - name: Tarefas
-    description: Tarefas de um projeto.
+    description: Tarefas de um projeto e "As minhas tarefas".
+  - name: Responsáveis
+    description: Responsáveis de uma tarefa (US06).
+  - name: Comentários
+    description: Comentários de uma tarefa (US19).
 security:
   - sessionCookie: []
 
 paths:
+  # ───────────────────────────── Sessão ─────────────────────────────
+  /session:
+    post:
+      tags: [Sessão]
+      operationId: login
+      summary: Entrar
+      description: |
+        Cria a sessão com email e palavra-passe (RF01). O email compara-se sem
+        distinguir maiúsculas (DA10). O identificador de sessão muda ao entrar
+        (DA26).
+
+        - Credenciais erradas, conta inexistente ou conta desativada com
+          palavra-passe errada: 401 `INVALID_CREDENTIALS`, sempre com a mesma
+          mensagem (SEG04).
+        - Conta desativada com a palavra-passe correta: 401 `ACCOUNT_DEACTIVATED` (SEG05).
+        - 5 falhas em 15 minutos para o mesmo par email e endereço IP: 429
+          durante 15 minutos, mesmo com a palavra-passe correta (SEG09, DA26).
+
+        Se `mustChangePassword` vier verdadeiro, o frontend mostra a página para
+        definir uma palavra-passe nova (DA25).
+
+        História: US01.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: marta@empresa.example
+              password: palavra-passe-ficticia
+      responses:
+        '200':
+          description: Sessão criada. Devolve o utilizador autenticado.
+          headers:
+            Set-Cookie:
+              description: Cookie de sessão `JSESSIONID` (HttpOnly).
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+              example:
+                id: 5
+                name: Marta
+                email: marta@empresa.example
+                role: MEMBER
+                teams:
+                  - { id: 1, name: Logística Norte }
+                  - { id: 2, name: Compras }
+                mustChangePassword: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Entrada recusada (SEG04, SEG05).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                credenciais:
+                  summary: Email ou palavra-passe incorretos (E15)
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    code: INVALID_CREDENTIALS
+                    detail: Email ou palavra-passe incorretos
+                desativada:
+                  summary: Conta desativada, com a palavra-passe correta
+                  value:
+                    type: about:blank
+                    title: Unauthorized
+                    status: 401
+                    code: ACCOUNT_DEACTIVATED
+                    detail: Conta desativada. Contacte o administrador.
+        '429':
+          description: Demasiadas tentativas para este email e endereço (SEG09, DA26, E35).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              example:
+                type: about:blank
+                title: Too Many Requests
+                status: 429
+                code: TOO_MANY_ATTEMPTS
+                detail: Demasiadas tentativas. Tente de novo dentro de 15 minutos.
+    get:
+      tags: [Sessão]
+      operationId: getCurrentUser
+      summary: Consultar o utilizador autenticado
+      description: |
+        Devolve quem está autenticado, com o papel e as equipas lidos da base de
+        dados neste pedido (secção 5.2 da arquitetura). O frontend usa esta
+        operação ao arrancar, para saber se há sessão e que menu mostrar (DA21).
+
+        História: US01.
+      responses:
+        '200':
+          description: Utilizador autenticado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags: [Sessão]
+      operationId: logout
+      summary: Sair
+      description: Termina a sessão no servidor (SEG07). História US01.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '204':
+          description: Sessão terminada.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /session/password:
+    put:
+      tags: [Sessão]
+      operationId: setNewPassword
+      summary: Definir uma palavra-passe nova
+      description: |
+        Substitui a palavra-passe temporária na primeira entrada ou depois de o
+        Administrador repor o acesso (DA25). Só é aceite quando
+        `mustChangePassword` é verdadeiro; caso contrário, 403 `FORBIDDEN`.
+        A palavra-passe tem 12 a 128 caracteres, sem regras de composição (DA26).
+
+        História: US01 (E36).
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRequest'
+      responses:
+        '204':
+          description: Palavra-passe definida. `mustChangePassword` passa a falso.
+        '400':
+          description: Palavra-passe com menos de 12 ou mais de 128 caracteres.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              example:
+                type: about:blank
+                title: Bad Request
+                status: 400
+                code: VALIDATION_ERROR
+                detail: A palavra-passe tem de ter entre 12 e 128 caracteres.
+                errors:
+                  - field: newPassword
+                    message: A palavra-passe tem de ter entre 12 e 128 caracteres.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ───────────────────────────── Contas ─────────────────────────────
+  /users:
+    get:
+      tags: [Contas]
+      operationId: listUsers
+      summary: Listar contas
+      description: |
+        Só o Administrador (RF02). Ordenada por nome. Os filtros servem também
+        para procurar pessoas que podem ser adicionadas a uma equipa (RN26:
+        `status=ACTIVE&role=MANAGER&role=MEMBER`).
+
+        Histórias: US02, US03.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Estados a mostrar. Sem este parâmetro, mostra todos.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/AccountStatus'
+            uniqueItems: true
+        - name: role
+          in: query
+          required: false
+          description: Papéis a mostrar. Sem este parâmetro, mostra todos.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Role'
+            uniqueItems: true
+      responses:
+        '200':
+          description: Lista de contas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Contas]
+      operationId: createUser
+      summary: Criar conta
+      description: |
+        Só o Administrador. A conta nasce ativa, com a palavra-passe temporária
+        indicada e `mustChangePassword` verdadeiro (DA25). O email fica em
+        minúsculas (DA10).
+
+        História: US02.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            example:
+              name: Inês Costa
+              email: ines@empresa.example
+              role: MEMBER
+              temporaryPassword: palavra-temporaria
+      responses:
+        '201':
+          description: Conta criada.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/DuplicateEmail'
+
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    patch:
+      tags: [Contas]
+      operationId: updateUser
+      summary: Editar nome e email, ou mudar o papel
+      description: |
+        Só o Administrador. Só os campos enviados mudam.
+
+        - O email continua único (RN04, RN28).
+        - Mudar o papel aplica RN23: quem deixa de ser Gestor deixa os projetos
+          "Sem gestor"; quem passa a Observador ou Administrador sai das equipas
+          e deixa de ser responsável pelas tarefas abertas (RN17).
+        - Não é possível mudar o papel do último Administrador ativo (RN18).
+
+        Histórias: US02, US18.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+            example:
+              email: marta.silva@empresa.example
+      responses:
+        '200':
+          description: Conta alterada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '409':
+          description: Email repetido (RN04) ou último Administrador (RN18).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                email:
+                  $ref: '#/components/examples/DuplicateEmail'
+                ultimoAdministrador:
+                  $ref: '#/components/examples/LastAdministrator'
+
+  /users/{userId}/status:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    put:
+      tags: [Contas]
+      operationId: changeUserStatus
+      summary: Desativar ou reativar uma conta
+      description: |
+        Só o Administrador.
+
+        - Desativar termina todas as sessões da conta (SEG08), retira a pessoa
+          das tarefas abertas (RN16) e deixa os seus projetos "Sem gestor" (RN22).
+        - Reativar mantém o papel e as equipas. As tarefas não voltam a ser
+          atribuídas (RN28).
+        - Não é possível desativar o último Administrador ativo (RN18).
+
+        História: US14.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeUserStatusRequest'
+            example:
+              status: DEACTIVATED
+      responses:
+        '200':
+          description: Estado da conta alterado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '409':
+          description: Último Administrador ativo (RN18).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                ultimoAdministrador:
+                  $ref: '#/components/examples/LastAdministrator'
+
+  /users/{userId}/password:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    put:
+      tags: [Contas]
+      operationId: resetUserPassword
+      summary: Repor o acesso com uma palavra-passe temporária
+      description: |
+        Só o Administrador. A palavra-passe antiga deixa de funcionar,
+        `mustChangePassword` passa a verdadeiro e o contador de tentativas desse
+        email é limpo (DA25, SEG09 c).
+
+        História: US02.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '204':
+          description: Acesso reposto.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  # ───────────────────────────── Equipas ─────────────────────────────
+  /teams:
+    get:
+      tags: [Equipas]
+      operationId: listTeams
+      summary: Listar equipas
+      description: |
+        Administrador e Observador: todas as equipas. Gestor e Membro: as
+        equipas a que pertencem (requirements.md, secção 3.1). Ordenada por nome.
+
+        História: US03.
+      responses:
+        '200':
+          description: Lista de equipas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Equipas]
+      operationId: createTeam
+      summary: Criar equipa
+      description: |
+        Só o Administrador. Nome obrigatório, até 100 caracteres, único sem
+        distinguir maiúsculas (RN03, RN29, DA10).
+
+        História: US03.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamRequest'
+            example:
+              name: Armazém Central
+      responses:
+        '201':
+          description: Equipa criada.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/DuplicateTeamName'
+
+  /teams/{teamId}:
+    parameters:
+      - $ref: '#/components/parameters/TeamId'
+    patch:
+      tags: [Equipas]
+      operationId: renameTeam
+      summary: Mudar o nome da equipa
+      description: Só o Administrador. Mesmas regras da criação (RN03, RN29). História US03.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamRequest'
+      responses:
+        '200':
+          description: Nome alterado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/TeamNotFound'
+        '409':
+          $ref: '#/components/responses/DuplicateTeamName'
+
+  /teams/{teamId}/members:
+    parameters:
+      - $ref: '#/components/parameters/TeamId'
+    get:
+      tags: [Equipas]
+      operationId: listTeamMembers
+      summary: Ver quem pertence à equipa
+      description: |
+        Administrador e Observador: qualquer equipa. Gestor e Membro: só as
+        equipas a que pertencem. Ordenada por nome.
+
+        Inclui o papel e o estado da conta. O frontend usa esta lista para
+        escolher os responsáveis (RN14) e o gestor (RN21) elegíveis: contas
+        ativas, com o papel adequado.
+
+        Histórias: US03, US06, US17.
+      responses:
+        '200':
+          description: Pessoas que pertencem à equipa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMemberList'
+              example:
+                items:
+                  - { id: 5, name: Marta, role: MEMBER, status: ACTIVE }
+                  - { id: 6, name: Pedro, role: MEMBER, status: DEACTIVATED }
+                  - { id: 2, name: Rui, role: MANAGER, status: ACTIVE }
+                  - { id: 3, name: Sofia, role: MANAGER, status: ACTIVE }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/TeamNotFound'
+
+  /teams/{teamId}/members/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/TeamId'
+      - $ref: '#/components/parameters/UserId'
+    put:
+      tags: [Equipas]
+      operationId: addTeamMember
+      summary: Adicionar uma pessoa à equipa
+      description: |
+        Só o Administrador. Só contas ativas com papel Gestor ou Membro (RN26).
+        Uma pessoa que já pertence à equipa é recusada.
+
+        História: US03.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '204':
+          description: Pessoa adicionada.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: A equipa ou a pessoa não existem.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Pessoa que não pode pertencer a equipas (RN26) ou que já pertence (E19).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                papel:
+                  summary: Observador, Administrador ou conta desativada
+                  value:
+                    type: about:blank
+                    title: Conflict
+                    status: 409
+                    code: INVALID_TEAM_MEMBER
+                    detail: Só pessoas com papel Gestor ou Membro e conta ativa pertencem a equipas.
+                repetida:
+                  summary: Já pertence à equipa
+                  value:
+                    type: about:blank
+                    title: Conflict
+                    status: 409
+                    code: DUPLICATE_TEAM_MEMBER
+                    detail: Esta pessoa já pertence à equipa.
+    delete:
+      tags: [Equipas]
+      operationId: removeTeamMember
+      summary: Remover uma pessoa da equipa
+      description: |
+        Só o Administrador. A pertença fica marcada como removida (RN32, DA29).
+        A pessoa deixa de ser responsável pelas tarefas abertas nos projetos da
+        equipa (RN17) e os projetos que gere ficam "Sem gestor" (RN22).
+
+        História: US03.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '204':
+          description: Pessoa removida.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: A equipa não existe ou a pessoa não pertence à equipa.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  # ───────────────────────────── Projetos ─────────────────────────────
   /projects:
     get:
       tags: [Projetos]
       operationId: listProjects
-      summary: Listar os projetos visíveis
+      summary: Listar e pesquisar os projetos visíveis
       description: |
         Devolve os projetos visíveis para quem faz o pedido, com progresso e
         número de tarefas atrasadas (RF09, RF27, RF28).
@@ -49,12 +678,13 @@ paths:
         - Membro e Gestor: projetos das equipas a que pertencem.
         - Administrador e Observador: todos os projetos.
         - Um Gestor sem equipa recebe uma lista vazia (RN26).
+        - Projetos eliminados nunca aparecem (RN32).
 
         Sem o parâmetro `status`, os projetos `ARCHIVED` não aparecem (RN25).
+        O parâmetro `q` pesquisa pelo nome (RF40, RN34, DA32).
         A lista vem ordenada por nome, sem distinguir maiúsculas nem acentos (DA27).
-        Não há paginação no MVP (DA18).
 
-        Histórias: US09, US10, US12, US15.
+        Histórias: US09, US10, US12, US15, US22.
       parameters:
         - name: status
           in: query
@@ -70,6 +700,17 @@ paths:
               $ref: '#/components/schemas/ProjectStatus'
             uniqueItems: true
           example: [ARCHIVED]
+        - name: q
+          in: query
+          required: false
+          description: |
+            Texto a procurar em qualquer parte do nome, sem distinguir maiúsculas
+            nem acentos, depois de retirar os espaços nas pontas (RN34). Vazio
+            ou ausente: sem pesquisa. Combina-se com `status`.
+          schema:
+            type: string
+            maxLength: 100
+          example: armazem
       responses:
         '200':
           description: Lista de projetos visíveis.
@@ -99,24 +740,412 @@ paths:
                         progress: { completedTasks: 6, totalTasks: 10, percentage: 60 }
                         overdueTaskCount: 2
                 semResultados:
-                  summary: Gestor sem equipa (US12)
+                  summary: Gestor sem equipa (US12) ou pesquisa sem resultados (US22)
                   value:
                     items: []
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Projetos]
+      operationId: createProject
+      summary: Criar projeto
+      description: |
+        Cria um projeto no estado `ACTIVE` (RF07, RN07).
 
+        - Gestor: só nas equipas a que pertence (RN05). Fica gestor do projeto;
+          o campo `managerId` é ignorado (RN27).
+        - Administrador: em qualquer equipa, com `managerId` obrigatório. O
+          gestor tem conta ativa, pertence à equipa e tem papel Gestor (RN21).
+        - Uma equipa sem nenhum Gestor com conta ativa não aceita projetos (RN27).
+        - Nome obrigatório até 100 caracteres, descrição até 1000 (RN29). Data
+          de início obrigatória; a data de fim prevista não pode ser anterior (RN06).
+
+        História: US04.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+            examples:
+              gestor:
+                summary: Rui cria um projeto na sua equipa
+                value:
+                  teamId: 1
+                  name: Inventário 2026
+                  startDate: '2026-11-12'
+                  expectedEndDate: '2026-12-18'
+              administrador:
+                summary: Ana cria um projeto e indica o gestor
+                value:
+                  teamId: 2
+                  name: Auditoria
+                  startDate: '2026-11-12'
+                  managerId: 4
+      responses:
+        '201':
+          description: Projeto criado.
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: A equipa indicada não existe.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Gestor inválido (RN21) ou equipa sem Gestor (RN27).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                gestor:
+                  $ref: '#/components/examples/InvalidManager'
+                semGestor:
+                  summary: Equipa sem nenhum Gestor com conta ativa (E23, E38)
+                  value:
+                    type: about:blank
+                    title: Conflict
+                    status: 409
+                    code: TEAM_WITHOUT_MANAGER
+                    detail: A equipa não tem nenhum Gestor
+
+  /projects/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Projetos]
+      operationId: getProject
+      summary: Consultar o detalhe de um projeto
+      description: |
+        Dados do projeto, com progresso e atrasos. O total de tarefas
+        (`progress.totalTasks`) serve também para as confirmações de RN10 e RN31.
+
+        Histórias: US09, US10, US20.
+      responses:
+        '200':
+          description: Projeto.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ProjectNotFound'
+    patch:
+      tags: [Projetos]
+      operationId: updateProject
+      summary: Editar nome, descrição e datas
+      description: |
+        Quem pode: o Administrador e o gestor do projeto; num projeto
+        "Sem gestor", só o Administrador (RN05, RN22). Só os campos enviados
+        mudam. A equipa não muda (RN21). Projetos `COMPLETED` e `ARCHIVED` não
+        se alteram (RN09).
+
+        História: US17.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+            example:
+              name: Armazém Norte
+              expectedEndDate: '2027-01-15'
+              version: 3
+      responses:
+        '200':
+          description: Projeto alterado, com a nova versão.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ProjectNotFound'
+        '409':
+          $ref: '#/components/responses/ProjectConflict'
+    delete:
+      tags: [Projetos]
+      operationId: deleteProject
+      summary: Eliminar um projeto
+      description: |
+        Eliminação lógica do projeto e das suas tarefas (RF41, RN31, RN32, DA29).
+        Os responsáveis e os comentários ficam guardados, mas deixam de aparecer.
+
+        Quem pode: o Administrador e o gestor do projeto; num projeto
+        "Sem gestor", só o Administrador (RN22). É aceite em qualquer estado do
+        projeto (exceção a RN09). Não leva versão, como apagar uma tarefa (DA20).
+        A confirmação é feita no frontend (RN31).
+
+        História: US20.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '204':
+          description: Projeto eliminado.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ProjectNotFound'
+
+  /projects/{projectId}/manager:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    put:
+      tags: [Projetos]
+      operationId: changeProjectManager
+      summary: Mudar o gestor do projeto
+      description: |
+        Só o Administrador (RN21). O novo gestor tem conta ativa, pertence à
+        equipa do projeto e tem papel Gestor. É aceite também em projetos
+        `COMPLETED` e `ARCHIVED` (exceção a RN09).
+
+        História: US17.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeProjectManagerRequest'
+            example:
+              managerId: 3
+              version: 3
+      responses:
+        '200':
+          description: Gestor alterado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ProjectNotFound'
+        '409':
+          description: Gestor inválido (RN21) ou versão antiga (DA05).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                gestor:
+                  $ref: '#/components/examples/InvalidManager'
+                versao:
+                  $ref: '#/components/examples/ProjectVersionConflict'
+
+  /projects/{projectId}/status:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    put:
+      tags: [Projetos]
+      operationId: changeProjectStatus
+      summary: Mudar o estado do projeto e arquivar
+      description: |
+        Quem pode: o Administrador e o gestor do projeto; num projeto
+        "Sem gestor", só o Administrador. Transições permitidas (RN07):
+        `ACTIVE` → `COMPLETED`, `COMPLETED` → `ACTIVE`, `COMPLETED` → `ARCHIVED`,
+        `ARCHIVED` → `COMPLETED`. A confirmação de RN10 é feita no frontend.
+
+        História: US13.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeProjectStatusRequest'
+            example:
+              status: COMPLETED
+              version: 4
+      responses:
+        '200':
+          description: Estado alterado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ProjectNotFound'
+        '409':
+          description: Transição não permitida (RN07) ou versão antiga (DA05).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                transicao:
+                  summary: De Ativo para Arquivado
+                  value:
+                    type: about:blank
+                    title: Conflict
+                    status: 409
+                    code: INVALID_TRANSITION
+                    detail: Esta mudança de estado não é permitida.
+                versao:
+                  $ref: '#/components/examples/ProjectVersionConflict'
+
+  # ───────────────────────────── Painel ─────────────────────────────
+  /dashboard:
+    get:
+      tags: [Painel]
+      operationId: getDashboard
+      summary: Consultar o painel inicial
+      description: |
+        Projetos visíveis, os mesmos que a lista de projetos mostra por omissão
+        (sem `ARCHIVED`), pela mesma ordem. Para cada projeto, o número de
+        tarefas por estado, e os totais desses projetos (RF29, RN33). As
+        contagens incluem todas as tarefas não eliminadas.
+
+        O utilizador autenticado vem de `GET /session`.
+
+        História: US21.
+      responses:
+        '200':
+          description: Painel inicial.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+              example:
+                projects:
+                  - id: 2
+                    name: Frota
+                    team: { id: 1, name: Logística Norte }
+                    status: ACTIVE
+                    taskCounts: { todo: 1, inProgress: 0, done: 0 }
+                  - id: 1
+                    name: Novo armazém
+                    team: { id: 1, name: Logística Norte }
+                    status: ACTIVE
+                    taskCounts: { todo: 2, inProgress: 2, done: 6 }
+                totals: { todo: 3, inProgress: 2, done: 6 }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ───────────────────────────── Tarefas ─────────────────────────────
   /projects/{projectId}/tasks:
     parameters:
       - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Tarefas]
+      operationId: listProjectTasks
+      summary: Listar e filtrar as tarefas de um projeto
+      description: |
+        Tarefas não eliminadas do projeto (RF16). Vários filtros aplicam-se ao
+        mesmo tempo: a tarefa tem de cumprir todos. O filtro por responsável
+        mostra as tarefas em que essa pessoa é um dos responsáveis.
+
+        Ordem: a mesma de "As minhas tarefas" (RN24): prazo, com as tarefas sem
+        prazo no fim, prioridade, título e ordem de criação.
+
+        Histórias: US10, US11.
+      parameters:
+        - name: assigneeId
+          in: query
+          required: false
+          description: Só as tarefas de que esta pessoa é responsável. Não se combina com `unassigned`.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: unassigned
+          in: query
+          required: false
+          description: Se verdadeiro, só as tarefas "Sem responsável".
+          schema:
+            type: boolean
+        - name: status
+          in: query
+          required: false
+          description: Estados a mostrar. Pode repetir-se. Sem este parâmetro, mostra todos.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/TaskStatus'
+            uniqueItems: true
+        - name: priority
+          in: query
+          required: false
+          description: Prioridades a mostrar. Pode repetir-se. Sem este parâmetro, mostra todas.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/TaskPriority'
+            uniqueItems: true
+        - name: overdue
+          in: query
+          required: false
+          description: Se verdadeiro, só as tarefas atrasadas (requirements.md, secção 2).
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Tarefas do projeto.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ProjectNotFound'
     post:
       tags: [Tarefas]
       operationId: createTask
       summary: Criar uma tarefa num projeto
       description: |
-        Cria uma tarefa no estado `TODO`, sem responsável (RF12, RF14, RN12).
-        O responsável atribui-se numa operação à parte (US06).
+        Cria uma tarefa no estado `TODO`, sem responsáveis (RF12, RF14, RN12).
+        Os responsáveis associam-se numa operação à parte (US06).
 
         Quem pode: o Administrador e o gestor do projeto. Num projeto
         "Sem gestor", só o Administrador (RN22).
@@ -128,8 +1157,6 @@ paths:
           nas pontas (RN11).
         - Prioridade `MEDIUM` se não for indicada (RN11).
         - O prazo não pode ser anterior à data atual da organização (RN13, RNF06).
-
-        Ordem das verificações: 401, 404, 403, 400, 409 (DA17).
 
         História: US05.
       parameters:
@@ -157,10 +1184,7 @@ paths:
           description: Tarefa criada.
           headers:
             Location:
-              description: Caminho da tarefa criada.
-              schema:
-                type: string
-              example: /api/tasks/42
+              $ref: '#/components/headers/Location'
           content:
             application/json:
               schema:
@@ -173,7 +1197,7 @@ paths:
                 dueDate: '2026-11-15'
                 priority: HIGH
                 status: TODO
-                assignee: null
+                assignees: []
                 overdue: false
                 version: 0
         '400':
@@ -190,10 +1214,10 @@ paths:
                     title: Bad Request
                     status: 400
                     code: VALIDATION_ERROR
-                    detail: O prazo não pode ser anterior à data atual.
+                    detail: O prazo não pode ser anterior à data atual
                     errors:
                       - field: dueDate
-                        message: O prazo não pode ser anterior à data atual.
+                        message: O prazo não pode ser anterior à data atual
                 tituloInvalido:
                   summary: Título vazio, só com espaços ou com mais de 200 caracteres
                   value:
@@ -224,6 +1248,102 @@ paths:
                 code: PROJECT_NOT_ACTIVE
                 detail: Só projetos ativos aceitam novas tarefas.
 
+  /tasks/{taskId}:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+    get:
+      tags: [Tarefas]
+      operationId: getTask
+      summary: Consultar o detalhe de uma tarefa
+      description: |
+        Dados da tarefa, com os responsáveis. Serve também para abrir de novo a
+        tarefa depois de um conflito de versão (DA05).
+
+        Histórias: US07, US16, US19.
+      responses:
+        '200':
+          description: Tarefa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/TaskNotFound'
+    patch:
+      tags: [Tarefas]
+      operationId: updateTask
+      summary: Editar uma tarefa
+      description: |
+        Edita título, descrição, prazo e prioridade (RF12, RF14). Só os campos
+        enviados mudam; `null` retira a descrição ou o prazo.
+
+        Quem pode: o Administrador e o gestor do projeto; num projeto
+        "Sem gestor", só o Administrador (RN22).
+
+        - A validação do prazo só se aplica quando o prazo muda (RN13).
+        - Projetos `COMPLETED` e `ARCHIVED` não se alteram (RN09).
+
+        História: US16.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+            example:
+              title: Pedir 3 orçamentos de estantes
+              dueDate: '2026-11-20'
+              version: 2
+      responses:
+        '200':
+          description: Tarefa alterada, com a nova versão.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/TaskNotFound'
+        '409':
+          $ref: '#/components/responses/TaskConflict'
+    delete:
+      tags: [Tarefas]
+      operationId: deleteTask
+      summary: Apagar uma tarefa
+      description: |
+        Eliminação lógica (RN19, RN32, DA29). Para os utilizadores é definitivo.
+        Não leva versão (DA20). A confirmação é feita no frontend.
+
+        Quem pode: o Administrador e o gestor do projeto; num projeto
+        "Sem gestor", só o Administrador. Projetos `COMPLETED` e `ARCHIVED` não
+        se alteram (RN09).
+
+        História: US16.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '204':
+          description: Tarefa apagada.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/TaskNotFound'
+        '409':
+          $ref: '#/components/responses/ProjectClosed'
+
   /tasks/{taskId}/status:
     parameters:
       - $ref: '#/components/parameters/TaskId'
@@ -239,17 +1359,15 @@ paths:
 
         Quem pode:
 
-        - o responsável da tarefa, qualquer que seja o papel (RN15);
+        - qualquer responsável da tarefa, qualquer que seja o papel (RN15);
         - o gestor do projeto;
         - o Administrador.
 
-        Num projeto "Sem gestor", o responsável continua a poder mudar o estado
-        (RN22). O Observador nunca pode.
+        Num projeto "Sem gestor", os responsáveis continuam a poder mudar o
+        estado (RN22). O Observador nunca pode.
 
         O pedido leva a `version` lida. Se a tarefa mudou entretanto, o pedido
         é recusado com 409 `VERSION_CONFLICT` (DA05, DA20).
-
-        Ordem das verificações: 401, 404, 403, 400, 409 (DA17).
 
         Histórias: US07, US17 (responsável num projeto "Sem gestor").
       parameters:
@@ -278,7 +1396,8 @@ paths:
                 dueDate: '2026-11-15'
                 priority: HIGH
                 status: IN_PROGRESS
-                assignee: { id: 5, name: Marta }
+                assignees:
+                  - { id: 5, name: Marta }
                 overdue: false
                 version: 2
         '400':
@@ -290,28 +1409,232 @@ paths:
         '404':
           $ref: '#/components/responses/TaskNotFound'
         '409':
-          description: O projeto está fechado (RN09) ou a tarefa foi alterada entretanto (DA05).
+          $ref: '#/components/responses/TaskConflict'
+
+  /me/tasks:
+    get:
+      tags: [Tarefas]
+      operationId: listMyTasks
+      summary: Ver "As minhas tarefas"
+      description: |
+        Tarefas de que quem faz o pedido é responsável, em projetos `ACTIVE`
+        (RF17, RN25). Por omissão, só as tarefas abertas. Ordenadas por RN24:
+        prazo, com as tarefas sem prazo no fim, prioridade (`HIGH`, `MEDIUM`,
+        `LOW`), título sem distinguir maiúsculas nem acentos (DA14) e ordem de
+        criação.
+
+        História: US08.
+      parameters:
+        - name: includeCompleted
+          in: query
+          required: false
+          description: Se verdadeiro, acrescenta as tarefas `DONE` desses projetos.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: As minhas tarefas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyTaskList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ───────────────────────────── Responsáveis ─────────────────────────────
+  /tasks/{taskId}/assignees/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+      - $ref: '#/components/parameters/UserId'
+    put:
+      tags: [Responsáveis]
+      operationId: addTaskAssignee
+      summary: Associar um responsável a uma tarefa
+      description: |
+        Quem pode: o Administrador e o gestor do projeto; num projeto
+        "Sem gestor", só o Administrador (RN22).
+
+        - O responsável tem conta ativa, pertence à equipa do projeto e tem
+          papel Gestor ou Membro (RN14).
+        - A mesma pessoa não pode ser associada duas vezes (RN14, E40).
+        - Projetos `COMPLETED` e `ARCHIVED` não se alteram (RN09).
+
+        Não leva versão: a operação é sobre uma pessoa e não substitui dados da
+        tarefa. A versão da tarefa aumenta (DA20).
+
+        História: US06.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '200':
+          description: Responsável associado. Devolve a tarefa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: A tarefa ou a pessoa não existem.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Responsável inválido (RN14), repetido (E40) ou projeto fechado (RN09).
           content:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
               examples:
+                invalido:
+                  summary: Fora da equipa, conta desativada ou papel sem tarefas
+                  value:
+                    type: about:blank
+                    title: Conflict
+                    status: 409
+                    code: INVALID_ASSIGNEE
+                    detail: O responsável tem de ter conta ativa, pertencer à equipa do projeto e ter papel Gestor ou Membro.
+                repetido:
+                  summary: Já é responsável pela tarefa
+                  value:
+                    type: about:blank
+                    title: Conflict
+                    status: 409
+                    code: DUPLICATE_ASSIGNEE
+                    detail: Esta pessoa já é responsável pela tarefa.
                 projetoFechado:
-                  summary: Projeto Concluído ou Arquivado (US07, US13)
-                  value:
-                    type: about:blank
-                    title: Conflict
-                    status: 409
-                    code: PROJECT_CLOSED
-                    detail: O projeto está concluído ou arquivado e não pode ser alterado.
-                versaoAntiga:
-                  summary: Outra pessoa alterou a tarefa (DA05)
-                  value:
-                    type: about:blank
-                    title: Conflict
-                    status: 409
-                    code: VERSION_CONFLICT
-                    detail: Esta tarefa foi alterada por outra pessoa. Abra-a de novo e repita a alteração.
+                  $ref: '#/components/examples/ProjectClosed'
+    delete:
+      tags: [Responsáveis]
+      operationId: removeTaskAssignee
+      summary: Remover um responsável de uma tarefa
+      description: |
+        Quem pode: o mesmo que associar. A associação fica marcada como removida
+        (RN32, DA29). Sem responsáveis, a tarefa fica "Sem responsável".
+        Não leva versão; a versão da tarefa aumenta (DA20).
+
+        História: US06.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '200':
+          description: Responsável removido. Devolve a tarefa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: A tarefa não existe ou a pessoa não é responsável por ela.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          $ref: '#/components/responses/ProjectClosed'
+
+  # ───────────────────────────── Comentários ─────────────────────────────
+  /tasks/{taskId}/comments:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+    get:
+      tags: [Comentários]
+      operationId: listTaskComments
+      summary: Listar os comentários de uma tarefa
+      description: |
+        Quem vê o projeto vê os comentários, incluindo o Observador. Do mais
+        antigo para o mais recente (RN30).
+
+        História: US19.
+      responses:
+        '200':
+          description: Comentários da tarefa.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentList'
+              example:
+                items:
+                  - id: 7
+                    author: { id: 2, name: Rui }
+                    content: Preciso disto até sexta.
+                    createdAt: '2026-11-09T10:00:00Z'
+                  - id: 8
+                    author: { id: 5, name: Marta }
+                    content: Já pedi dois orçamentos.
+                    createdAt: '2026-11-10T14:30:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/TaskNotFound'
+    post:
+      tags: [Comentários]
+      operationId: createTaskComment
+      summary: Comentar uma tarefa
+      description: |
+        Quem pode: o Administrador e as pessoas que pertencem à equipa do
+        projeto. O Observador não comenta (RN30).
+
+        - O autor é sempre quem está autenticado e a data e hora vêm do Relógio
+          da organização. Campos como `authorId` ou `createdAt` no pedido são
+          ignorados (E43).
+        - Texto obrigatório, 1 a 2000 caracteres depois de retirar os espaços
+          nas pontas.
+        - Projetos `COMPLETED` e `ARCHIVED` não aceitam comentários (RN09, RN30).
+        - Comentar não muda a versão da tarefa.
+
+        História: US19.
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+            example:
+              content: Já pedi dois orçamentos.
+      responses:
+        '201':
+          description: Comentário criado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Texto vazio, só com espaços ou com mais de 2000 caracteres (E42).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              example:
+                type: about:blank
+                title: Bad Request
+                status: 400
+                code: VALIDATION_ERROR
+                detail: Há campos inválidos.
+                errors:
+                  - field: content
+                    message: O comentário é obrigatório e tem no máximo 2000 caracteres.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/TaskNotFound'
+        '409':
+          $ref: '#/components/responses/ProjectClosed'
 
 components:
   securitySchemes:
@@ -324,7 +1647,34 @@ components:
         isso o JavaScript do frontend não o lê: o browser envia-o sozinho.
         A sessão termina após 30 minutos sem pedidos (DA26).
 
+  headers:
+    Location:
+      description: Caminho do recurso criado.
+      schema:
+        type: string
+      example: /api/tasks/42
+
   parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      description: Identificador da conta (DA09).
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 5
+    TeamId:
+      name: teamId
+      in: path
+      required: true
+      description: Identificador da equipa (DA09).
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 1
     ProjectId:
       name: projectId
       in: path
@@ -353,6 +1703,56 @@ components:
       schema:
         type: string
 
+  examples:
+    DuplicateEmail:
+      summary: Email já usado, sem distinguir maiúsculas (E29, E32)
+      value:
+        type: about:blank
+        title: Conflict
+        status: 409
+        code: DUPLICATE_EMAIL
+        detail: Já existe uma conta com este email
+    LastAdministrator:
+      summary: Último Administrador ativo (E10)
+      value:
+        type: about:blank
+        title: Conflict
+        status: 409
+        code: LAST_ADMINISTRATOR
+        detail: Tem de existir pelo menos um administrador ativo
+    InvalidManager:
+      summary: Gestor fora da equipa, sem papel Gestor ou com conta desativada
+      value:
+        type: about:blank
+        title: Conflict
+        status: 409
+        code: INVALID_MANAGER
+        detail: O gestor tem de ter conta ativa, pertencer à equipa do projeto e ter papel Gestor.
+    ProjectClosed:
+      summary: Projeto Concluído ou Arquivado (RN09)
+      value:
+        type: about:blank
+        title: Conflict
+        status: 409
+        code: PROJECT_CLOSED
+        detail: O projeto está concluído ou arquivado e não pode ser alterado.
+    ProjectVersionConflict:
+      summary: Outra pessoa alterou o projeto (DA05)
+      value:
+        type: about:blank
+        title: Conflict
+        status: 409
+        code: VERSION_CONFLICT
+        detail: Este projeto foi alterado por outra pessoa. Abra-o de novo e repita a alteração.
+    TaskVersionConflict:
+      summary: Outra pessoa alterou a tarefa (DA05)
+      value:
+        type: about:blank
+        title: Conflict
+        status: 409
+        code: VERSION_CONFLICT
+        detail: Esta tarefa foi alterada por outra pessoa. Abra-a de novo e repita a alteração.
+
   responses:
     BadRequest:
       description: Pedido com formato ou valores inválidos.
@@ -370,7 +1770,7 @@ components:
               - field: status
                 message: Estado inválido.
     Unauthorized:
-      description: Sem sessão válida (SEG01). Inclui sessões terminadas ao sair ou ao desativar a conta (SEG07, SEG08).
+      description: Sem sessão válida (SEG01). Inclui sessões terminadas ao sair, ao desativar a conta ou por inatividade (SEG07, SEG08, DA26).
       content:
         application/problem+json:
           schema:
@@ -383,22 +1783,66 @@ components:
             detail: A sessão terminou. Entre de novo.
     Forbidden:
       description: |
-        O papel de quem faz o pedido não permite a operação, ou o recurso não é
-        visível para essa pessoa (RF03, SEG02). Nas operações que alteram dados,
-        a mensagem é "Não tem permissão para esta operação.". Nas leituras, é
+        O papel de quem faz o pedido não permite a operação, o recurso não é
+        visível para essa pessoa (RF03, SEG02) ou a palavra-passe temporária
+        ainda não foi mudada (DA25). Nas operações que alteram dados, a mensagem
+        é "Não tem permissão para esta operação.". Nas leituras, é
         "Não tem acesso a esta página." (DA17).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            alteracao:
+              summary: Sem permissão para alterar
+              value:
+                type: about:blank
+                title: Forbidden
+                status: 403
+                code: FORBIDDEN
+                detail: Não tem permissão para esta operação.
+            leitura:
+              summary: Recurso não visível
+              value:
+                type: about:blank
+                title: Forbidden
+                status: 403
+                code: FORBIDDEN
+                detail: Não tem acesso a esta página.
+            palavraPasse:
+              summary: Palavra-passe temporária por mudar
+              value:
+                type: about:blank
+                title: Forbidden
+                status: 403
+                code: PASSWORD_CHANGE_REQUIRED
+                detail: Defina uma palavra-passe nova para continuar.
+    UserNotFound:
+      description: A conta não existe.
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
           example:
             type: about:blank
-            title: Forbidden
-            status: 403
-            code: FORBIDDEN
-            detail: Não tem permissão para esta operação.
+            title: Not Found
+            status: 404
+            code: NOT_FOUND
+            detail: A conta não existe.
+    TeamNotFound:
+      description: A equipa não existe.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: about:blank
+            title: Not Found
+            status: 404
+            code: NOT_FOUND
+            detail: A equipa não existe.
     ProjectNotFound:
-      description: O projeto não existe.
+      description: O projeto não existe ou foi eliminado (RN32).
       content:
         application/problem+json:
           schema:
@@ -410,7 +1854,7 @@ components:
             code: NOT_FOUND
             detail: O projeto não existe.
     TaskNotFound:
-      description: A tarefa não existe ou foi apagada (RN19).
+      description: A tarefa não existe ou foi apagada (RN19, RN32).
       content:
         application/problem+json:
           schema:
@@ -421,8 +1865,68 @@ components:
             status: 404
             code: NOT_FOUND
             detail: A tarefa não existe.
+    DuplicateEmail:
+      description: Email já usado (RN04).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            email:
+              $ref: '#/components/examples/DuplicateEmail'
+    DuplicateTeamName:
+      description: Nome de equipa já usado, sem distinguir maiúsculas (RN03, E33).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: about:blank
+            title: Conflict
+            status: 409
+            code: DUPLICATE_TEAM_NAME
+            detail: Já existe uma equipa com este nome.
+    ProjectClosed:
+      description: O projeto está concluído ou arquivado (RN09).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            projetoFechado:
+              $ref: '#/components/examples/ProjectClosed'
+    ProjectConflict:
+      description: O projeto está fechado (RN09) ou foi alterado entretanto (DA05).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            projetoFechado:
+              $ref: '#/components/examples/ProjectClosed'
+            versao:
+              $ref: '#/components/examples/ProjectVersionConflict'
+    TaskConflict:
+      description: O projeto está fechado (RN09) ou a tarefa foi alterada entretanto (DA05).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            projetoFechado:
+              $ref: '#/components/examples/ProjectClosed'
+            versao:
+              $ref: '#/components/examples/TaskVersionConflict'
 
   schemas:
+    Role:
+      type: string
+      description: Papel da conta (requirements.md, secção 3).
+      enum: [ADMINISTRATOR, MANAGER, MEMBER, OBSERVER]
+    AccountStatus:
+      type: string
+      description: Estado da conta.
+      enum: [ACTIVE, DEACTIVATED]
     ProjectStatus:
       type: string
       description: Estado do projeto (requirements.md, secção 4.1).
@@ -435,6 +1939,11 @@ components:
       type: string
       description: Prioridade da tarefa.
       enum: [LOW, MEDIUM, HIGH]
+    Version:
+      type: integer
+      format: int64
+      minimum: 0
+      description: Versão lida pelo frontend, para o bloqueio otimista (DA05, DA20).
 
     Reference:
       type: object
@@ -448,6 +1957,177 @@ components:
         name:
           type: string
 
+    # Sessão e contas
+    LoginRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          description: Email da conta, com qualquer combinação de maiúsculas (DA10).
+        password:
+          type: string
+          format: password
+    SetPasswordRequest:
+      type: object
+      required: [newPassword]
+      additionalProperties: false
+      properties:
+        newPassword:
+          type: string
+          format: password
+          description: 12 a 128 caracteres (DA26).
+    CurrentUser:
+      type: object
+      required: [id, name, email, role, teams, mustChangePassword]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+        teams:
+          type: array
+          description: Equipas a que pertence. Vazio para Administrador e Observador (RN26).
+          items:
+            $ref: '#/components/schemas/Reference'
+        mustChangePassword:
+          type: boolean
+          description: Verdadeiro enquanto a palavra-passe for temporária (DA25).
+    User:
+      type: object
+      required: [id, name, email, role, status, mustChangePassword]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+        mustChangePassword:
+          type: boolean
+    UserList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    CreateUserRequest:
+      type: object
+      required: [name, email, role, temporaryPassword]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          pattern: '\S'
+          description: Obrigatório, até 100 caracteres (RN04, RN29).
+        email:
+          type: string
+          description: Obrigatório, formato nome@domínio, até 254 caracteres (RN04, RN29). Fica em minúsculas (DA10).
+        role:
+          $ref: '#/components/schemas/Role'
+        temporaryPassword:
+          type: string
+          format: password
+          description: 12 a 128 caracteres (DA25, DA26).
+    UpdateUserRequest:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          pattern: '\S'
+          description: Até 100 caracteres (RN29).
+        email:
+          type: string
+          description: Formato nome@domínio, até 254 caracteres, único (RN04, RN28).
+        role:
+          $ref: '#/components/schemas/Role'
+    ChangeUserStatusRequest:
+      type: object
+      required: [status]
+      additionalProperties: false
+      properties:
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+    ResetPasswordRequest:
+      type: object
+      required: [temporaryPassword]
+      additionalProperties: false
+      properties:
+        temporaryPassword:
+          type: string
+          format: password
+          description: 12 a 128 caracteres (DA25, DA26).
+
+    # Equipas
+    Team:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        name:
+          type: string
+    TeamList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Team'
+    TeamRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          pattern: '\S'
+          description: Obrigatório, até 100 caracteres, único sem distinguir maiúsculas (RN03, RN29).
+    TeamMember:
+      type: object
+      required: [id, name, role, status]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Identificador da conta.
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+    TeamMemberList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamMember'
+
+    # Projetos e painel
     Progress:
       type: object
       description: |
@@ -466,7 +2146,6 @@ components:
           minimum: 0
           maximum: 100
           description: Tarefas concluídas ÷ total × 100, arredondado para baixo.
-
     ProjectSummary:
       type: object
       description: Linha da lista de projetos (RF09).
@@ -497,7 +2176,6 @@ components:
           type: integer
           minimum: 0
           description: Número de tarefas atrasadas (RF28). A interface mostra "Sem atrasos" quando é 0.
-
     ProjectSummaryList:
       type: object
       required: [items]
@@ -506,7 +2184,133 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProjectSummary'
+    Project:
+      description: Detalhe do projeto (US09, US17).
+      allOf:
+        - $ref: '#/components/schemas/ProjectSummary'
+        - type: object
+          required: [description, startDate, version]
+          properties:
+            description:
+              type: [string, 'null']
+            startDate:
+              type: string
+              format: date
+            version:
+              $ref: '#/components/schemas/Version'
+    CreateProjectRequest:
+      type: object
+      required: [teamId, name, startDate]
+      additionalProperties: false
+      properties:
+        teamId:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Equipa do projeto. Não muda depois (RN01, RN21).
+        name:
+          type: string
+          pattern: '\S'
+          description: Obrigatório, até 100 caracteres (RN06, RN29).
+        description:
+          type: [string, 'null']
+          description: Opcional, até 1000 caracteres (RN29).
+        startDate:
+          type: string
+          format: date
+        expectedEndDate:
+          type: [string, 'null']
+          format: date
+          description: Opcional. Não pode ser anterior a `startDate` (RN06).
+        managerId:
+          type: [integer, 'null']
+          format: int64
+          minimum: 1
+          description: Obrigatório para o Administrador (RN27). Ignorado quando quem cria é Gestor.
+    UpdateProjectRequest:
+      type: object
+      required: [version]
+      minProperties: 2
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          pattern: '\S'
+          description: Até 100 caracteres (RN29).
+        description:
+          type: [string, 'null']
+          description: Até 1000 caracteres (RN29). `null` retira a descrição.
+        startDate:
+          type: string
+          format: date
+        expectedEndDate:
+          type: [string, 'null']
+          format: date
+          description: Não pode ser anterior à data de início (RN06). `null` retira a data.
+        version:
+          $ref: '#/components/schemas/Version'
+    ChangeProjectManagerRequest:
+      type: object
+      required: [managerId, version]
+      additionalProperties: false
+      properties:
+        managerId:
+          type: integer
+          format: int64
+          minimum: 1
+        version:
+          $ref: '#/components/schemas/Version'
+    ChangeProjectStatusRequest:
+      type: object
+      required: [status, version]
+      additionalProperties: false
+      properties:
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+        version:
+          $ref: '#/components/schemas/Version'
+    TaskCounts:
+      type: object
+      description: Número de tarefas por estado (RN33).
+      required: [todo, inProgress, done]
+      properties:
+        todo:
+          type: integer
+          minimum: 0
+        inProgress:
+          type: integer
+          minimum: 0
+        done:
+          type: integer
+          minimum: 0
+    DashboardProject:
+      type: object
+      required: [id, name, team, status, taskCounts]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        name:
+          type: string
+        team:
+          $ref: '#/components/schemas/Reference'
+        status:
+          $ref: '#/components/schemas/ProjectStatus'
+        taskCounts:
+          $ref: '#/components/schemas/TaskCounts'
+    Dashboard:
+      type: object
+      required: [projects, totals]
+      properties:
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardProject'
+        totals:
+          $ref: '#/components/schemas/TaskCounts'
 
+    # Tarefas
     CreateTaskRequest:
       type: object
       required: [title]
@@ -529,7 +2333,27 @@ components:
         priority:
           $ref: '#/components/schemas/TaskPriority'
           description: Opcional. Se não for indicada, fica `MEDIUM` (RN11).
-
+    UpdateTaskRequest:
+      type: object
+      required: [version]
+      minProperties: 2
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          pattern: '\S'
+          description: 1 a 200 caracteres (RN11).
+        description:
+          type: [string, 'null']
+          description: Até 2000 caracteres (RN29). `null` retira a descrição.
+        dueDate:
+          type: [string, 'null']
+          format: date
+          description: Não pode ser anterior à data atual, se mudar (RN13). `null` retira o prazo.
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        version:
+          $ref: '#/components/schemas/Version'
     ChangeTaskStatusRequest:
       type: object
       required: [status, version]
@@ -538,14 +2362,10 @@ components:
         status:
           $ref: '#/components/schemas/TaskStatus'
         version:
-          type: integer
-          format: int64
-          minimum: 0
-          description: Versão da tarefa lida pelo frontend (DA05).
-
+          $ref: '#/components/schemas/Version'
     Task:
       type: object
-      required: [id, projectId, title, description, dueDate, priority, status, assignee, overdue, version]
+      required: [id, projectId, title, description, dueDate, priority, status, assignees, overdue, version]
       properties:
         id:
           type: integer
@@ -566,19 +2386,77 @@ components:
           $ref: '#/components/schemas/TaskPriority'
         status:
           $ref: '#/components/schemas/TaskStatus'
-        assignee:
-          description: Responsável. `null` quer dizer "Sem responsável".
-          oneOf:
-            - $ref: '#/components/schemas/Reference'
-            - type: 'null'
+        assignees:
+          type: array
+          description: Responsáveis, ordenados por nome. Vazio quer dizer "Sem responsável" (RN14).
+          items:
+            $ref: '#/components/schemas/Reference'
         overdue:
           type: boolean
           description: Tarefa atrasada, calculada com a data atual da organização (requirements.md, secção 2).
         version:
+          $ref: '#/components/schemas/Version'
+    TaskList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+    MyTask:
+      description: Linha de "As minhas tarefas", com o projeto (US08).
+      allOf:
+        - $ref: '#/components/schemas/Task'
+        - type: object
+          required: [project]
+          properties:
+            project:
+              $ref: '#/components/schemas/Reference'
+    MyTaskList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyTask'
+
+    # Comentários
+    CreateCommentRequest:
+      type: object
+      required: [content]
+      description: Outros campos (por exemplo `authorId`) são ignorados (RN30, E43).
+      properties:
+        content:
+          type: string
+          pattern: '\S'
+          description: 1 a 2000 caracteres depois de retirar os espaços nas pontas (RN30, DA11).
+    Comment:
+      type: object
+      required: [id, author, content, createdAt]
+      properties:
+        id:
           type: integer
           format: int64
-          minimum: 0
-          description: Versão para o bloqueio otimista (DA05).
+          minimum: 1
+        author:
+          $ref: '#/components/schemas/Reference'
+        content:
+          type: string
+          description: Texto tal como foi escrito. O frontend mostra-o sempre como texto (SEG06).
+        createdAt:
+          type: string
+          format: date-time
+          description: Data e hora do comentário. A interface mostra-a no fuso da organização (DA24).
+    CommentList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
 
     Problem:
       type: object
@@ -599,17 +2477,18 @@ components:
           description: |
             Código estável que o frontend usa para decidir o que fazer (DA16, DA17).
 
-            - 400 `VALIDATION_ERROR`: formato ou valores do pedido (RN04, RN06, RN11, RN13, RN29, DA26).
+            - 400 `VALIDATION_ERROR`: formato ou valores do pedido (RN04, RN06, RN11, RN13, RN29, RN30, DA26).
             - 401 `UNAUTHENTICATED`: sem sessão válida (SEG01, SEG07, SEG08, DA26).
             - 401 `INVALID_CREDENTIALS`: email ou palavra-passe incorretos (SEG04).
             - 401 `ACCOUNT_DEACTIVATED`: conta desativada, com a palavra-passe correta (SEG05).
             - 403 `FORBIDDEN`: sem permissão ou recurso não visível (SEG02).
             - 403 `PASSWORD_CHANGE_REQUIRED`: palavra-passe temporária por mudar (DA25).
-            - 404 `NOT_FOUND`: o recurso não existe.
+            - 404 `NOT_FOUND`: o recurso não existe ou foi eliminado (RN32).
             - 409 `DUPLICATE_EMAIL` (RN04), `DUPLICATE_TEAM_NAME` (RN03).
+            - 409 `DUPLICATE_TEAM_MEMBER` (pessoa que já pertence à equipa), `DUPLICATE_ASSIGNEE` (RN14).
             - 409 `INVALID_TRANSITION` (RN07), `LAST_ADMINISTRATOR` (RN18).
             - 409 `INVALID_MANAGER` (RN21), `INVALID_ASSIGNEE` (RN14), `INVALID_TEAM_MEMBER` (RN26).
-            - 409 `TEAM_WITHOUT_MANAGER` (RN27), `PROJECT_NOT_ACTIVE` (RN08), `PROJECT_CLOSED` (RN09).
+            - 409 `TEAM_WITHOUT_MANAGER` (RN27), `PROJECT_NOT_ACTIVE` (RN08), `PROJECT_CLOSED` (RN09, RN30).
             - 409 `VERSION_CONFLICT` (DA05).
             - 429 `TOO_MANY_ATTEMPTS`: demasiadas tentativas de entrada (SEG09, DA26).
 
@@ -624,6 +2503,8 @@ components:
             - NOT_FOUND
             - DUPLICATE_EMAIL
             - DUPLICATE_TEAM_NAME
+            - DUPLICATE_TEAM_MEMBER
+            - DUPLICATE_ASSIGNEE
             - INVALID_TRANSITION
             - LAST_ADMINISTRATOR
             - INVALID_MANAGER

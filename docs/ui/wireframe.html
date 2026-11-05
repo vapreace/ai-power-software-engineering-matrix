@@ -44,11 +44,15 @@
   .ph { background: #ddd; height: 14px; margin: 10px 0; }
   .center { text-align: center; padding: 28px 16px; }
   .note { margin-top: 20px; color: #555; font-size: 13px; }
+  .search { display: inline-flex; align-items: center; gap: 6px; }
+  .input { border: 1px solid #333; background: #fff; padding: 4px 8px; width: 220px; color: #888; }
+  .mob .input { width: 100%; }
+  .mob .search { display: flex; width: 100%; }
 </style>
 </head>
 <body>
 <h1 class="doc">Matriz: lista de projetos (wireframe de baixa fidelidade)</h1>
-<p class="doc">Ficha PL 02, exercício 4. Dados simulados, baseados nas pessoas e projetos de partida de user-stories.md. Data atual: 10/11/2026. Os números pretos remetem para a legenda em docs/ui/README.md.</p>
+<p class="doc">Ficha PL 02, exercício 4, atualizado na Ficha PL 03 (menu com Painel e pesquisa pelo nome). Dados simulados, baseados nas pessoas e projetos de partida de user-stories.md. Data atual: 10/11/2026. Os números pretos remetem para a legenda em docs/ui/README.md.</p>
 
 <div class="row">
   <div>
@@ -57,7 +61,7 @@
       <div class="bar">
         <span class="logo">Matriz</span>
         <nav class="nav"><span class="m">1</span>
-          <a class="on">Projetos</a> <a>As minhas tarefas</a> <a>Equipas</a>
+          <a>Painel</a> <a class="on">Projetos</a> <a>As minhas tarefas</a> <a>Equipas</a>
         </nav>
         <div class="user"><span class="m">2</span><span>Rui (Gestor)</span><span class="btn sec">Sair</span></div>
       </div>
@@ -66,7 +70,8 @@
           <h2>Projetos</h2>
           <span><span class="m">3</span><span class="btn">+ Novo projeto</span></span>
         </div>
-        <div class="filters"><span class="m">4</span>
+        <div class="filters"><span class="search"><span class="m">13</span><label><strong>Pesquisar:</strong></label> <span class="input">Nome do projeto</span></span>
+          <span class="m">4</span>
           <strong>Estado:</strong>
           <span><span class="box">x</span>Ativo</span>
           <span><span class="box">x</span>Concluído</span>
@@ -103,6 +108,7 @@
       <div class="content">
         <div class="head"><h2>Projetos</h2></div>
         <div class="filters">
+          <span class="search"><span class="input">Pesquisar pelo nome</span></span>
           <strong>Estado:</strong>
           <span><span class="box">x</span>Ativo</span>
           <span><span class="box">x</span>Concluído</span>

@@ -6,7 +6,7 @@ Instruções para agentes de IA que trabalham neste repositório.
 
 A Matriz é uma aplicação de gestão de projetos e tarefas para equipas.
 
-Fase atual: **conceção concluída** (Ficha PL 02). A implementação começa na Ficha PL 03. Ainda não existe código.
+Fase atual: **Ficha PL 03**. Âmbito conciliado e plano de implementação feito (exercício 1). Ainda não existe código. Segue os incrementos de `docs/implementation-plan.md` e atualiza o estado do incremento no fim.
 
 Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java com Spring Boot 4 e API REST; frontend em Vue 3 com TypeScript e Vite; base de dados PostgreSQL; autenticação com sessão no servidor.
 
@@ -23,6 +23,7 @@ Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java 
    | Tabelas, restrições, índices, glossário de nomes técnicos | `docs/database.md` |
    | Contrato da API: pedidos, respostas, códigos de erro | `openapi.yaml` |
    | Navegação, ecrãs e componentes da interface | `docs/ui/README.md` |
+   | Incrementos, critérios de aceitação e verificação de cada um | `docs/implementation-plan.md` |
 
 2. Identifica os IDs relacionados com a tarefa (ex.: US05, RN11) e usa-os no plano e no relatório final.
 3. Se dois documentos se contradizem numa definição ou numa regra de negócio, aplica `docs/requirements.md`, reporta o conflito e não alteres os outros documentos para o resolver. Em qualquer outro conflito, para e pergunta.
@@ -45,7 +46,7 @@ Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java 
 - As permissões verificam-se na camada de aplicação, em cada operação (SEG02). Esconder um botão na interface não é proteção.
 - A data atual vem sempre do Relógio da organização (RNF06, DA24), nunca diretamente do sistema.
 - Nomes técnicos em inglês, segundo o glossário de `docs/database.md` (DA08). Textos da interface e mensagens de erro em português (RNF02).
-- A API segue `openapi.yaml` e as convenções DA15 a DA20 e DA27. Uma operação nova ou alterada entra primeiro no contrato.
+- A API segue `openapi.yaml` e as convenções DA15 a DA20, DA27 e DA33. Uma operação nova ou alterada entra primeiro no contrato.
 - Mudar o modelo de dados exige atualizar `docs/database.md` na mesma alteração.
 
 ## Plano antes de alterações significativas
@@ -92,7 +93,7 @@ Indica sempre:
 ## Validação
 
 - Quando terminares uma história, indica que está "pronta para revisão". Só uma pessoa da equipa a marca como concluída (`docs/user-stories.md`, secção 4).
-- A ferramenta de build e os comandos escolhem-se no início da Ficha 03. A estratégia e as ferramentas de testes são a DP09 (Módulo 4). Não assumas nenhum comando. Até lá, descreve no relatório as verificações manuais que fizeste.
+- A ferramenta de build, os pacotes e as ferramentas de testes estão decididos (`docs/architecture.md`, DA28, DA30 e DA31). Os comandos entram neste ficheiro no exercício 2 da Ficha 03, quando o projeto existir. Até lá, não assumas nenhum comando e descreve no relatório as verificações manuais que fizeste. A estratégia completa de testes fica para o Módulo 4 (DP09).
 
 ## Estilo
 

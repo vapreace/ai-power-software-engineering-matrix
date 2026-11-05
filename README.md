@@ -2,7 +2,7 @@
 
 Aplicação de gestão de projetos e tarefas para equipas, desenvolvida no curso **AI-Powered Software Engineering: From Mindset to Delivery**.
 
-> Fase atual: **conceção concluída** (Ficha PL 02). A implementação começa na Ficha PL 03. Ainda não existe código.
+> Fase atual: **Ficha PL 03**. Âmbito conciliado e plano de implementação feito (exercício 1). Ainda não existe código.
 
 ---
 
@@ -38,11 +38,11 @@ Só a descrição do cliente está confirmada. Os objetivos e os papéis de util
 |------|-----------------|
 | Acesso | Entrar e sair. Permissões por papel. O Administrador cria, edita, desativa e reativa contas, muda papéis e dá ou repõe o acesso. |
 | Equipas | Criar e editar equipas. Adicionar e remover pessoas. |
-| Projetos | Criar e editar projetos. Mudar estado e arquivar. Lista de projetos com filtro por estado. |
-| Tarefas | Criar, editar e apagar. Atribuir responsável. Prazo e prioridade. Mudar estado. Lista com filtros. "As minhas tarefas". |
-| Progresso | Percentagem de tarefas concluídas por projeto. Destaque e contagem de tarefas atrasadas. |
+| Projetos | Criar, editar e eliminar projetos. Mudar estado e arquivar. Lista de projetos com filtro por estado e pesquisa pelo nome. |
+| Tarefas | Criar, editar e apagar. Um ou vários responsáveis. Prazo e prioridade. Mudar estado. Comentários. Lista com filtros. "As minhas tarefas". |
+| Progresso | Painel inicial com as contagens de tarefas por estado. Percentagem de tarefas concluídas por projeto. Destaque e contagem de tarefas atrasadas. |
 
-Fora do MVP: quadro, comentários, histórico, registo das ações do Administrador, pesquisa, avisos, anexos, subtarefas, relatórios, integrações. A lista completa está em [requirements.md, secção 9](docs/requirements.md#9-fora-do-âmbito-inicial).
+Fora do MVP: quadro, histórico, registo das ações do Administrador, pesquisa por texto nas tarefas, avisos, anexos, subtarefas, relatórios, integrações. A lista completa está em [requirements.md, secção 9](docs/requirements.md#9-fora-do-âmbito-inicial).
 
 ```
  Administrador        Gestor                     Membro                Gestor
@@ -65,7 +65,8 @@ Fora do MVP: quadro, comentários, histórico, registo das ações do Administra
     ├── constraints.md     Limites, pressupostos e o que falta decidir
     ├── architecture.md    Como a Matriz está organizada
     ├── database.md        Que dados a Matriz guarda
-    └── ui/                Navegação e wireframe da interface
+    ├── implementation-plan.md  Incrementos da implementação e o seu estado
+    └── ui/                Navegação, ecrãs e wireframe da interface
 ```
 
 Cada tipo de informação tem **um único documento de referência**, para evitar contradições:
@@ -80,7 +81,8 @@ Cada tipo de informação tem **um único documento de referência**, para evita
 | Arquitetura, componentes e decisões técnicas (DA) | [architecture.md](docs/architecture.md) |
 | Modelo de dados e decisões de modelação | [database.md](docs/database.md) |
 | Contrato da API REST | [openapi.yaml](openapi.yaml) |
-| Navegação, wireframe e decisões de interface | [ui/README.md](docs/ui/README.md) |
+| Navegação, ecrãs, wireframe e decisões de interface | [ui/README.md](docs/ui/README.md) |
+| Incrementos da implementação e o seu estado | [implementation-plan.md](docs/implementation-plan.md) |
 | Instruções para agentes de IA | [AGENTS.md](AGENTS.md) |
 
 Este README é só um resumo. Em caso de diferença, prevalece `docs/requirements.md`.
@@ -110,16 +112,17 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Fase | Estado |
 |------|--------|
 | Análise do problema e perguntas de clarificação | Concluída |
-| Âmbito funcional e MVP | Concluído, por validar com o Product Owner |
-| User Stories e critérios de aceitação | Concluídas (18 histórias), por validar |
-| Documentação de contexto | requirements.md 0.6, user-stories.md 0.5, constraints.md 0.9 |
+| Âmbito funcional e MVP | Concluído e conciliado com a Ficha PL 03, por validar com o Product Owner |
+| User Stories e critérios de aceitação | Concluídas (22 histórias), por validar |
+| Documentação de contexto | requirements.md 0.7, user-stories.md 0.6, constraints.md 1.0 |
 | Instruções para agentes (AGENTS.md) | Atualizado na Ficha PL 02: fase, stack, documentos e convenções |
 | Revisão crítica da documentação | Concluída: revisão 1 e revisão independente (2 agentes) aplicadas |
 | Revisão crítica do Architecture Pack | Concluída: revisão 1, revisão independente e revisão final aplicadas (Ficha PL 02) |
 | Arquitetura | Proposta (architecture.md 0.6) |
 | Modelo de dados | Proposta (database.md 0.2) |
-| API | Proposta (openapi.yaml 0.2.0) |
-| Protótipo | Wireframe da lista de projetos (Ficha PL 02) |
-| Implementação | Ainda não iniciada |
+| API | Contrato completo, 34 operações (openapi.yaml 0.3.0) |
+| Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.4) |
+| Plano de implementação | 8 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
+| Implementação | Ainda não iniciada. Começa no incremento I0 (Ficha PL 03, exercício 2) |
 
 As decisões técnicas estão em [architecture.md, secção 9](docs/architecture.md#9-decisões-técnicas). As que faltam estão em [constraints.md, secção 4](docs/constraints.md#4-decisões-técnicas-pendentes).
