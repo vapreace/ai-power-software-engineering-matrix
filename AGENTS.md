@@ -6,7 +6,7 @@ Instruções para agentes de IA que trabalham neste repositório.
 
 A Matriz é uma aplicação de gestão de projetos e tarefas para equipas.
 
-Fase atual: **Ficha PL 03**, implementação. Segue os incrementos de `docs/implementation-plan.md` e atualiza o estado do incremento no fim.
+Fase atual: **Ficha PL 03**, entrega (I0 a I6 prontos para revisão). Falta o I7 (resto do MVP). Segue os incrementos de `docs/implementation-plan.md`, atualiza o estado do incremento no fim e regista as verificações e os bugs em `docs/verification.md`.
 
 Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java com Spring Boot 4 e API REST; frontend em Vue 3 com TypeScript e Vite; base de dados PostgreSQL; autenticação com sessão no servidor.
 
@@ -24,6 +24,7 @@ Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java 
    | Contrato da API: pedidos, respostas, códigos de erro | `openapi.yaml` |
    | Navegação, ecrãs e componentes da interface | `docs/ui/README.md` |
    | Incrementos, critérios de aceitação e verificação de cada um | `docs/implementation-plan.md` |
+   | Resultados das verificações, bugs encontrados e uso da IA | `docs/verification.md` |
 
 2. Identifica os IDs relacionados com a tarefa (ex.: US05, RN11) e usa-os no plano e no relatório final.
 3. Se dois documentos se contradizem numa definição ou numa regra de negócio, aplica `docs/requirements.md`, reporta o conflito e não alteres os outros documentos para o resolver. Em qualquer outro conflito, para e pergunta.
@@ -106,6 +107,7 @@ Stack e versões em `docs/architecture.md` (DA28, DA30, DA31). Os comandos são 
 | Testes do backend, incluindo o de arquitetura (precisam do Docker) | `./mvnw verify` | `backend/` |
 | Arrancar o backend com os dados de demonstração | `./mvnw spring-boot:run -Dspring-boot.run.profiles=demo` | `backend/` |
 | Verificar os tipos do frontend | `npm run type-check` | `frontend/` |
+| Testes de regressão do frontend | `npm run test:unit` | `frontend/` |
 | Build do frontend (vai para `backend/src/main/resources/static`) | `npm run build` | `frontend/` |
 | Arrancar o frontend em desenvolvimento | `npm run dev` | `frontend/` |
 
@@ -121,4 +123,4 @@ O esquema da base de dados muda só com um changeset Liquibase novo em `backend/
 
 ## Manutenção deste ficheiro
 
-A stack e as convenções foram acrescentadas na Ficha PL 02. Os comandos e os pacotes foram acrescentados na Ficha PL 03 (incremento I0). No Módulo 4 entra a estratégia de testes (DP09).
+A stack e as convenções foram acrescentadas na Ficha PL 02. Os comandos e os pacotes foram acrescentados na Ficha PL 03 (incremento I0); os testes de regressão do frontend e `docs/verification.md` no incremento I6. No Módulo 4 entra a estratégia de testes (DP09).

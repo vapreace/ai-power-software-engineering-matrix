@@ -344,6 +344,14 @@ class ProjectApiTests {
                 .andExpect(jsonPath("$.items", empty()));
     }
 
+    @Test
+    void emptyStatusParameterUsesTheDefaultFilter() throws Exception {
+        // Regressão do bug B4 (docs/verification.md): "?status=" dava erro 500.
+        mvc.perform(get("/api/projects").param("status", "").session(login("pedro")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].name").value(contains("Frota", "Novo armazém")));
+    }
+
     // ───── Equipas para o formulário de projeto ─────
 
     @Test

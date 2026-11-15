@@ -5,6 +5,7 @@ import java.time.OffsetDateTime;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -93,9 +94,12 @@ public class Projects {
         if (Texts.length(text) > QUERY_MAX) {
             throw ApiException.invalidField("q", QUERY_TOO_LONG);
         }
-        Set<ProjectStatus> effective = statuses == null || statuses.isEmpty()
+        // Um parâmetro vazio (?status=) chega como null: ignora-se, em vez de dar erro 500.
+        Set<ProjectStatus> chosen = statuses == null ? Set.of()
+                : statuses.stream().filter(Objects::nonNull).collect(Collectors.toUnmodifiableSet());
+        Set<ProjectStatus> effective = chosen.isEmpty()
                 ? EnumSet.of(ProjectStatus.ACTIVE, ProjectStatus.COMPLETED)
-                : statuses;
+                : chosen;
         List<Long> teamIds = seesAllProjects(user) ? null : user.teams().stream().map(Reference::id).toList();
         if (teamIds != null && teamIds.isEmpty()) {
             return List.of(); // Gestor ou Membro sem equipa (RN26, E26).

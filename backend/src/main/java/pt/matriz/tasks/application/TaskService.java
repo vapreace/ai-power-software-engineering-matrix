@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -105,8 +106,8 @@ public class TaskService {
             throw ApiException.invalidField("unassigned", ASSIGNEE_FILTERS);
         }
         LocalDate today = clock.today();
-        return toViews(queries.list(projectId, statuses == null ? Set.of() : statuses,
-                priorities == null ? Set.of() : priorities, overdueOnly, assigneeId, unassigned, today), today);
+        return toViews(queries.list(projectId, withoutNulls(statuses), withoutNulls(priorities), overdueOnly,
+                assigneeId, unassigned, today), today);
     }
 
     /**
@@ -282,6 +283,12 @@ public class TaskService {
         queries.removeAssignee(task.getId(), accountId, clock.now());
         queries.incrementVersion(task.getId());
         return toView(queries.findRow(task.getId()), clock.today());
+    }
+
+    /** Um parâmetro vazio (?status=) chega como null: ignora-se, em vez de dar erro 500. */
+    private static <T> Set<T> withoutNulls(Set<T> values) {
+        return values == null ? Set.of()
+                : values.stream().filter(Objects::nonNull).collect(Collectors.toUnmodifiableSet());
     }
 
     private ProjectAccess projectAccess(CurrentUser user, long projectId) {

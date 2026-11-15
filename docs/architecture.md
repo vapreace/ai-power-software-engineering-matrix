@@ -1,6 +1,6 @@
 # Arquitetura da Matriz
 
-> **Versão:** 0.7 (conciliação com o âmbito da Ficha PL 03, exercício 1)
+> **Versão:** 0.8 (Ficha PL 03, incremento I6: estado dos endpoints e DA31)
 > **Estado:** proposta. Todas as decisões deste documento têm origem **D** (decisão da equipa) e têm de ser validadas pelo Product Owner.
 
 Documentos relacionados:
@@ -288,7 +288,7 @@ Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14, DA29
 | DA35 | Em cada pedido com sessão, o Acesso lê a conta da base de dados. Se a conta estiver desativada ou já não existir, invalida a sessão e responde 401. Não há registo de sessões por conta. | SEG08 (mecanismo), Ficha 03 (I1) | Registo de sessões (SessionRegistry do Spring Security) para o evento "Conta desativada" expirar logo todas as sessões. | Cumpre SEG08 e o cenário "sessão aberta" de US14 (E16): o pedido seguinte é recusado e a pessoa vê a página de entrada. A sessão de uma conta desativada fica em memória até ao pedido seguinte ou aos 30 minutos de inatividade, sem permitir nada. O evento "Conta desativada" deixa de ter reação do Acesso (secção 7). |
 | DA28 | Java 21 (LTS). Build com Maven e Maven Wrapper (`mvnw`) no backend e npm no frontend. Pacote base `pt.matriz`, com um subpacote por módulo da secção 5.1 e `common` (secção 8). Bibliotecas do backend: Spring Web MVC, Spring Security, Bean Validation, Spring Data JPA, Liquibase, driver PostgreSQL e Spring Modulith (só a verificação das fronteiras). Frontend: Vue 3, TypeScript, Vite e Vue Router; os pedidos usam `fetch`, sem biblioteca extra. Em desenvolvimento correm o backend e o servidor do Vite; para entregar, o build do frontend vai para os recursos estáticos do backend e sai um único `.jar`. | Ficha 03 (pormenores de DA02) | Java 25. Gradle (Kotlin DSL). ArchUnit sem Spring Modulith. JDBC sem JPA. Axios e Pinia. | Java 21 é a versão instalada na máquina de desenvolvimento e é suportada pelo Spring Boot 4. As versões exatas das bibliotecas fixam-se no exercício 2, com aprovação, e ficam no README. JPA dá o bloqueio otimista de DA05 com `@Version`. Um teste do Spring Modulith confirma que não há ciclos nem acessos a subpacotes de outros módulos (secção 12.2). Os eventos de DA06 usam `@EventListener` síncrono, não os listeners assíncronos do Spring Modulith. |
 | DA30 | O esquema é criado por changesets Liquibase, a partir de um changelog principal em `db/changelog`, executados no arranque. Os dados de demonstração são changesets com o contexto `demo`, que só corre no perfil `demo`: as pessoas e os projetos de partida de [user-stories.md](user-stories.md), com emails `empresa.example`, palavras-passe de demonstração indicadas no README e `must_change_password` falso. A configuração vem de variáveis de ambiente, com `.env.example` de valores fictícios; o `.env` fica fora do Git. PostgreSQL local com Docker Compose. | Ficha 03, exercício 2 | `ddl-auto` do Hibernate (não é reproduzível e pode apagar dados). Flyway. Seed em código Java em cada arranque. | O Liquibase é a ferramenta que a equipa conhece melhor. Cada changeset corre uma só vez, por isso o seed não apaga nem repete dados. O primeiro Administrador de DA25 só é criado se não existir nenhum. As verificações manuais usam as mesmas pessoas que os cenários das histórias. Exige Docker para a base de dados local e para os testes (DA31). |
-| DA31 | Testes com JUnit Jupiter, Spring Boot Test (MockMvc) e Testcontainers com PostgreSQL. Na Ficha 03: pelo menos um teste de validação, um de autorização e um de criação com consulta posterior (R08), mais o teste de arquitetura de DA28. O Relógio da organização é substituído por uma data fixa. | DP09 (parcial) | H2 em memória (não tem a collation ICU de DA14 nem o `unaccent` de DA32). Só verificação manual. | Os testes usam o mesmo PostgreSQL da aplicação. A estratégia completa, a cobertura e os testes do frontend ficam para o Módulo 4 (DP09). |
+| DA31 | Testes com JUnit Jupiter, Spring Boot Test (MockMvc) e Testcontainers com PostgreSQL. Na Ficha 03: pelo menos um teste de validação, um de autorização e um de criação com consulta posterior (R08), mais o teste de arquitetura de DA28. O Relógio da organização é substituído por uma data fixa. No frontend, Vitest com jsdom só para testes de regressão (bug B1 de docs/verification.md); a estratégia completa de testes do frontend fica para o Módulo 4. | DP09 (parcial) | H2 em memória (não tem a collation ICU de DA14 nem o `unaccent` de DA32). Só verificação manual. | Os testes usam o mesmo PostgreSQL da aplicação. A estratégia completa, a cobertura e os testes do frontend ficam para o Módulo 4 (DP09). |
 | DA24 | Fuso horário fixo `Europe/Lisbon`, definido na configuração da aplicação. O Administrador não o muda no MVP. | DP08 | Fuso configurável pelo Administrador. | O Relógio da organização lê o fuso da configuração. Mantém-se LIM09. |
 | DA25 | O Administrador define uma palavra-passe temporária ao criar a conta e ao repor o acesso, e entrega-a à pessoa fora da aplicação. Na entrada seguinte, a pessoa tem de definir uma palavra-passe nova antes de usar a aplicação. | DP07 | Ligação de ativação por email (exige envio de emails, e RF34 é Could). | `password_hash` obrigatório e campo `must_change_password` (database.md). Endpoints `PUT /users/{userId}/password` e `PUT /session/password` (secção 13). Repor o acesso limpa o contador de tentativas desse email (SEG09 c). A primeira conta de Administrador é criada no arranque da aplicação, a partir da configuração, com palavra-passe temporária; sem ela, RN18 não se cumpre. Cenários em US01 e US02 (E36). |
 | DA26 | Palavra-passe com 12 a 128 caracteres, sem regras de composição, guardada com bcrypt. A sessão termina após 30 minutos sem pedidos e o identificador de sessão muda ao entrar. Sessões em memória (DA07), com o cookie `JSESSIONID`. Limite de tentativas: as falhas contam-se por par email e endereço IP, só em memória. Com 5 falhas em 15 minutos, esse par espera 15 minutos, com a mesma mensagem para emails que existem e que não existem. | DP06 (resto) | Bloquear a conta depois de N falhas: deixa bloquear contas de outras pessoas (constraints.md, secção 5.2). | Cumpre SEG09 (a), (b) e (c). Reiniciar a aplicação termina as sessões e limpa os contadores. Dado pessoal novo em memória (PRIV01). LIM14. Cenários em US01 (E35, E37). |
@@ -380,41 +380,41 @@ Todas as operações estão detalhadas em `openapi.yaml`.
 
 | Método | Caminho | O que faz | Histórias | Estado |
 |--------|---------|-----------|-----------|--------|
-| POST | `/session` | Entrar. | US01 | Contrato |
-| DELETE | `/session` | Sair. | US01 | Contrato |
-| GET | `/session` | Utilizador atual: nome, papel e equipas. | US01 | Contrato |
-| PUT | `/session/password` | Definir uma palavra-passe nova (primeira entrada e acesso reposto, DA25). | US01 | Contrato |
-| GET | `/users` | Lista de contas. | US02 | Contrato |
-| POST | `/users` | Criar conta, com palavra-passe temporária (DA25). | US02 | Contrato |
-| PATCH | `/users/{userId}` | Editar nome e email. Mudar o papel. | US02, US18 | Contrato |
-| PUT | `/users/{userId}/status` | Desativar ou reativar. | US14 | Contrato |
-| PUT | `/users/{userId}/password` | Definir uma palavra-passe temporária: repor o acesso (DA25). | US02 | Contrato |
-| GET | `/teams` | Lista de equipas. | US03 | Contrato |
-| POST | `/teams` | Criar equipa. | US03 | Contrato |
-| PATCH | `/teams/{teamId}` | Mudar o nome. | US03 | Contrato |
-| GET | `/teams/{teamId}/members` | Quem pertence à equipa, com o papel e o estado da conta. Serve também para escolher os responsáveis e o gestor elegíveis. | US03, US06, US17 | Contrato |
-| PUT | `/teams/{teamId}/members/{userId}` | Adicionar uma pessoa. | US03 | Contrato |
-| DELETE | `/teams/{teamId}/members/{userId}` | Remover uma pessoa. | US03 | Contrato |
-| GET | `/projects` | Lista de projetos visíveis, com progresso e atrasos. Filtro por estado e pesquisa pelo nome (`q`, RN34). | US09, US10, US12, US15, US22 | Contrato |
-| POST | `/projects` | Criar projeto. | US04 | Contrato |
-| GET | `/projects/{projectId}` | Detalhe do projeto, com progresso e atrasos. | US09, US10 | Contrato |
-| PATCH | `/projects/{projectId}` | Editar nome, descrição e datas. | US17 | Contrato |
-| PUT | `/projects/{projectId}/manager` | Mudar o gestor. Só o Administrador; aceite também em projetos fechados (RN09, RN21). | US17 | Contrato |
-| PUT | `/projects/{projectId}/status` | Mudar o estado e arquivar. | US13 | Contrato |
-| DELETE | `/projects/{projectId}` | Eliminar o projeto (eliminação lógica, RN31, DA29). | US20 | Contrato |
-| GET | `/dashboard` | Painel inicial: projetos visíveis com as contagens por estado e os totais (RN33). | US21 | Contrato |
-| GET | `/projects/{projectId}/tasks` | Tarefas do projeto, com filtros por responsável, estado, prioridade e atraso. | US10, US11 | Contrato |
-| POST | `/projects/{projectId}/tasks` | Criar tarefa. | US05 | Contrato |
-| PATCH | `/tasks/{taskId}` | Editar a tarefa: título, descrição, prazo e prioridade. | US16 | Contrato |
-| GET | `/tasks/{taskId}` | Detalhe da tarefa, com os responsáveis. Serve também para abrir de novo a tarefa depois de um conflito de versão. | US07, US16 | Contrato |
-| DELETE | `/tasks/{taskId}` | Apagar a tarefa (eliminação lógica, RN19, DA29). | US16 | Contrato |
-| PUT | `/tasks/{taskId}/assignees/{userId}` | Associar um responsável. A mesma pessoa duas vezes é recusada (RN14). | US06 | Contrato |
-| DELETE | `/tasks/{taskId}/assignees/{userId}` | Remover um responsável. | US06 | Contrato |
-| GET | `/tasks/{taskId}/comments` | Comentários da tarefa, do mais antigo para o mais recente. | US19 | Contrato |
-| POST | `/tasks/{taskId}/comments` | Comentar a tarefa. O autor e a data e hora vêm do backend (RN30). | US19 | Contrato |
-| PUT | `/tasks/{taskId}/status` | Mudar o estado. | US07, US17 | Contrato |
-| GET | `/me/tasks` | "As minhas tarefas", com o filtro "Incluir concluídas". | US08 | Contrato |
+| POST | `/session` | Entrar. | US01 | Implementado |
+| DELETE | `/session` | Sair. | US01 | Implementado |
+| GET | `/session` | Utilizador atual: nome, papel e equipas. | US01 | Implementado |
+| PUT | `/session/password` | Definir uma palavra-passe nova (primeira entrada e acesso reposto, DA25). | US01 | Implementado |
+| GET | `/users` | Lista de contas. | US02 | Contrato (I7) |
+| POST | `/users` | Criar conta, com palavra-passe temporária (DA25). | US02 | Contrato (I7) |
+| PATCH | `/users/{userId}` | Editar nome e email. Mudar o papel. | US02, US18 | Contrato (I7) |
+| PUT | `/users/{userId}/status` | Desativar ou reativar. | US14 | Contrato (I7) |
+| PUT | `/users/{userId}/password` | Definir uma palavra-passe temporária: repor o acesso (DA25). | US02 | Contrato (I7) |
+| GET | `/teams` | Lista de equipas. | US03 | Implementado |
+| POST | `/teams` | Criar equipa. | US03 | Contrato (I7) |
+| PATCH | `/teams/{teamId}` | Mudar o nome. | US03 | Contrato (I7) |
+| GET | `/teams/{teamId}/members` | Quem pertence à equipa, com o papel e o estado da conta. Serve também para escolher os responsáveis e o gestor elegíveis. | US03, US06, US17 | Implementado |
+| PUT | `/teams/{teamId}/members/{userId}` | Adicionar uma pessoa. | US03 | Contrato (I7) |
+| DELETE | `/teams/{teamId}/members/{userId}` | Remover uma pessoa. | US03 | Contrato (I7) |
+| GET | `/projects` | Lista de projetos visíveis, com progresso e atrasos. Filtro por estado e pesquisa pelo nome (`q`, RN34). | US09, US10, US12, US15, US22 | Implementado |
+| POST | `/projects` | Criar projeto. | US04 | Implementado |
+| GET | `/projects/{projectId}` | Detalhe do projeto, com progresso e atrasos. | US09, US10 | Implementado |
+| PATCH | `/projects/{projectId}` | Editar nome, descrição e datas. | US17 | Implementado |
+| PUT | `/projects/{projectId}/manager` | Mudar o gestor. Só o Administrador; aceite também em projetos fechados (RN09, RN21). | US17 | Contrato (I7) |
+| PUT | `/projects/{projectId}/status` | Mudar o estado e arquivar. | US13 | Contrato (I7) |
+| DELETE | `/projects/{projectId}` | Eliminar o projeto (eliminação lógica, RN31, DA29). | US20 | Implementado |
+| GET | `/dashboard` | Painel inicial: projetos visíveis com as contagens por estado e os totais (RN33). | US21 | Implementado |
+| GET | `/projects/{projectId}/tasks` | Tarefas do projeto, com filtros por responsável, estado, prioridade e atraso. | US10, US11 | Implementado |
+| POST | `/projects/{projectId}/tasks` | Criar tarefa. | US05 | Implementado |
+| PATCH | `/tasks/{taskId}` | Editar a tarefa: título, descrição, prazo e prioridade. | US16 | Implementado |
+| GET | `/tasks/{taskId}` | Detalhe da tarefa, com os responsáveis. Serve também para abrir de novo a tarefa depois de um conflito de versão. | US07, US16 | Implementado |
+| DELETE | `/tasks/{taskId}` | Apagar a tarefa (eliminação lógica, RN19, DA29). | US16 | Implementado |
+| PUT | `/tasks/{taskId}/assignees/{userId}` | Associar um responsável. A mesma pessoa duas vezes é recusada (RN14). | US06 | Implementado |
+| DELETE | `/tasks/{taskId}/assignees/{userId}` | Remover um responsável. | US06 | Implementado |
+| GET | `/tasks/{taskId}/comments` | Comentários da tarefa, do mais antigo para o mais recente. | US19 | Implementado |
+| POST | `/tasks/{taskId}/comments` | Comentar a tarefa. O autor e a data e hora vêm do backend (RN30). | US19 | Implementado |
+| PUT | `/tasks/{taskId}/status` | Mudar o estado. | US07, US17 | Implementado |
+| GET | `/me/tasks` | "As minhas tarefas", com o filtro "Incluir concluídas". | US08 | Contrato (I7) |
 
-Todas as histórias US01 a US22 têm pelo menos um endpoint (34 operações).
+Todas as histórias US01 a US22 têm pelo menos um endpoint (34 operações). Na Ficha PL 03 estão implementadas 22; as 12 restantes ficam para o I7 (implementation-plan.md) e mantêm-se no contrato.
 
 A confirmação de RN10 (concluir um projeto com tarefas abertas) é feita no frontend, com o número de tarefas abertas calculado a partir do progresso (total menos concluídas). A confirmação de RN31 (eliminar um projeto) usa o total de tarefas, que vem no mesmo resumo.

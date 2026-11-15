@@ -2,7 +2,7 @@
 
 Aplicação de gestão de projetos e tarefas para equipas, desenvolvida no curso **AI-Powered Software Engineering: From Mindset to Delivery**.
 
-> Fase atual: **Ficha PL 03**. Exercícios 1 e 2 concluídos; exercício 3 (incremento I1, entrar e sair) pronto para revisão.
+> Fase atual: **Ficha PL 03**, entrega. Incrementos I0 a I6 prontos para revisão; o I7 (resto do MVP) fica para depois. Verificação em [docs/verification.md](docs/verification.md).
 
 ---
 
@@ -42,6 +42,16 @@ Só a descrição do cliente está confirmada. Os objetivos e os papéis de util
 | Tarefas | Criar, editar e apagar. Um ou vários responsáveis. Prazo e prioridade. Mudar estado. Comentários. Lista com filtros. "As minhas tarefas". |
 | Progresso | Painel inicial com as contagens de tarefas por estado. Percentagem de tarefas concluídas por projeto. Destaque e contagem de tarefas atrasadas. |
 
+### O que já funciona (Ficha PL 03)
+
+| Área | Funciona | Fica para o I7 |
+|------|----------|----------------|
+| Acesso | Entrar, sair, palavra-passe nova na primeira entrada, sessão terminada. Permissões por papel em cada pedido. | Gestão de contas pelo Administrador. |
+| Projetos | Criar, editar, eliminar com confirmação, lista com pesquisa e filtro por estado, progresso e atrasos. | Mudar o estado, arquivar e mudar o gestor. |
+| Tarefas | Criar, editar, apagar, mudar o estado, vários responsáveis, comentários, filtros por responsável, estado, prioridade e atraso. | "As minhas tarefas". |
+| Progresso | Painel inicial com as contagens por estado, por projeto e no total. | |
+| Equipas | Consultar as equipas e as pessoas (para os formulários). | Criar e editar equipas, adicionar e remover pessoas. |
+
 Fora do MVP: quadro, histórico, registo das ações do Administrador, pesquisa por texto nas tarefas, avisos, anexos, subtarefas, relatórios, integrações. A lista completa está em [requirements.md, secção 9](docs/requirements.md#9-fora-do-âmbito-inicial).
 
 ```
@@ -77,10 +87,17 @@ npm run dev
 |--------|---------|------|
 | Testes (precisam do Docker) | `./mvnw verify` | `backend/` |
 | Verificar os tipos do frontend | `npm run type-check` | `frontend/` |
+| Testes de regressão do frontend | `npm run test:unit` | `frontend/` |
 | Build para entregar | `npm run build` e depois `./mvnw package` | `frontend/`, depois `backend/` |
 | Apagar a base de dados local | `docker compose down -v` | raiz |
 
-O Liquibase cria o esquema no arranque do backend (DA30). Sem o perfil `demo`, a base de dados fica vazia. Os dados de demonstração entram uma só vez: reiniciar o backend não os repete. O build para entregar gera `backend/target/matriz-0.0.1-SNAPSHOT.jar`, que serve também o frontend.
+O Liquibase cria o esquema no arranque do backend (DA30). Sem o perfil `demo`, a base de dados fica vazia. Os dados de demonstração entram uma só vez: reiniciar o backend não os repete. O build para entregar gera `backend/target/matriz-0.0.1-SNAPSHOT.jar`, que serve também o frontend. Para o arrancar, a partir de `backend/` e com a base de dados ligada:
+
+```bash
+java -jar target/matriz-0.0.1-SNAPSHOT.jar --spring.profiles.active=demo
+```
+
+A aplicação fica em http://localhost:8080.
 
 ### Contas de demonstração
 
@@ -113,7 +130,9 @@ Sem o perfil `demo`, a primeira conta de Administrador é criada no arranque com
     ├── architecture.md    Como a Matriz está organizada
     ├── database.md        Que dados a Matriz guarda
     ├── implementation-plan.md  Incrementos da implementação e o seu estado
-    └── ui/                Navegação, ecrãs e wireframe da interface
+    ├── verification.md    Verificações, testes, bugs e uso da IA
+    ├── verification/      Evidências (prints)
+    └── ui/                Navegação, ecrãs, wireframe e designs (ui/design/)
 ```
 
 Código:
@@ -140,6 +159,7 @@ Cada tipo de informação tem **um único documento de referência**, para evita
 | Contrato da API REST | [openapi.yaml](openapi.yaml) |
 | Navegação, ecrãs, wireframe e decisões de interface | [ui/README.md](docs/ui/README.md) |
 | Incrementos da implementação e o seu estado | [implementation-plan.md](docs/implementation-plan.md) |
+| Resultados das verificações, bugs e uso da IA | [verification.md](docs/verification.md) |
 | Instruções para agentes de IA | [AGENTS.md](AGENTS.md) |
 
 Este README é só um resumo. Em caso de diferença, prevalece `docs/requirements.md`.
@@ -175,11 +195,12 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Instruções para agentes (AGENTS.md) | Atualizado na Ficha PL 02: fase, stack, documentos e convenções |
 | Revisão crítica da documentação | Concluída: revisão 1 e revisão independente (2 agentes) aplicadas |
 | Revisão crítica do Architecture Pack | Concluída: revisão 1, revisão independente e revisão final aplicadas (Ficha PL 02) |
-| Arquitetura | Proposta (architecture.md 0.6) |
+| Arquitetura | Proposta (architecture.md 0.8) |
 | Modelo de dados | Proposta (database.md 0.2) |
 | API | Contrato completo, 34 operações (openapi.yaml 0.3.1) |
-| Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.4) |
+| Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.6). Designs dos ecrãs em `docs/ui/design/` e estilo visual DA36 |
 | Plano de implementação | 8 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
-| Implementação | I0 (esqueleto e base de dados) concluído. I1 (entrar e sair) pronto para revisão |
+| Implementação | I0 a I6 prontos para revisão (Ficha PL 03). I7 por fazer |
+| Verificação | Casos 01 a 09 da ficha, testes e bugs em [verification.md](docs/verification.md) |
 
 As decisões técnicas estão em [architecture.md, secção 9](docs/architecture.md#9-decisões-técnicas). As que faltam estão em [constraints.md, secção 4](docs/constraints.md#4-decisões-técnicas-pendentes).

@@ -1,6 +1,6 @@
 # Interface da Matriz
 
-> **Versão:** 0.5 (Ficha PL 03, incremento I2: estilo visual DA36 e ponto de mudança de DA22)
+> **Versão:** 0.6 (Ficha PL 03, incremento I6: estado dos ecrãs)
 > **Estado:** proposta. As decisões deste documento têm origem **D** e têm de ser validadas pelo Product Owner.
 
 | Ficheiro | O que é |
@@ -165,6 +165,8 @@ Os requisitos formais ficam para DP12. O wireframe e os ecrãs seguem estas regr
 ## 9. Ecrãs do MVP
 
 A Ficha PL 03 (exercício 7) pede estes ecrãs. Os ecrãs de gestão (Equipas e Contas) completam o MVP no fim.
+
+Estado na Ficha PL 03 (incremento I6): estão implementados a Entrada, Definir palavra-passe nova, o Painel inicial, Projetos, o detalhe do projeto (sem mudar o estado nem o gestor) e o detalhe da tarefa. As minhas tarefas, Equipas e Contas aparecem no menu com a página "Esta página chega num próximo incremento." e ficam para o I7.
 
 | Ecrã | Conteúdo e ações | API | Histórias |
 |------|------------------|-----|-----------|

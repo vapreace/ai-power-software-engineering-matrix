@@ -338,6 +338,15 @@ class TaskApiTests {
     }
 
     @Test
+    void emptyFilterParametersAreIgnored() throws Exception {
+        // Regressão do bug B4 (docs/verification.md): "?status=" dava erro 500.
+        mvc.perform(get("/api/projects/{id}/tasks", ids.get("novo")).param("status", "").param("priority", "")
+                        .session(login("rui")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items", org.hamcrest.Matchers.hasSize(10)));
+    }
+
+    @Test
     void tasksOfOtherTeamsAreNotVisible() throws Exception {
         mvc.perform(get("/api/projects/{id}/tasks", ids.get("fornecedores")).session(login("pedro")))
                 .andExpect(status().isForbidden())

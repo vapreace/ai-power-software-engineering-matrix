@@ -85,7 +85,7 @@ O exercício 7 (frontend) não fica só no I5: cada incremento entrega a sua par
 | I3 | Gestão de tarefas | US05, US07 (gestor), US10, US11 (sem o filtro por responsável), US16 | Ex. 5 | Pronto para revisão |
 | I4 | Responsáveis e comentários | US06, US07 (responsáveis), US11 (filtro por responsável), US19 | Ex. 6 | Pronto para revisão |
 | I5 | Painel e progresso | US09, US21 | Ex. 7 | Pronto para revisão |
-| I6 | Verificação, revisão e entrega da Ficha 03 | | Ex. 8, Ex. 9 | Por fazer |
+| I6 | Verificação, revisão e entrega da Ficha 03 | | Ex. 8, Ex. 9 | Pronto para revisão |
 | I7 | Resto do MVP | US02, US03, US08, US13, US14, US17 (gestor), US18 | | Por fazer |
 
 ### I0 Esqueleto e persistência (exercício 2)
@@ -180,7 +180,7 @@ Ficha, casos 02, 04, 08 e 09.
 
 ### I6 Verificação, revisão e entrega da Ficha 03 (exercícios 8 e 9)
 
-- `docs/verification.md`: casos 01 a 09 da ficha, com resultado esperado, observado e evidência; testes automáticos e verificações manuais separados; o que não foi possível executar; três exemplos de utilização da IA.
+- [`docs/verification.md`](verification.md): casos 01 a 09 da ficha, com resultado esperado, observado e evidência; testes automáticos e verificações manuais separados; o que não foi possível executar; três exemplos de utilização da IA.
 - Investigação de bugs com reprodução, evidência, causa, correção limitada e teste de regressão.
 - Uma refatoração, se trouxer benefício, num passo separado.
 - OpenAPI, documentos, README.md e AGENTS.md iguais à implementação real.
