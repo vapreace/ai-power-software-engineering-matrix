@@ -120,3 +120,25 @@ export interface Comment {
   content: string
   createdAt: string
 }
+
+/** Número de tarefas por estado (RN33). */
+export interface TaskCounts {
+  todo: number
+  inProgress: number
+  done: number
+}
+
+export interface DashboardProject {
+  id: number
+  name: string
+  team: Reference
+  manager: Reference | null
+  status: ProjectStatus
+  progress: Progress
+  taskCounts: TaskCounts
+}
+
+export interface Dashboard {
+  projects: DashboardProject[]
+  totals: TaskCounts
+}

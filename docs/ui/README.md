@@ -104,12 +104,12 @@ Os nomes seguem DA08 (inglês no código). Servem todos os ecrãs da secção 9.
 | `AppNavBar` | Menu de acordo com o papel, nome e Sair. | Todas as páginas |
 | `StatusFilter` | Caixas de seleção de estados. | Projetos; tarefas do projeto (US11) |
 | `SearchBox` | Campo de pesquisa com etiqueta. | Projetos (US22) |
-| `ProjectList` | Tabela no computador, cartões no telemóvel. | Projetos, painel |
+| `ProjectList` | Tabela no computador, cartões no telemóvel. | Projetos |
 | `StatusTag` | Estado traduzido para português. | Projetos, tarefas |
 | `PriorityTag` | Prioridade traduzida para português. | Tarefas |
-| `ProgressBar` | Barra e texto do progresso. | Projetos, detalhe do projeto |
+| `ProgressBar` | Barra e texto do progresso. | Projetos, detalhe do projeto, painel |
 | `OverdueBadge` | Contagem de atrasos, ou "Atrasada" numa tarefa. | Projetos, tarefas (US10) |
-| `TaskCounts` | Contagens "Por fazer", "Em curso" e "Concluída". | Painel (US21) |
+| `TaskCounts` | Contagens "Por fazer", "Em curso" e "Concluída": cartões grandes para os totais e uma linha compacta em cada projeto. | Painel (US21): totais e cartão de cada projeto |
 | `AssigneePicker` | Escolher responsáveis entre as pessoas elegíveis e remover cada um. | Detalhe da tarefa (US06) |
 | `CommentList`, `CommentForm` | Comentários com autor e data e hora; novo comentário. | Detalhe da tarefa (US19) |
 | `ConfirmDialog` | Pergunta de confirmação com Confirmar e Cancelar. | Eliminar projeto, apagar tarefa, concluir projeto (RN10, RN19, RN31) |

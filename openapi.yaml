@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Matriz API
-  version: 0.3.0
+  version: 0.3.1
   summary: Contrato REST do MVP da Matriz (Ficha PL 03, exercício 1).
   description: |
     Contrato da API REST da Matriz. Documenta todas as operações do MVP
@@ -1053,12 +1053,16 @@ paths:
                   - id: 2
                     name: Frota
                     team: { id: 1, name: Logística Norte }
+                    manager: { id: 3, name: Sofia }
                     status: ACTIVE
+                    progress: { completedTasks: 0, totalTasks: 1, percentage: 0 }
                     taskCounts: { todo: 1, inProgress: 0, done: 0 }
                   - id: 1
                     name: Novo armazém
                     team: { id: 1, name: Logística Norte }
+                    manager: { id: 2, name: Rui }
                     status: ACTIVE
+                    progress: { completedTasks: 6, totalTasks: 10, percentage: 60 }
                     taskCounts: { todo: 2, inProgress: 2, done: 6 }
                 totals: { todo: 3, inProgress: 2, done: 6 }
         '401':
@@ -2285,7 +2289,11 @@ components:
           minimum: 0
     DashboardProject:
       type: object
-      required: [id, name, team, status, taskCounts]
+      description: |
+        Projeto do painel inicial (US21). `manager` e `progress` foram acrescentados
+        na versão 0.3.1 (Ficha PL 03, incremento I5), para o cartão de cada projeto
+        mostrar o gestor e o progresso calculado no backend, como na lista de projetos.
+      required: [id, name, team, manager, status, progress, taskCounts]
       properties:
         id:
           type: integer
@@ -2295,8 +2303,15 @@ components:
           type: string
         team:
           $ref: '#/components/schemas/Reference'
+        manager:
+          description: Gestor do projeto. `null` quer dizer "Sem gestor" (RN22).
+          oneOf:
+            - $ref: '#/components/schemas/Reference'
+            - type: 'null'
         status:
           $ref: '#/components/schemas/ProjectStatus'
+        progress:
+          $ref: '#/components/schemas/Progress'
         taskCounts:
           $ref: '#/components/schemas/TaskCounts'
     Dashboard:

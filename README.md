@@ -177,7 +177,7 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Revisão crítica do Architecture Pack | Concluída: revisão 1, revisão independente e revisão final aplicadas (Ficha PL 02) |
 | Arquitetura | Proposta (architecture.md 0.6) |
 | Modelo de dados | Proposta (database.md 0.2) |
-| API | Contrato completo, 34 operações (openapi.yaml 0.3.0) |
+| API | Contrato completo, 34 operações (openapi.yaml 0.3.1) |
 | Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.4) |
 | Plano de implementação | 8 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
 | Implementação | I0 (esqueleto e base de dados) concluído. I1 (entrar e sair) pronto para revisão |

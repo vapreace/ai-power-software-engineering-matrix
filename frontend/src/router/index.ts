@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { Role } from '@/api/types'
-import { loadSession } from '@/session'
+import { consumeSessionExpired, loadSession } from '@/session'
 import LoginView from '@/views/LoginView.vue'
 import SetPasswordView from '@/views/SetPasswordView.vue'
 import DashboardView from '@/views/DashboardView.vue'
@@ -93,7 +93,7 @@ router.beforeEach(async (to) => {
     return user.mustChangePassword ? { name: 'set-password' } : { name: 'home' }
   }
   if (!user) {
-    return { name: 'login' }
+    return consumeSessionExpired() ? { name: 'login', query: { sessao: 'terminou' } } : { name: 'login' }
   }
   if (user.mustChangePassword && to.name !== 'set-password') {
     return { name: 'set-password' }
