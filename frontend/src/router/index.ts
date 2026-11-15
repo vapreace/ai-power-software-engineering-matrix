@@ -8,6 +8,8 @@ import ComingSoonView from '@/views/ComingSoonView.vue'
 import ProjectsView from '@/views/ProjectsView.vue'
 import ProjectDetailView from '@/views/ProjectDetailView.vue'
 import ProjectFormView from '@/views/ProjectFormView.vue'
+import TaskDetailView from '@/views/TaskDetailView.vue'
+import TaskFormView from '@/views/TaskFormView.vue'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -50,6 +52,18 @@ const router = createRouter({
       name: 'project-edit',
       component: ProjectFormView,
       meta: { title: 'Editar projeto', section: 'projects' },
+    },
+    {
+      path: '/tarefas/:id(\\d+)',
+      name: 'task',
+      component: TaskDetailView,
+      meta: { title: 'Tarefa', section: 'projects' },
+    },
+    {
+      path: '/tarefas/:id(\\d+)/editar',
+      name: 'task-edit',
+      component: TaskFormView,
+      meta: { title: 'Editar tarefa', section: 'projects' },
     },
     {
       path: '/minhas-tarefas',

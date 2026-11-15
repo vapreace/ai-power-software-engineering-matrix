@@ -1,6 +1,6 @@
 // Ações que a interface mostra conforme o papel (requirements.md, secção 3.1).
 // Esconder um botão é conforto: a proteção que conta é a do backend (SEG02).
-import type { CurrentUser, Project } from './api/types'
+import type { CurrentUser, Project, Task } from './api/types'
 
 export function canCreateProjects(user: CurrentUser | null): boolean {
   return user?.role === 'ADMINISTRATOR' || user?.role === 'MANAGER'
@@ -19,4 +19,15 @@ export function canManageProject(user: CurrentUser | null, project: Project): bo
     project.manager?.id === user.id &&
     user.teams.some((team) => team.id === project.team.id)
   )
+}
+
+/**
+ * Mudar o estado de uma tarefa: o Administrador, o gestor do projeto e qualquer responsável da
+ * tarefa, qualquer que seja o papel (RN15), também num projeto "Sem gestor" (RN22).
+ */
+export function canChangeTaskStatus(user: CurrentUser | null, project: Project, task: Task): boolean {
+  if (!user) {
+    return false
+  }
+  return canManageProject(user, project) || task.assignees.some((assignee) => assignee.id === user.id)
 }

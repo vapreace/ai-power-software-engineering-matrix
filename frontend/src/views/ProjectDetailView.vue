@@ -2,7 +2,7 @@
 // Ecrã Detalhe do projeto (docs/ui/README.md, secção 9): dados, progresso e atrasos no cartão
 // Resumo (US09, US10). Editar e Eliminar só para o Administrador e o gestor do projeto
 // (RN05, RN22, RN31). Eliminar pede confirmação com o número de tarefas (US20).
-// As tarefas chegam no I3 e a mudança de estado e de gestor no I7 (docs/implementation-plan.md).
+// As tarefas ficam no cartão Tarefas (I3); a mudança de estado e de gestor chega no I7.
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ApiError } from '@/api/http'
@@ -18,6 +18,7 @@ import OverdueBadge from '@/components/OverdueBadge.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
+import ProjectTasks from '@/components/ProjectTasks.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -48,6 +49,15 @@ async function load() {
     } else {
       state.value = 'error'
     }
+  }
+}
+
+/** Depois de criar uma tarefa: o Resumo (progresso e atrasos) é pedido de novo, sem recarregar. */
+async function refreshProject() {
+  try {
+    project.value = await getProject(Number(route.params.id))
+  } catch {
+    // Mantém os dados que estão no ecrã; o próximo carregamento mostra o erro.
   }
 }
 
@@ -132,12 +142,7 @@ watch(() => route.params.id, load, { immediate: true })
           </div>
         </aside>
 
-        <section class="card tasks" aria-labelledby="tarefas-titulo">
-          <div class="card-header">
-            <h2 id="tarefas-titulo" class="section-label">Tarefas</h2>
-          </div>
-          <p class="card-body muted tasks-note">A lista de tarefas chega no incremento I3.</p>
-        </section>
+        <ProjectTasks class="tasks" :project="project" :can-create="canEdit" @changed="refreshProject" />
       </div>
     </template>
 
@@ -194,10 +199,6 @@ watch(() => route.params.id, load, { immediate: true })
 
 .tasks {
   grid-area: tasks;
-}
-
-.tasks-note {
-  border-top: 1px solid var(--border);
 }
 
 .summary-title {

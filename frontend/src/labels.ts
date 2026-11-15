@@ -1,5 +1,5 @@
 // Textos da interface para os valores técnicos da API e formatos de data (DA23, RNF02).
-import type { Progress, ProjectStatus, Role } from './api/types'
+import type { Progress, ProjectStatus, Role, TaskPriority, TaskStatus } from './api/types'
 
 export const roleLabels: Record<Role, string> = {
   ADMINISTRATOR: 'Administrador',
@@ -12,6 +12,18 @@ export const projectStatusLabels: Record<ProjectStatus, string> = {
   ACTIVE: 'Ativo',
   COMPLETED: 'Concluído',
   ARCHIVED: 'Arquivado',
+}
+
+export const taskStatusLabels: Record<TaskStatus, string> = {
+  TODO: 'Por fazer',
+  IN_PROGRESS: 'Em curso',
+  DONE: 'Concluída',
+}
+
+export const priorityLabels: Record<TaskPriority, string> = {
+  LOW: 'Baixa',
+  MEDIUM: 'Média',
+  HIGH: 'Alta',
 }
 
 /** Data ISO (aaaa-mm-dd) no formato dd/mm/aaaa (DA23). */
@@ -73,4 +85,9 @@ export function deleteProjectMessage(name: string, totalTasks: number): string {
 /** Contagem de caracteres como no backend: cada código Unicode conta um (DA11). */
 export function textLength(text: string): number {
   return [...text.normalize('NFC').trim()].length
+}
+
+/** Confirmação de RN19 / US16 (texto aprovado). */
+export function deleteTaskMessage(title: string): string {
+  return `Apagar a tarefa «${title}»? Esta ação não pode ser desfeita.`
 }

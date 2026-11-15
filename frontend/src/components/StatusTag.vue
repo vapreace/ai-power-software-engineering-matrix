@@ -1,13 +1,21 @@
 <script setup lang="ts">
-// Estado traduzido para português, com fundo suave (docs/ui/README.md, secção 5; DA23).
+// Estado do projeto ou da tarefa em português, com fundo suave (docs/ui/README.md, secção 5; DA23).
 import { computed } from 'vue'
-import type { ProjectStatus } from '@/api/types'
-import { projectStatusLabels } from '@/labels'
+import type { ProjectStatus, TaskStatus } from '@/api/types'
+import { projectStatusLabels, taskStatusLabels } from '@/labels'
 
-const props = defineProps<{ status: ProjectStatus }>()
+const props = defineProps<{ status: ProjectStatus | TaskStatus }>()
 
-const tone: Record<ProjectStatus, string> = { ACTIVE: 'blue', COMPLETED: 'green', ARCHIVED: 'grey' }
-const label = computed(() => projectStatusLabels[props.status])
+const labels: Record<ProjectStatus | TaskStatus, string> = { ...projectStatusLabels, ...taskStatusLabels }
+const tone: Record<ProjectStatus | TaskStatus, string> = {
+  ACTIVE: 'blue',
+  IN_PROGRESS: 'blue',
+  COMPLETED: 'green',
+  DONE: 'green',
+  ARCHIVED: 'grey',
+  TODO: 'grey',
+}
+const label = computed(() => labels[props.status])
 </script>
 
 <template>

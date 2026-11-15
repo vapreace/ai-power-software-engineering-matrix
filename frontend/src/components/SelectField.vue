@@ -1,18 +1,18 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string | number">
 // Lista de escolha com etiqueta, ajuda e erro junto do campo (docs/ui/README.md, secção 7).
 import { computed } from 'vue'
 
 const props = defineProps<{
   id: string
   label: string
-  options: { value: number; label: string }[]
-  placeholder: string
+  options: { value: T; label: string }[]
+  placeholder?: string
   error?: string
   hint?: string
   disabled?: boolean
 }>()
 
-const model = defineModel<number | null>({ required: true })
+const model = defineModel<T | null>({ required: true })
 
 const describedBy = computed(
   () =>
@@ -33,7 +33,7 @@ const describedBy = computed(
       :aria-invalid="error ? 'true' : undefined"
       :aria-describedby="describedBy"
     >
-      <option :value="null" disabled>{{ placeholder }}</option>
+      <option v-if="placeholder" :value="null" disabled>{{ placeholder }}</option>
       <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
     </select>
     <p v-if="hint" :id="`${id}-ajuda`" class="field-hint">{{ hint }}</p>

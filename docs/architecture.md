@@ -274,7 +274,7 @@ Em cada módulo, a interface pública (o serviço que os outros módulos chamam 
 
 ## 9. Decisões técnicas
 
-Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14, DA29 e DA32) estão em [database.md, secção 9](database.md#9-decisões-de-modelação). As convenções da API (DA15 a DA20, DA27 e DA33) estão na secção 13. As decisões de interface (DA21 a DA23 e DA34) estão em [ui/README.md](ui/README.md#6-decisões-de-interface).
+Todas têm origem **D**. As decisões de modelação de dados (DA08 a DA14, DA29 e DA32) estão em [database.md, secção 9](database.md#9-decisões-de-modelação). As convenções da API (DA15 a DA20, DA27 e DA33) estão na secção 13. As decisões de interface (DA21 a DA23, DA34 e DA36) estão em [ui/README.md](ui/README.md#6-decisões-de-interface).
 
 | ID | Decisão | Resolve | Alternativas consideradas | Consequências |
 |----|---------|---------|---------------------------|---------------|

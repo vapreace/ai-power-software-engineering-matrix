@@ -5,6 +5,7 @@ import java.time.OffsetDateTime;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -110,6 +111,16 @@ public class Projects {
             throw forbidden(NO_ACCESS);
         }
         return toView(project.toRow());
+    }
+
+    /**
+     * Acesso de uma pessoa a um projeto, sem lançar erros, para os outros módulos aplicarem
+     * a ordem de DA17. Vazio quando o projeto não existe ou foi eliminado (RN32).
+     */
+    @Transactional(readOnly = true)
+    public Optional<ProjectAccess> access(CurrentUser user, long projectId) {
+        return repository.findActiveById(projectId).map(project -> new ProjectAccess(project.getId(),
+                project.getTeamId(), project.getStatus(), isVisible(user, project.getTeamId()), canManage(user, project)));
     }
 
     /**
@@ -221,18 +232,21 @@ public class Projects {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, ProblemCode.NOT_FOUND, PROJECT_NOT_FOUND));
     }
 
-    /** Administrador, ou o gestor do projeto enquanto cumpre RN21 (papel Gestor e pertence à equipa). */
     private void requireCanManage(CurrentUser user, Project project) {
-        if (user.role() == Role.ADMINISTRATOR) {
-            return;
+        if (!canManage(user, project)) {
+            throw forbidden(FORBIDDEN);
         }
-        boolean isManager = user.role() == Role.MANAGER
+    }
+
+    /** Administrador, ou o gestor do projeto enquanto cumpre RN21 (papel Gestor e pertence à equipa). */
+    private static boolean canManage(CurrentUser user, Project project) {
+        if (user.role() == Role.ADMINISTRATOR) {
+            return true;
+        }
+        return user.role() == Role.MANAGER
                 && project.getManagerId() != null
                 && project.getManagerId() == user.id()
                 && belongsTo(user, project.getTeamId());
-        if (!isManager) {
-            throw forbidden(FORBIDDEN);
-        }
     }
 
     private boolean isValidManager(long accountId, long teamId) {

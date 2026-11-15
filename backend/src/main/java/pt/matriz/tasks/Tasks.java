@@ -10,9 +10,9 @@ import pt.matriz.common.OrganizationClock;
 import pt.matriz.tasks.persistence.TaskQueries;
 
 /**
- * Interface pública do módulo Tarefas (architecture.md, secções 5.1 e 8). No I2 só dá as
- * contagens por projeto, para o progresso e os atrasos (RF27, RF28). As operações sobre
- * tarefas chegam no I3.
+ * Interface pública do módulo Tarefas (architecture.md, secções 5.1 e 8): as contagens por
+ * projeto, para o progresso e os atrasos (RF27, RF28). As operações sobre tarefas estão em
+ * {@code application.TaskService} e só são usadas pela API do próprio módulo.
  */
 @Service
 public class Tasks {

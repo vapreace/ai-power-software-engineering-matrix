@@ -71,3 +71,42 @@ export interface UpdateProjectRequest {
   expectedEndDate?: string | null
   version: number
 }
+
+export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE'
+export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
+
+/** `assignees` vazio: "Sem responsável" (RN14). `overdue` vem calculado pelo backend (RF28). */
+export interface Task {
+  id: number
+  projectId: number
+  title: string
+  description: string | null
+  dueDate: string | null
+  priority: TaskPriority
+  status: TaskStatus
+  assignees: Reference[]
+  overdue: boolean
+  version: number
+}
+
+export interface CreateTaskRequest {
+  title: string
+  description: string | null
+  dueDate: string | null
+  priority: TaskPriority
+}
+
+/** Só os campos enviados mudam; a versão é obrigatória (DA05, DA20). */
+export interface UpdateTaskRequest {
+  title?: string
+  description?: string | null
+  dueDate?: string | null
+  priority?: TaskPriority
+  version: number
+}
+
+export interface TaskFilters {
+  statuses: TaskStatus[]
+  priorities: TaskPriority[]
+  overdue: boolean
+}
