@@ -1,3 +1,9 @@
+// Fontes do estilo visual (DA36), servidas com a aplicação: sem pedidos a outros sites.
+import '@fontsource/ibm-plex-sans/latin-400.css'
+import '@fontsource/ibm-plex-sans/latin-500.css'
+import '@fontsource/ibm-plex-sans/latin-600.css'
+import '@fontsource/ibm-plex-mono/latin-400.css'
+import '@fontsource/ibm-plex-mono/latin-500.css'
 import './assets/main.css'
 
 import { createApp } from 'vue'

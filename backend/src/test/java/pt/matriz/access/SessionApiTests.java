@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import pt.matriz.FixedClockConfiguration;
 import pt.matriz.TestcontainersConfiguration;
 
 /**
@@ -35,7 +36,7 @@ import pt.matriz.TestcontainersConfiguration;
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
 class SessionApiTests {
 
     private static final String PASSWORD = "palavra-passe-de-teste";

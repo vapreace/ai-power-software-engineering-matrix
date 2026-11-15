@@ -16,6 +16,8 @@ const message = ref<string | null>(
   route.query.sessao === 'terminou' ? 'A sessão terminou. Entre de novo.' : null,
 )
 const submitting = ref(false)
+// "A sessão terminou" é informação, não erro: fica com o fundo neutro do design.
+const sessionEnded = ref(route.query.sessao === 'terminou')
 
 function validate(): boolean {
   errors.email = form.email.trim() ? undefined : 'O email é obrigatório.'
@@ -29,6 +31,7 @@ async function submit() {
   }
   submitting.value = true
   message.value = null
+  sessionEnded.value = false
   try {
     const user = await login(form.email, form.password)
     setCurrentUser(user)
@@ -43,12 +46,15 @@ async function submit() {
 </script>
 
 <template>
-  <main class="narrow">
-    <section class="card">
-      <h1>Matriz</h1>
+  <main class="entry">
+    <section class="card entry-card">
+      <span class="entry-logo">Matriz</span>
+      <h1>Entrar</h1>
       <p class="muted">Entre com o email e a palavra-passe da sua conta.</p>
-      <p v-if="message" class="alert" role="alert">{{ message }}</p>
-      <form novalidate @submit.prevent="submit">
+      <p v-if="message" class="alert" :class="{ info: sessionEnded }" :role="sessionEnded ? 'status' : 'alert'">
+        {{ message }}
+      </p>
+      <form class="form-stack" novalidate @submit.prevent="submit">
         <FormField
           id="email"
           v-model="form.email"
@@ -65,7 +71,8 @@ async function submit() {
           autocomplete="current-password"
           :error="errors.password"
         />
-        <button type="submit" class="btn" :disabled="submitting">
+        <button type="submit" class="btn block" :disabled="submitting">
+          <span v-if="submitting" class="spinner" aria-hidden="true"></span>
           {{ submitting ? 'A entrar...' : 'Entrar' }}
         </button>
       </form>

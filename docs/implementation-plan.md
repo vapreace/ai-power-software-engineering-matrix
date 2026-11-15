@@ -64,7 +64,7 @@ O MVP completo mantém-se: as 22 histórias. O âmbito da ficha (R08) vem primei
 |---------|--------|
 | Versões exatas do Spring Boot, das bibliotecas, do PostgreSQL e do Node | I0 |
 | Formato dos changesets Liquibase (YAML, XML ou SQL formatado) | I0 |
-| Ponto de mudança entre tabela e cartões (DA22) | I2 |
+| Ponto de mudança entre tabela e cartões (DA22) | I2. Fixado: 720 px (ui/README.md). |
 
 ---
 
@@ -81,7 +81,7 @@ O exercício 7 (frontend) não fica só no I5: cada incremento entrega a sua par
 |------|----------|-----------|-------------|--------|
 | I0 | Projeto executável, esquema e seed | | Ex. 2 | Concluído |
 | I1 | Entrar, sair, utilizador autenticado | US01 | Ex. 3 | Pronto para revisão |
-| I2 | Gestão de projetos | US04, US12, US15, US17 (editar), US20, US22 | Ex. 4 | Por fazer |
+| I2 | Gestão de projetos | US04, US12, US15, US17 (editar), US20, US22 | Ex. 4 | Pronto para revisão |
 | I3 | Gestão de tarefas | US05, US07 (gestor), US10, US11 (sem o filtro por responsável), US16 | Ex. 5 | Por fazer |
 | I4 | Responsáveis e comentários | US06, US07 (responsáveis), US11 (filtro por responsável), US19 | Ex. 6 | Por fazer |
 | I5 | Painel e progresso | US09, US21 | Ex. 7 | Por fazer |

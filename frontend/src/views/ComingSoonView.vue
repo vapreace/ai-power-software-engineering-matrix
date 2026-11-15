@@ -8,6 +8,6 @@ const route = useRoute()
 <template>
   <main class="page">
     <h1>{{ route.meta.title }}</h1>
-    <p class="muted">Esta página chega num próximo incremento.</p>
+    <p class="card card-body muted">Esta página chega num próximo incremento.</p>
   </main>
 </template>

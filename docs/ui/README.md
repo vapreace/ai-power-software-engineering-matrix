@@ -1,12 +1,13 @@
 # Interface da Matriz
 
-> **Versão:** 0.4 (conciliação com o âmbito da Ficha PL 03, exercício 1)
+> **Versão:** 0.5 (Ficha PL 03, incremento I2: estilo visual DA36 e ponto de mudança de DA22)
 > **Estado:** proposta. As decisões deste documento têm origem **D** e têm de ser validadas pelo Product Owner.
 
 | Ficheiro | O que é |
 |----------|---------|
 | [wireframe.png](wireframe.png) | Wireframe de baixa fidelidade da lista de projetos. Atualizado na Ficha PL 03: menu com Painel e pesquisa pelo nome. |
 | [wireframe.html](wireframe.html) | Fonte do wireframe. É um desenho estático, não é código do frontend. Abre-se no browser e serve para gerar de novo a imagem. |
+| [design/](design/) | Designs dos ecrãs do MVP, feitos com o Claude Design na Ficha PL 03: 7 ficheiros de ecrãs ("Ecrãs 1 - Entrada" a "Ecrãs 7 - Estados comuns"), um por componente da secção 5 e o `support.js` que os mostra no browser. Definem o estilo visual (DA36). São desenhos, não são código do frontend. |
 
 Os dados do wireframe são simulados, com base nas pessoas e nos projetos de partida de [user-stories.md](../user-stories.md). A data atual é 10/11/2026.
 
@@ -16,7 +17,7 @@ Os dados do wireframe são simulados, com base nas pessoas e nos projetos de par
 
 **Lista de projetos.** Mostra o progresso e os atrasos que o cliente pediu ("acompanhar o progresso do trabalho"). Usa os campos de `GET /projects` ([openapi.yaml](../../openapi.yaml)).
 
-Na Ficha PL 02, a ficha sugeria o dashboard, mas o painel geral (RF29) era Should. Por isso o wireframe mostra a lista de projetos (RF09). Na Ficha PL 03, o painel passou a Must ([requirements.md, secção 8.2](../requirements.md#82-requisitos-incluídos)) e é a página inicial (DA21). O painel e os restantes ecrãs estão descritos na secção 9, sem wireframe próprio: usam os componentes e os estilos deste wireframe.
+Na Ficha PL 02, a ficha sugeria o dashboard, mas o painel geral (RF29) era Should. Por isso o wireframe mostra a lista de projetos (RF09). Na Ficha PL 03, o painel passou a Must ([requirements.md, secção 8.2](../requirements.md#82-requisitos-incluídos)) e é a página inicial (DA21). O painel e os restantes ecrãs estão descritos na secção 9. Os designs de todos os ecrãs estão em [design/](design/), com o estilo visual de DA36.
 
 ---
 
@@ -124,9 +125,10 @@ Todas têm origem **D**.
 | ID | Decisão | Porquê |
 |----|---------|--------|
 | DA21 | A página inicial é o painel inicial (RF29), para todos os papéis. O menu depende do papel (secção 2). Na Ficha PL 02, a página inicial era a lista de projetos; mudou na Ficha PL 03, quando o painel entrou no MVP. | A Ficha PL 03 pede um painel inicial com o utilizador, os projetos acessíveis e as contagens. Cada papel só vê o que pode usar (RF03). |
-| DA22 | As listas aparecem em tabela no computador e em cartões no telemóvel. O ponto de mudança define-se na implementação (exercício 7 da Ficha 03). | Uma tabela com 7 colunas não cabe em 360 px sem deslocamento horizontal (RNF01). |
+| DA22 | As listas aparecem em tabela no computador e em cartões no telemóvel. O ponto de mudança é 720 px: abaixo dessa largura, as listas passam a cartões e o menu recolhe atrás do botão Menu. Fixado na Ficha PL 03 (incremento I2). | Uma tabela com 7 colunas não cabe em 360 px sem deslocamento horizontal (RNF01). Com 720 px ou mais, a tabela da lista de projetos cabe sem cortar colunas. |
 | DA23 | As datas aparecem no formato dd/mm/aaaa e a data e hora no formato dd/mm/aaaa hh:mm, no fuso da organização (DA24). Estados, papéis e prioridades aparecem em português. | RNF02. A API usa datas ISO e os nomes técnicos de DA08. |
 | DA34 | O endereço da API está num único módulo do frontend (`src/api`) e é sempre o caminho relativo `/api`. Em desenvolvimento, o servidor do Vite reencaminha `/api` para o backend (DA02). | A Ficha PL 03 pede a configuração do endereço do backend centralizada. Com a mesma origem não é preciso CORS. |
+| DA36 | Estilo visual da interface, definido com o Claude Design e guardado em [design/](design/). Fundo cinzento claro (#f4f4f5) e cartões brancos com contorno de 1 px (#e4e4e7) e cantos de 8 px; botões e campos com cantos de 6 px. Letra IBM Plex Sans, com IBM Plex Mono nas datas e nos números. Destaque âmbar (#f5a000) com texto escuro nos botões principais e no item ativo do menu, que fica sublinhado; âmbar escuro (#9a5200) no contorno de foco e nas ligações ao passar o rato. Texto #1c1a17 e neutros cinzentos (#3f3f46, #52525b e #71717a; contornos #e4e4e7 e #d4d4d8). Vermelho (#b3261e) só nas ações que eliminam ou apagam. Estados e prioridades em etiquetas com fundo suave; atrasos com contorno âmbar. Caminho (breadcrumb) no detalhe e nos formulários; no detalhe do projeto, cartão Resumo à direita, que no telemóvel fica por cima das tarefas. As fontes vão com a aplicação (pacotes `@fontsource`), sem pedidos a outros sites. As cores e as medidas estão como variáveis num único ficheiro, `frontend/src/assets/main.css`. | A Ficha PL 03 (exercício 7) pede uma interface consistente e responsiva. Com as cores e as medidas num só sítio, todos os ecrãs ficam iguais. A cor nunca é a única informação: o texto acompanha sempre a etiqueta, a barra e o destaque (secção 7). |
 
 ---
 

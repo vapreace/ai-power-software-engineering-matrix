@@ -5,6 +5,9 @@ import LoginView from '@/views/LoginView.vue'
 import SetPasswordView from '@/views/SetPasswordView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import ComingSoonView from '@/views/ComingSoonView.vue'
+import ProjectsView from '@/views/ProjectsView.vue'
+import ProjectDetailView from '@/views/ProjectDetailView.vue'
+import ProjectFormView from '@/views/ProjectFormView.vue'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -13,6 +16,8 @@ declare module 'vue-router' {
     /** Papéis que veem a página no menu (DA21). Sem valor: todos. */
     roles?: Role[]
     title?: string
+    /** Item do menu que fica ativo nesta página (por exemplo, o detalhe de um projeto fica em Projetos). */
+    section?: string
   }
 }
 
@@ -27,7 +32,25 @@ const router = createRouter({
       meta: { title: 'Definir palavra-passe nova' },
     },
     { path: '/', name: 'home', component: DashboardView, meta: { title: 'Painel' } },
-    { path: '/projetos', name: 'projects', component: ComingSoonView, meta: { title: 'Projetos' } },
+    { path: '/projetos', name: 'projects', component: ProjectsView, meta: { title: 'Projetos' } },
+    {
+      path: '/projetos/novo',
+      name: 'project-new',
+      component: ProjectFormView,
+      meta: { title: 'Novo projeto', section: 'projects', roles: ['ADMINISTRATOR', 'MANAGER'] },
+    },
+    {
+      path: '/projetos/:id(\\d+)',
+      name: 'project',
+      component: ProjectDetailView,
+      meta: { title: 'Projeto', section: 'projects' },
+    },
+    {
+      path: '/projetos/:id(\\d+)/editar',
+      name: 'project-edit',
+      component: ProjectFormView,
+      meta: { title: 'Editar projeto', section: 'projects' },
+    },
     {
       path: '/minhas-tarefas',
       name: 'my-tasks',

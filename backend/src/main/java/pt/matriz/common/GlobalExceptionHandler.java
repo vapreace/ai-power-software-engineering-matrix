@@ -2,6 +2,7 @@ package pt.matriz.common;
 
 import java.util.List;
 
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -24,6 +25,7 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     static final String INVALID_FIELDS = "Há campos inválidos.";
     static final String INVALID_FORMAT = "O pedido tem um formato inválido.";
+    static final String INVALID_VALUE = "Valor inválido.";
 
     @ExceptionHandler(ApiException.class)
     ResponseEntity<ProblemDetail> handleApiException(ApiException ex) {
@@ -50,6 +52,16 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleHttpMessageNotReadable(
             HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         return ResponseEntity.badRequest().body(problem(HttpStatus.BAD_REQUEST, ProblemCode.VALIDATION_ERROR, INVALID_FORMAT));
+    }
+
+    /** Parâmetro com um valor que não se converte (por exemplo, um estado que não existe). */
+    @Override
+    protected ResponseEntity<Object> handleTypeMismatch(
+            TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ProblemDetail body = problem(HttpStatus.BAD_REQUEST, ProblemCode.VALIDATION_ERROR, INVALID_VALUE);
+        String field = ex.getPropertyName() == null ? "" : ex.getPropertyName();
+        body.setProperty("errors", List.of(new ApiFieldError(field, INVALID_VALUE)));
+        return ResponseEntity.badRequest().body(body);
     }
 
     static ProblemDetail problem(HttpStatus status, ProblemCode code, String detail) {

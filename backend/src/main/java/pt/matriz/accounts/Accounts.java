@@ -1,5 +1,7 @@
 package pt.matriz.accounts;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -36,6 +38,15 @@ public class Accounts {
     @Transactional(readOnly = true)
     public Optional<AccountView> findById(long id) {
         return repository.findById(id).map(Accounts::toView);
+    }
+
+    /** Contas com os identificadores indicados, para mostrar nomes, papéis e estados. Nunca inclui a palavra-passe. */
+    @Transactional(readOnly = true)
+    public List<AccountView> findAllById(Collection<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return repository.findAllById(ids).stream().map(Accounts::toView).toList();
     }
 
     /** Verifica email e palavra-passe (RF01, SEG04, SEG05). */

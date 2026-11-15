@@ -59,12 +59,12 @@ async function leave() {
 </script>
 
 <template>
-  <main class="narrow">
-    <section class="card">
+  <main class="entry">
+    <section class="card entry-card">
       <h1>Definir palavra-passe nova</h1>
       <p class="alert info">Defina uma palavra-passe nova para continuar.</p>
       <p v-if="message" class="alert" role="alert">{{ message }}</p>
-      <form novalidate @submit.prevent="submit">
+      <form class="form-stack" novalidate @submit.prevent="submit">
         <FormField
           id="new-password"
           v-model="form.newPassword"
@@ -81,8 +81,9 @@ async function leave() {
           autocomplete="new-password"
           :error="errors.confirmation"
         />
-        <div class="actions">
+        <div class="actions stack-on-mobile">
           <button type="submit" class="btn" :disabled="submitting">
+            <span v-if="submitting" class="spinner" aria-hidden="true"></span>
             {{ submitting ? 'A guardar...' : 'Guardar' }}
           </button>
           <button type="button" class="btn secondary" @click="leave">Sair</button>

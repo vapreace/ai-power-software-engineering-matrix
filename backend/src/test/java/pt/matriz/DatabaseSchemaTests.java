@@ -14,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 /** Confirma que o Liquibase cria o esquema de docs/database.md num PostgreSQL real (DA30, DA31). */
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
 class DatabaseSchemaTests {
 
     @Autowired
