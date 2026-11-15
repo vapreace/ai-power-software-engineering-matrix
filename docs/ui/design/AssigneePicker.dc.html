@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;flex-direction:column;gap:12px;min-width:0;"><sc-if value="{{ none }}"><p style="margin:0;color:#52525b;">Sem responsável</p></sc-if><sc-if value="{{ some }}" hint-placeholder-val="{{ true }}"><ul role="list" aria-label="Responsáveis" style="list-style:none;margin:0;padding:0;border:1px solid #e4e4e7;border-radius:6px;"><sc-for list="{{ rows }}" as="a" hint-placeholder-count="2"><li style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:4px 4px 4px 12px;border-top:{{ a.bt }};"><span style="font-weight:500;">{{ a.name }}</span><sc-if value="{{ a.canEdit }}"><button type="button" aria-label="{{ a.removeLabel }}" style="min-height:36px;padding:0 12px;border:1px solid transparent;border-radius:6px;background:transparent;color:#3f3f46;font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;" style-hover="background:#f4f4f5;">Remover</button></sc-if></li></sc-for></ul></sc-if><sc-if value="{{ canEdit }}"><div style="display:flex;flex-direction:column;gap:6px;"><label for="{{ selId }}" style="font-size:13px;font-weight:600;">Associar responsável</label><div style="display:flex;gap:8px;"><select id="{{ selId }}" style="flex:1 1 auto;min-width:0;min-height:44px;padding:6px 8px;border:1px solid #a1a1aa;border-radius:6px;background:#fff;color:#1c1a17;font:inherit;"><option value="">Escolha uma pessoa</option><sc-for list="{{ eligible }}" as="e" hint-placeholder-count="2"><option value="{{ e }}">{{ e }}</option></sc-for></select><button type="button" style="min-height:44px;padding:0 14px;border:1px solid #d4d4d8;border-radius:6px;background:#fff;color:#1c1a17;font:inherit;font-weight:500;cursor:pointer;" style-hover="border-color:#71717a;">Associar</button></div></div></sc-if></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:320,&quot;height&quot;:220},&quot;assignees&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string[]&quot;},&quot;eligible&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string[]&quot;},&quot;canEdit&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;responsavel&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, canEdit = !!(p.canEdit ?? true);
+    const rows = (p.assignees ?? ['Marta', 'Pedro']).map((n, i) => ({ name: n, canEdit, removeLabel: 'Remover ' + n, bt: i ? '1px solid #e4e4e7' : '0' }));
+    return { rows, none: !rows.length, some: rows.length > 0, canEdit, eligible: p.eligible ?? ['Rui', 'Sofia'], selId: (p.id ?? 'responsavel') + '-novo' };
+  }
+}
+</script>
+</body>
+</html>

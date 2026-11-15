@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ has }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:6px;min-width:0;"><div style="display:flex;align-items:center;gap:12px;"><div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ pct }}" aria-valuetext="{{ text }}" style="flex:1 1 auto;min-width:48px;height:4px;border-radius:2px;background:#e4e4e7;overflow:hidden;"><div style="height:100%;width:{{ pctCss }};background:#1c1a17;border-radius:2px;"></div></div><span style="font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;font-weight:500;white-space:nowrap;">{{ pctText }}</span></div><span style="font-size:13px;color:#52525b;">{{ detail }}</span></div></sc-if><sc-if value="{{ empty }}"><span style="font-size:14px;color:#52525b;">Sem tarefas</span></sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:320,&quot;height&quot;:60},&quot;completed&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:6,&quot;tsType&quot;:&quot;number&quot;},&quot;total&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:10,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const c = this.props.completed ?? 6, t = this.props.total ?? 10, has = t > 0;
+    const pct = has ? Math.floor((c / t) * 100) : 0;
+    return { has, empty: !has, pct, pctCss: pct + '%', pctText: pct + '%', detail: `${c} de ${t} concluídas`, text: `${pct}% (${c} de ${t} concluídas)` };
+  }
+}
+</script>
+</body>
+</html>

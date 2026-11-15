@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ show }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border:1px solid #f5a000;border-radius:4px;background:#fff6e5;color:#8a4a00;font-size:12.5px;font-weight:700;line-height:1;white-space:nowrap;"><span aria-hidden="true" style="width:6px;height:6px;background:#f5a000;flex:0 0 auto;"></span>{{ text }}</span></sc-if><sc-if value="{{ none }}"><span style="color:#52525b;white-space:nowrap;">Sem atrasos</span></sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:200,&quot;height&quot;:40},&quot;count&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;tsType&quot;:&quot;number&quot;},&quot;task&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;overdue&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const n = this.props.count ?? 2;
+    if (this.props.task) return { show: !!(this.props.overdue ?? true), none: false, text: 'Atrasada' };
+    return { show: n > 0, none: n === 0, text: n === 1 ? '1 tarefa atrasada' : `${n} tarefas atrasadas` };
+  }
+}
+</script>
+</body>
+</html>

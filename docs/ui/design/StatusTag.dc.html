@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:12px;background:{{ bg }};color:{{ fg }};font-size:12.5px;font-weight:600;line-height:1;white-space:nowrap;"><span aria-hidden="true" style="width:6px;height:6px;border-radius:50%;background:{{ fg }};flex:0 0 auto;"></span>{{ label }}</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:120,&quot;height&quot;:40},&quot;status&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ACTIVE&quot;,&quot;COMPLETED&quot;,&quot;ARCHIVED&quot;,&quot;TODO&quot;,&quot;IN_PROGRESS&quot;,&quot;DONE&quot;],&quot;default&quot;:&quot;ACTIVE&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.status ?? 'ACTIVE';
+    const L = { ACTIVE: 'Ativo', COMPLETED: 'Concluído', ARCHIVED: 'Arquivado', TODO: 'Por fazer', IN_PROGRESS: 'Em curso', DONE: 'Concluída' };
+    const C = { b: ['#e7eefa', '#1d4a8a'], g: ['#e6f3ea', '#1d5e33'], x: ['#efeff1', '#3f3f46'] };
+    const k = { ACTIVE: 'b', IN_PROGRESS: 'b', COMPLETED: 'g', DONE: 'g', ARCHIVED: 'x', TODO: 'x' }[s];
+    return { label: L[s], bg: C[k][0], fg: C[k][1] };
+  }
+}
+</script>
+</body>
+</html>

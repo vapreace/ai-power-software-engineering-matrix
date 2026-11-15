@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<span style="display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:4px;background:{{ bg }};color:{{ fg }};font-size:12.5px;font-weight:600;line-height:1;white-space:nowrap;">{{ label }}</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:100,&quot;height&quot;:40},&quot;priority&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;HIGH&quot;,&quot;MEDIUM&quot;,&quot;LOW&quot;],&quot;default&quot;:&quot;MEDIUM&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props.priority ?? 'MEDIUM';
+    const C = { HIGH: ['#fbeaea', '#9b1c1c'], MEDIUM: ['#fbf1dc', '#6e4400'], LOW: ['#efeff1', '#3f3f46'] }[p];
+    return { label: { HIGH: 'Alta', MEDIUM: 'Média', LOW: 'Baixa' }[p], bg: C[0], fg: C[1] };
+  }
+}
+</script>
+</body>
+</html>

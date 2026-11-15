@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;flex-direction:column;gap:7px;min-width:0;"><label for="{{ id }}" style="font-size:13px;font-weight:600;color:#1c1a17;">{{ label }}<sc-if value="{{ optional }}"><span style="font-weight:400;color:#6b655d;"> (opcional)</span></sc-if></label><sc-if value="{{ isInput }}" hint-placeholder-val="{{ true }}"><input id="{{ id }}" type="{{ type }}" defaultValue="{{ value }}" placeholder="{{ placeholder }}" aria-describedby="{{ describedBy }}" style="box-sizing:border-box;width:100%;min-height:44px;padding:8px 12px;border:1px solid #9a938a;border-radius:2px;background:#fff;color:#1c1a17;font:inherit;"></sc-if><sc-if value="{{ isInputErr }}"><input id="{{ id }}" type="{{ type }}" defaultValue="{{ value }}" aria-invalid="true" aria-describedby="{{ describedBy }}" style="box-sizing:border-box;width:100%;min-height:44px;padding:7px 11px;border:2px solid #b3261e;border-radius:2px;background:#fff;color:#1c1a17;font:inherit;"></sc-if><sc-if value="{{ isMono }}"><input id="{{ id }}" type="text" inputMode="numeric" defaultValue="{{ value }}" placeholder="{{ placeholder }}" aria-describedby="{{ describedBy }}" style="box-sizing:border-box;width:100%;min-height:44px;padding:8px 12px;border:1px solid #9a938a;border-radius:2px;background:#fff;color:#1c1a17;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px;"></sc-if><sc-if value="{{ isMonoErr }}"><input id="{{ id }}" type="text" inputMode="numeric" defaultValue="{{ value }}" aria-invalid="true" aria-describedby="{{ describedBy }}" style="box-sizing:border-box;width:100%;min-height:44px;padding:7px 11px;border:2px solid #b3261e;border-radius:2px;background:#fff;color:#1c1a17;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px;"></sc-if><sc-if value="{{ isArea }}"><textarea id="{{ id }}" defaultValue="{{ value }}" placeholder="{{ placeholder }}" aria-describedby="{{ describedBy }}" rows="{{ rows }}" style="box-sizing:border-box;width:100%;min-height:88px;padding:8px 12px;border:1px solid #9a938a;border-radius:2px;background:#fff;color:#1c1a17;font:inherit;line-height:1.5;resize:vertical;"></textarea></sc-if><sc-if value="{{ isAreaErr }}"><textarea id="{{ id }}" defaultValue="{{ value }}" aria-invalid="true" aria-describedby="{{ describedBy }}" rows="{{ rows }}" style="box-sizing:border-box;width:100%;min-height:88px;padding:7px 11px;border:2px solid #b3261e;border-radius:2px;background:#fff;color:#1c1a17;font:inherit;line-height:1.5;resize:vertical;"></textarea></sc-if><sc-if value="{{ isSelect }}"><select id="{{ id }}" defaultValue="{{ value }}" aria-describedby="{{ describedBy }}" style="box-sizing:border-box;width:100%;min-height:44px;padding:8px 10px;border:1px solid #9a938a;border-radius:2px;background:#fff;color:#1c1a17;font:inherit;"><sc-for list="{{ options }}" as="o" hint-placeholder-count="2"><option value="{{ o }}">{{ o }}</option></sc-for></select></sc-if><sc-if value="{{ isStatic }}"><p id="{{ id }}" style="margin:0;min-height:44px;box-sizing:border-box;display:flex;align-items:center;border-bottom:1px solid #e7e3dd;color:#3d3832;">{{ value }}</p></sc-if><sc-if value="{{ hasHint }}"><p id="{{ hintId }}" style="margin:0;font-size:13px;color:#6b655d;">{{ hint }}</p></sc-if><sc-if value="{{ hasError }}"><p id="{{ errId }}" role="alert" style="margin:0;font-size:13.5px;font-weight:600;color:#b3261e;">{{ error }}</p></sc-if></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:360,&quot;height&quot;:140},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;campo&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Nome&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;kind&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;input&quot;,&quot;date&quot;,&quot;textarea&quot;,&quot;select&quot;,&quot;static&quot;],&quot;default&quot;:&quot;input&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;error&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hint&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;optional&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;options&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string[]&quot;},&quot;placeholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;type&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;text&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;rows&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:4,&quot;tsType&quot;:&quot;number&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, id = p.id ?? 'campo', kind = p.kind ?? 'input', err = p.error;
+    const hintId = id + '-ajuda', errId = id + '-erro';
+    const describedBy = [p.hint ? hintId : null, err ? errId : null].filter(Boolean).join(' ') || undefined;
+    return {
+      id, label: p.label ?? 'Nome', value: p.value ?? '', placeholder: p.placeholder, type: p.type ?? 'text', rows: p.rows ?? 4,
+      options: p.options ?? ['Baixa', 'Média', 'Alta'], optional: !!p.optional,
+      isInput: kind === 'input' && !err, isInputErr: kind === 'input' && !!err,
+      isMono: kind === 'date' && !err, isMonoErr: kind === 'date' && !!err,
+      isArea: kind === 'textarea' && !err, isAreaErr: kind === 'textarea' && !!err,
+      isSelect: kind === 'select', isStatic: kind === 'static',
+      hasHint: !!p.hint, hint: p.hint, hasError: !!err, error: err, hintId, errId, describedBy
+    };
+  }
+}
+</script>
+</body>
+</html>
