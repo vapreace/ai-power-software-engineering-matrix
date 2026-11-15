@@ -3,31 +3,21 @@ package pt.matriz.tracking;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
+import pt.matriz.ApiTestSupport;
 import pt.matriz.FixedClockConfiguration;
 import pt.matriz.TestcontainersConfiguration;
 
@@ -39,40 +29,18 @@ import pt.matriz.TestcontainersConfiguration;
 @SpringBootTest
 @ActiveProfiles("test")
 @Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
-class DashboardApiTests {
+class DashboardApiTests extends ApiTestSupport {
 
-    private static final String PASSWORD = "palavra-passe-de-teste";
-    private static final String ADDRESS = "10.9.0.4";
-
-    @Autowired
-    private WebApplicationContext context;
-
-    @Autowired
-    private JdbcTemplate jdbc;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    private MockMvc mvc;
-    private final Map<String, Long> ids = new HashMap<>();
+    DashboardApiTests() {
+        super("10.9.0.4");
+    }
 
     @BeforeEach
     void setUp() {
-        mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
-
-        jdbc.update("DELETE FROM task_comments");
-        jdbc.update("DELETE FROM task_assignees");
-        jdbc.update("DELETE FROM tasks");
-        jdbc.update("DELETE FROM projects");
-        jdbc.update("DELETE FROM team_members");
-        jdbc.update("DELETE FROM teams");
-        jdbc.update("DELETE FROM users");
-
-        String hash = passwordEncoder.encode(PASSWORD);
-        user("rui", "Rui", "MANAGER", hash);
-        user("sofia", "Sofia", "MANAGER", hash);
-        user("tiago", "Tiago", "MANAGER", hash);
-        user("carlos", "Carlos", "OBSERVER", hash);
+        user("rui", "Rui", "MANAGER");
+        user("sofia", "Sofia", "MANAGER");
+        user("tiago", "Tiago", "MANAGER");
+        user("carlos", "Carlos", "OBSERVER");
 
         team("norte", "Logística Norte", "rui", "sofia");
         team("compras", "Compras", "tiago");
@@ -134,21 +102,6 @@ class DashboardApiTests {
                 .andExpect(jsonPath("$.totals.todo").value(0));
     }
 
-    private void user(String key, String name, String role, String hash) {
-        ids.put(key, jdbc.queryForObject("""
-                INSERT INTO users (name, email, password_hash, must_change_password, role, status)
-                VALUES (?, ?, ?, false, ?, 'ACTIVE') RETURNING id
-                """, Long.class, name, key + "@empresa.example", hash, role));
-    }
-
-    private void team(String key, String name, String... members) {
-        long team = jdbc.queryForObject("INSERT INTO teams (name) VALUES (?) RETURNING id", Long.class, name);
-        ids.put(key, team);
-        for (String member : members) {
-            jdbc.update("INSERT INTO team_members (team_id, user_id) VALUES (?, ?)", team, ids.get(member));
-        }
-    }
-
     private void project(String key, String name, String team, String manager, String status,
             int todo, int inProgress, int done) {
         long project = jdbc.queryForObject("""
@@ -166,19 +119,5 @@ class DashboardApiTests {
             jdbc.update("INSERT INTO tasks (project_id, title, status) VALUES (?, ?, ?)",
                     project, status + " " + i, status);
         }
-    }
-
-    private MockHttpSession login(String key) throws Exception {
-        MvcResult result = mvc.perform(post("/api/session")
-                        .with(csrf())
-                        .with(request -> {
-                            request.setRemoteAddr(ADDRESS);
-                            return request;
-                        })
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\": \"%s@empresa.example\", \"password\": \"%s\"}".formatted(key, PASSWORD)))
-                .andExpect(status().isOk())
-                .andReturn();
-        return (MockHttpSession) result.getRequest().getSession(false);
     }
 }

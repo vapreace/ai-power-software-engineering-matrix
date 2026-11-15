@@ -28,7 +28,7 @@ Documentos relacionados:
 
 | Comando | Onde | Resultado |
 |---------|------|-----------|
-| `./mvnw verify` | `backend/` | Verde em `0a6687f`: 63 testes, 0 falhas. Com as correções do I6: 69 testes, a confirmar no verify final. |
+| `./mvnw verify` | `backend/` | Verde em `0a6687f` (63 testes) e em `2b9bb8b`, com as correções do I6 (69 testes, 0 falhas). Depois da refatoração: os mesmos 69 testes, a confirmar. |
 | `npm run type-check` | `frontend/` | Sem erros. |
 | `npm run test:unit` | `frontend/` | 4 testes, 0 falhas. |
 | `npm run build` | `frontend/` | Build sem erros, para `backend/src/main/resources/static`. |
@@ -92,7 +92,7 @@ Feitas pela utilizadora, com o perfil `demo`, o backend real e `npm run dev`.
 | M2 | I2 | As seis verificações do I2: criar um projeto e vê-lo na lista, pesquisar, editar, eliminar com confirmação, papéis sem botões de gestão. Print do projeto criado. | Passa |
 | M3 | I3 | Criar uma tarefa e vê-la na lista sem recarregar, recarregar a página, dados inválidos no formulário, mudar o estado, editar, apagar. | Passa |
 | M4 | I4 | Associar dois responsáveis, tentar repetir, remover, comentar, filtrar por responsável; pedido direto à API com o identificador de uma tarefa de outra equipa. | Passa |
-| M5 | I5 | Painel do Rui e do Carlos; criar uma tarefa e ver "Por fazer" subir sem recarregar; sessão terminada com F5. | Por confirmar |
+| M5 | I5 | Painel do Rui e do Carlos; criar uma tarefa e ver "Por fazer" subir sem recarregar; sessão terminada com F5. | Passa |
 | M6 | I6 | Criar uma tarefa, parar e arrancar o backend, confirmar que a tarefa continua lá (caso 03). | Por fazer |
 | M7 | I6 | `git clone` para uma pasta nova e seguir só o README até entrar na aplicação. | Por fazer |
 
@@ -185,7 +185,13 @@ Revisão do diff desde o início da implementação (`bd2a9e0..0a6687f`, 140 fic
 
 ## 10. Refatoração
 
-A preencher no passo seguinte do I6.
+| Item | Registo |
+|------|---------|
+| Oportunidade | Os quatro testes de API (`ProjectApiTests`, `TaskApiTests`, `CollaborationApiTests`, `DashboardApiTests`) repetiam o mesmo código para preparar o MockMvc, limpar a base de dados, criar pessoas, equipas, projetos e tarefas, entrar e mudar o estado. Uma mudança no esquema ou na entrada obrigava a alterar quatro sítios. |
+| Decisão | Aplicar. Novo `ApiTestSupport` (classe base comum, em `backend/src/test/java/pt/matriz`). Cada classe fica só com os seus dados de partida, os seus testes e os pedidos que só ela usa. Cada uma continua a entrar com um endereço IP próprio, por causa do limite de tentativas (DA26). |
+| O que não mudou | Os testes, os dados de cada classe, as anotações do Spring (o mesmo contexto em cache) e o código da aplicação. `SessionApiTests` fica de fora: prepara as contas de outra forma, para testar a própria entrada. |
+| Resultado | 345 linhas removidas e 47 acrescentadas nas quatro classes, mais as 129 da classe base. |
+| Verificação | Passo separado, com commit próprio. O comportamento preserva-se se `./mvnw verify` continuar com os mesmos 69 testes e 0 falhas. |
 
 ---
 
