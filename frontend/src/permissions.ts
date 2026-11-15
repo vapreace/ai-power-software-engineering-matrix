@@ -31,3 +31,16 @@ export function canChangeTaskStatus(user: CurrentUser | null, project: Project, 
   }
   return canManageProject(user, project) || task.assignees.some((assignee) => assignee.id === user.id)
 }
+
+/** Comentar: o Administrador e as pessoas que pertencem à equipa do projeto (RN30). O Observador não comenta. */
+export function canComment(user: CurrentUser | null, project: Project): boolean {
+  if (!user) {
+    return false
+  }
+  if (user.role === 'ADMINISTRATOR') {
+    return true
+  }
+  return (
+    (user.role === 'MANAGER' || user.role === 'MEMBER') && user.teams.some((team) => team.id === project.team.id)
+  )
+}

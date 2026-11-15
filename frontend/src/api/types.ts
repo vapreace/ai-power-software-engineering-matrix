@@ -109,4 +109,14 @@ export interface TaskFilters {
   statuses: TaskStatus[]
   priorities: TaskPriority[]
   overdue: boolean
+  /** Identificador de um responsável, 'none' para "Sem responsável", ou null para todos. */
+  assignee: number | 'none' | null
+}
+
+/** O autor e a data e hora vêm sempre do backend (RN30, E43). */
+export interface Comment {
+  id: number
+  author: Reference
+  content: string
+  createdAt: string
 }

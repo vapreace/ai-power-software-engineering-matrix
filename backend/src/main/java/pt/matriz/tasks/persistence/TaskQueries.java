@@ -79,9 +79,11 @@ public class TaskQueries {
      * @param statuses estados a mostrar; vazio mostra todos
      * @param priorities prioridades a mostrar; vazio mostra todas
      * @param overdueOnly só as tarefas atrasadas em {@code today}
+     * @param assigneeId só as tarefas de que esta pessoa é um dos responsáveis, ou {@code null}
+     * @param unassigned só as tarefas "Sem responsável"
      */
     public List<TaskRow> list(long projectId, Set<TaskStatus> statuses, Set<TaskPriority> priorities,
-            boolean overdueOnly, LocalDate today) {
+            boolean overdueOnly, Long assigneeId, boolean unassigned, LocalDate today) {
         StringBuilder sql = new StringBuilder("""
                 SELECT id, project_id, title, description, due_date, priority, status, version
                 FROM tasks
@@ -100,6 +102,15 @@ public class TaskQueries {
         if (overdueOnly) {
             sql.append(" AND status IN ('TODO', 'IN_PROGRESS') AND due_date < :today");
             params.put("today", today);
+        }
+        if (assigneeId != null) {
+            sql.append(" AND EXISTS (SELECT 1 FROM task_assignees a WHERE a.task_id = tasks.id"
+                    + " AND a.user_id = :assigneeId AND a.removed_at IS NULL)");
+            params.put("assigneeId", assigneeId);
+        }
+        if (unassigned) {
+            sql.append(" AND NOT EXISTS (SELECT 1 FROM task_assignees a WHERE a.task_id = tasks.id"
+                    + " AND a.removed_at IS NULL)");
         }
         sql.append("""
                  ORDER BY due_date ASC NULLS LAST,
@@ -149,5 +160,51 @@ public class TaskQueries {
                 .query(Integer.class)
                 .single();
         return count != null && count > 0;
+    }
+
+    /** Associa um responsável. O índice único parcial impede a mesma pessoa duas vezes (RN14, E40). */
+    public void addAssignee(long taskId, long userId) {
+        jdbc.sql("INSERT INTO task_assignees (task_id, user_id) VALUES (:taskId, :userId)")
+                .param("taskId", taskId)
+                .param("userId", userId)
+                .update();
+    }
+
+    /** Marca a associação como removida, com a data e hora (RN32, DA29). Devolve as linhas alteradas. */
+    public int removeAssignee(long taskId, long userId, OffsetDateTime removedAt) {
+        return jdbc.sql("""
+                        UPDATE task_assignees SET removed_at = :removedAt
+                        WHERE task_id = :taskId AND user_id = :userId AND removed_at IS NULL
+                        """)
+                .param("removedAt", removedAt)
+                .param("taskId", taskId)
+                .param("userId", userId)
+                .update();
+    }
+
+    /** Associar e remover responsáveis aumentam a versão da tarefa (DA05, DA20). */
+    public void incrementVersion(long taskId) {
+        jdbc.sql("UPDATE tasks SET version = version + 1 WHERE id = :taskId")
+                .param("taskId", taskId)
+                .update();
+    }
+
+    /** Uma tarefa não eliminada, lida da base de dados (por exemplo, depois de mudar a versão). */
+    public TaskRow findRow(long taskId) {
+        return jdbc.sql("""
+                        SELECT id, project_id, title, description, due_date, priority, status, version
+                        FROM tasks WHERE id = :taskId AND deleted_at IS NULL
+                        """)
+                .param("taskId", taskId)
+                .query((rs, rowNum) -> new TaskRow(
+                        rs.getLong("id"),
+                        rs.getLong("project_id"),
+                        rs.getString("title"),
+                        rs.getString("description"),
+                        rs.getObject("due_date", LocalDate.class),
+                        TaskPriority.valueOf(rs.getString("priority")),
+                        TaskStatus.valueOf(rs.getString("status")),
+                        rs.getLong("version")))
+                .single();
     }
 }

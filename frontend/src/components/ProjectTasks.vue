@@ -2,10 +2,12 @@
 // Cartão Tarefas do detalhe do projeto (US05, US10, US11): "+ Nova tarefa" para quem gere um
 // projeto ativo (RN08, RN05), filtros por estado, prioridade e atraso, e a lista. Os vários
 // filtros aplicam-se ao mesmo tempo. Depois de criar, a lista e o Resumo são pedidos de novo,
-// sem recarregar a página (docs/ui/README.md, secção 10). O filtro por responsável chega no I4.
+// sem recarregar a página (docs/ui/README.md, secção 10). O filtro por responsável mostra as
+// tarefas em que essa pessoa é um dos responsáveis (US11).
 import { computed, ref, watch } from 'vue'
 import { listTasks } from '@/api/tasks'
-import type { Project, Task, TaskPriority, TaskStatus } from '@/api/types'
+import { listTeamMembers } from '@/api/teams'
+import type { Project, Task, TaskPriority, TaskStatus, TeamMember } from '@/api/types'
 import { priorityLabels, taskStatusLabels } from '@/labels'
 import { useNarrowScreen } from '@/composables/useNarrowScreen'
 import StatusFilter from './StatusFilter.vue'
@@ -30,13 +32,17 @@ const priorityOptions = (['LOW', 'MEDIUM', 'HIGH'] as TaskPriority[]).map((value
 const statuses = ref<TaskStatus[]>([])
 const priorities = ref<TaskPriority[]>([])
 const overdue = ref(false)
+const assignee = ref<number | 'none' | null>(null)
+const people = ref<TeamMember[]>([])
 const tasks = ref<Task[]>([])
 const state = ref<'loading' | 'ready' | 'error'>('loading')
 const creating = ref(false)
 const announcement = ref('')
 let requestId = 0
 
-const filtered = computed(() => statuses.value.length > 0 || priorities.value.length > 0 || overdue.value)
+const filtered = computed(
+  () => statuses.value.length > 0 || priorities.value.length > 0 || overdue.value || assignee.value !== null,
+)
 
 async function load() {
   const id = ++requestId
@@ -46,6 +52,7 @@ async function load() {
       statuses: statuses.value,
       priorities: priorities.value,
       overdue: overdue.value,
+      assignee: assignee.value,
     })
     if (id === requestId) {
       tasks.value = result.items
@@ -65,8 +72,26 @@ async function onCreated(task: Task) {
   emit('changed')
 }
 
-watch([statuses, priorities, overdue], load)
-watch(() => props.project.id, load)
+/** Pessoas da equipa que podem ser responsáveis (papel Gestor ou Membro, RN14), para o filtro. */
+async function loadPeople() {
+  try {
+    people.value = (await listTeamMembers(props.project.team.id)).items.filter(
+      (m) => m.role === 'MANAGER' || m.role === 'MEMBER',
+    )
+  } catch {
+    people.value = []
+  }
+}
+
+watch([statuses, priorities, overdue, assignee], load)
+watch(
+  () => props.project.id,
+  () => {
+    void loadPeople()
+    void load()
+  },
+)
+void loadPeople()
 void load()
 </script>
 
@@ -82,6 +107,14 @@ void load()
     <NewTaskForm v-if="creating" :project-id="project.id" @created="onCreated" @cancel="creating = false" />
 
     <div role="search" aria-label="Filtrar tarefas" class="filters" :class="{ narrow }">
+      <div class="assignee-filter">
+        <label for="filtro-responsavel" class="section-label">Responsável</label>
+        <select id="filtro-responsavel" v-model="assignee" class="control">
+          <option :value="null">Todos</option>
+          <option value="none">Sem responsável</option>
+          <option v-for="person in people" :key="person.id" :value="person.id">{{ person.name }}</option>
+        </select>
+      </div>
       <StatusFilter v-model="statuses" legend="Estado" :options="statusOptions" />
       <StatusFilter v-model="priorities" legend="Prioridade" :options="priorityOptions" />
       <fieldset class="overdue-filter">
@@ -126,6 +159,32 @@ void load()
   flex-direction: column;
   align-items: stretch;
   padding: 8px 16px;
+}
+
+.assignee-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.assignee-filter .control {
+  width: auto;
+  min-width: 140px;
+  min-height: 36px;
+  padding: 4px 8px;
+  font-size: 14px;
+}
+
+.filters.narrow .assignee-filter {
+  flex-direction: column;
+  align-items: stretch;
+  padding-top: 8px;
+}
+
+.filters.narrow .assignee-filter .control {
+  width: 100%;
+  min-height: 44px;
 }
 
 .overdue-filter {

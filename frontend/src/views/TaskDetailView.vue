@@ -2,16 +2,16 @@
 // Ecrã Detalhe da tarefa (docs/ui/README.md, secção 9): dados, estado, prioridade e prazo.
 // Mudar o estado: o Administrador, o gestor do projeto e os responsáveis (RN15, US07).
 // Editar e apagar (com confirmação): o Administrador e o gestor do projeto (US16, RN19).
-// Num projeto concluído ou arquivado nada se altera (RN09). Responsáveis só de leitura e
-// comentários chegam no I4.
+// Responsáveis: associar e remover (US06). Comentários: ler e escrever (US19, RN30).
+// Num projeto concluído ou arquivado nada se altera (RN09).
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ApiError } from '@/api/http'
 import { getProject } from '@/api/projects'
-import { changeTaskStatus, deleteTask, getTask } from '@/api/tasks'
-import type { Project, Task, TaskStatus } from '@/api/types'
+import { changeTaskStatus, deleteTask, getTask, listComments } from '@/api/tasks'
+import type { Comment, Project, Task, TaskStatus } from '@/api/types'
 import { currentUser } from '@/session'
-import { canChangeTaskStatus, canManageProject } from '@/permissions'
+import { canChangeTaskStatus, canComment, canManageProject } from '@/permissions'
 import { deleteTaskMessage, formatDate, taskStatusLabels } from '@/labels'
 import { useNarrowScreen } from '@/composables/useNarrowScreen'
 import StatusTag from '@/components/StatusTag.vue'
@@ -20,6 +20,9 @@ import OverdueBadge from '@/components/OverdueBadge.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
+import AssigneePicker from '@/components/AssigneePicker.vue'
+import CommentList from '@/components/CommentList.vue'
+import CommentForm from '@/components/CommentForm.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -37,6 +40,8 @@ const statusOk = ref(false)
 const confirming = ref(false)
 const deleting = ref(false)
 const actionError = ref<string | null>(null)
+const comments = ref<Comment[]>([])
+const commentsState = ref<'loading' | 'ready' | 'error'>('loading')
 
 const open = computed(() => project.value?.status === 'ACTIVE')
 const canManage = computed(() => project.value !== null && canManageProject(currentUser.value, project.value))
@@ -51,9 +56,30 @@ const canChangeStatus = computed(
 const statusOptions = computed(() =>
   (['TODO', 'IN_PROGRESS', 'DONE'] as TaskStatus[]).filter((status) => status !== task.value?.status),
 )
-const assigneesText = computed(() =>
-  task.value?.assignees.length ? task.value.assignees.map((a) => a.name).join(', ') : 'Sem responsável',
-)
+const mayComment = computed(() => open.value && project.value !== null && canComment(currentUser.value, project.value))
+
+async function loadComments() {
+  if (!task.value) {
+    return
+  }
+  commentsState.value = 'loading'
+  try {
+    comments.value = (await listComments(task.value.id)).items
+    commentsState.value = 'ready'
+  } catch {
+    commentsState.value = 'error'
+  }
+}
+
+function onCommentCreated(comment: Comment) {
+  // A resposta da API é o registo confirmado pelo backend (docs/ui/README.md, secção 10).
+  comments.value = [...comments.value, comment]
+}
+
+function onAssigneesUpdated(updated: Task) {
+  task.value = updated
+  newStatus.value = statusOptions.value[0] ?? null
+}
 
 async function load() {
   state.value = 'loading'
@@ -65,6 +91,7 @@ async function load() {
     project.value = await getProject(task.value.projectId)
     newStatus.value = statusOptions.value[0] ?? null
     state.value = 'ready'
+    void loadComments()
   } catch (error) {
     if (error instanceof ApiError && [403, 404].includes(error.problem.status)) {
       refusal.value = error.problem.detail
@@ -197,13 +224,12 @@ watch(() => route.params.id, load, { immediate: true })
             </dd>
           </dl>
 
-          <div class="assignees">
-            <span class="block-label">Responsáveis</span>
-            <ul v-if="task.assignees.length" class="assignee-list">
-              <li v-for="assignee in task.assignees" :key="assignee.id">{{ assignee.name }}</li>
-            </ul>
-            <p v-else class="muted">{{ assigneesText }}</p>
-          </div>
+          <AssigneePicker
+            :task="task"
+            :team-id="project.team.id"
+            :editable="canEdit"
+            @updated="onAssigneesUpdated"
+          />
         </aside>
 
         <div class="main-column">
@@ -214,7 +240,14 @@ watch(() => route.params.id, load, { immediate: true })
           </section>
           <section class="card card-body" aria-labelledby="comentarios-titulo">
             <h2 id="comentarios-titulo" class="section-label card-title">Comentários</h2>
-            <p class="muted description">Os comentários chegam no incremento I4.</p>
+            <LoadingState v-if="commentsState === 'loading'" text="A carregar comentários..." />
+            <ErrorState
+              v-else-if="commentsState === 'error'"
+              message="Não foi possível carregar os comentários."
+              @retry="loadComments"
+            />
+            <CommentList v-else :comments="comments" />
+            <CommentForm v-if="mayComment && commentsState === 'ready'" :task-id="task.id" @created="onCommentCreated" />
           </section>
         </div>
       </div>
@@ -324,30 +357,6 @@ watch(() => route.params.id, load, { immediate: true })
 .block-label {
   font-size: 13px;
   font-weight: 600;
-}
-
-.assignees {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
-
-.assignee-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-control);
-}
-
-.assignee-list li {
-  padding: 10px 12px;
-}
-
-.assignee-list li + li {
-  border-top: 1px solid var(--border);
 }
 
 .description {

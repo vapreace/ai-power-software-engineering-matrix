@@ -9,11 +9,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import pt.matriz.accounts.AccountStatus;
 import pt.matriz.accounts.AccountView;
 import pt.matriz.accounts.Accounts;
 import pt.matriz.common.ApiException;
@@ -21,10 +23,12 @@ import pt.matriz.common.CurrentUser;
 import pt.matriz.common.OrganizationClock;
 import pt.matriz.common.ProblemCode;
 import pt.matriz.common.Reference;
+import pt.matriz.common.Role;
 import pt.matriz.common.Texts;
 import pt.matriz.common.ValidationErrors;
 import pt.matriz.projects.ProjectAccess;
 import pt.matriz.projects.Projects;
+import pt.matriz.teams.Teams;
 import pt.matriz.tasks.TaskPriority;
 import pt.matriz.tasks.TaskStatus;
 import pt.matriz.tasks.TaskView;
@@ -37,9 +41,9 @@ import pt.matriz.tasks.persistence.TaskRow;
  * Casos de uso das tarefas (US05, US07, US10, US11, US16), com as permissões de
  * requirements.md, secção 3.1. As verificações seguem a ordem de DA17: 404, 403, 400, 409.
  * <p>
- * Editar, criar e apagar: o Administrador e o gestor do projeto; num projeto "Sem gestor",
- * só o Administrador (RN22). Mudar o estado: também qualquer responsável da tarefa (RN15).
- * Associar responsáveis e comentar chegam no I4.
+ * Editar, criar, apagar e gerir os responsáveis: o Administrador e o gestor do projeto; num
+ * projeto "Sem gestor", só o Administrador (RN22). Mudar o estado: também qualquer responsável
+ * da tarefa (RN15). Os comentários estão em {@link CommentService}.
  */
 @Service
 public class TaskService {
@@ -59,6 +63,11 @@ public class TaskService {
     static final String PROJECT_NOT_ACTIVE = "Só projetos ativos aceitam novas tarefas.";
     static final String PROJECT_CLOSED = "O projeto está concluído ou arquivado e não pode ser alterado.";
     static final String VERSION_CONFLICT = "Esta tarefa foi alterada por outra pessoa. Abra-a de novo e repita a alteração.";
+    static final String ACCOUNT_NOT_FOUND = "A conta não existe.";
+    static final String NOT_AN_ASSIGNEE = "Esta pessoa não é responsável pela tarefa.";
+    static final String INVALID_ASSIGNEE = "O responsável tem de ter conta ativa, pertencer à equipa do projeto e ter papel Gestor ou Membro.";
+    static final String DUPLICATE_ASSIGNEE = "Esta pessoa já é responsável pela tarefa.";
+    static final String ASSIGNEE_FILTERS = "Escolha um responsável ou \"Sem responsável\", não os dois.";
 
     static final int TITLE_MAX = 200;
     static final int DESCRIPTION_MAX = 2000;
@@ -67,28 +76,37 @@ public class TaskService {
     private final TaskQueries queries;
     private final Projects projects;
     private final Accounts accounts;
+    private final Teams teams;
     private final OrganizationClock clock;
 
-    TaskService(TaskRepository repository, TaskQueries queries, Projects projects, Accounts accounts,
+    TaskService(TaskRepository repository, TaskQueries queries, Projects projects, Accounts accounts, Teams teams,
             OrganizationClock clock) {
         this.repository = repository;
         this.queries = queries;
         this.projects = projects;
         this.accounts = accounts;
+        this.teams = teams;
         this.clock = clock;
     }
 
-    /** Tarefas do projeto com os filtros de US11 e a ordem de DA33. Só para quem vê o projeto. */
+    /**
+     * Tarefas do projeto com os filtros de US11 e a ordem de DA33. Só para quem vê o projeto.
+     * O filtro por responsável mostra as tarefas em que essa pessoa é um dos responsáveis;
+     * não se combina com "Sem responsável".
+     */
     @Transactional(readOnly = true)
     public List<TaskView> list(CurrentUser user, long projectId, Set<TaskStatus> statuses,
-            Set<TaskPriority> priorities, boolean overdueOnly) {
+            Set<TaskPriority> priorities, boolean overdueOnly, Long assigneeId, boolean unassigned) {
         ProjectAccess access = projectAccess(user, projectId);
         if (!access.visible()) {
             throw forbidden(NO_ACCESS);
         }
+        if (assigneeId != null && unassigned) {
+            throw ApiException.invalidField("unassigned", ASSIGNEE_FILTERS);
+        }
         LocalDate today = clock.today();
         return toViews(queries.list(projectId, statuses == null ? Set.of() : statuses,
-                priorities == null ? Set.of() : priorities, overdueOnly, today), today);
+                priorities == null ? Set.of() : priorities, overdueOnly, assigneeId, unassigned, today), today);
     }
 
     /**
@@ -212,6 +230,58 @@ public class TaskService {
         requireOpenProject(access);
         task.markDeleted(clock.now());
         repository.saveAndFlush(task);
+    }
+
+    /**
+     * Associa um responsável (US06). Tem conta ativa, pertence à equipa do projeto e tem papel
+     * Gestor ou Membro (RN14). A mesma pessoa não fica duas vezes (E40). A versão aumenta (DA20).
+     */
+    @Transactional
+    public TaskView addAssignee(CurrentUser user, long taskId, long accountId) {
+        Task task = findTask(taskId);
+        AccountView account = accounts.findById(accountId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, ProblemCode.NOT_FOUND, ACCOUNT_NOT_FOUND));
+        ProjectAccess access = taskProjectAccess(user, task);
+        if (!access.manageable()) {
+            throw forbidden(FORBIDDEN);
+        }
+        requireOpenProject(access);
+        boolean eligible = account.status() == AccountStatus.ACTIVE
+                && (account.role() == Role.MANAGER || account.role() == Role.MEMBER)
+                && teams.belongsTo(access.teamId(), account.id());
+        if (!eligible) {
+            throw conflict(ProblemCode.INVALID_ASSIGNEE, INVALID_ASSIGNEE);
+        }
+        if (queries.isAssignee(task.getId(), account.id())) {
+            throw conflict(ProblemCode.DUPLICATE_ASSIGNEE, DUPLICATE_ASSIGNEE);
+        }
+        try {
+            queries.addAssignee(task.getId(), account.id());
+        } catch (DataIntegrityViolationException e) {
+            throw conflict(ProblemCode.DUPLICATE_ASSIGNEE, DUPLICATE_ASSIGNEE);
+        }
+        queries.incrementVersion(task.getId());
+        return toView(queries.findRow(task.getId()), clock.today());
+    }
+
+    /**
+     * Remove um responsável (US06): a associação fica marcada como removida (RN32). Os outros
+     * responsáveis mantêm-se; sem nenhum, a tarefa fica "Sem responsável" (E41). A versão aumenta (DA20).
+     */
+    @Transactional
+    public TaskView removeAssignee(CurrentUser user, long taskId, long accountId) {
+        Task task = findTask(taskId);
+        if (!queries.isAssignee(task.getId(), accountId)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, ProblemCode.NOT_FOUND, NOT_AN_ASSIGNEE);
+        }
+        ProjectAccess access = taskProjectAccess(user, task);
+        if (!access.manageable()) {
+            throw forbidden(FORBIDDEN);
+        }
+        requireOpenProject(access);
+        queries.removeAssignee(task.getId(), accountId, clock.now());
+        queries.incrementVersion(task.getId());
+        return toView(queries.findRow(task.getId()), clock.today());
     }
 
     private ProjectAccess projectAccess(CurrentUser user, long projectId) {

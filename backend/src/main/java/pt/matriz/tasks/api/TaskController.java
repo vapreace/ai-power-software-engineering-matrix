@@ -1,6 +1,7 @@
 package pt.matriz.tasks.api;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.http.HttpStatus;
@@ -18,24 +19,29 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pt.matriz.common.CurrentUserProvider;
 import pt.matriz.common.Items;
+import pt.matriz.tasks.CommentView;
 import pt.matriz.tasks.TaskPriority;
 import pt.matriz.tasks.TaskStatus;
 import pt.matriz.tasks.TaskView;
+import pt.matriz.tasks.application.CommentService;
 import pt.matriz.tasks.application.TaskService;
 
 /**
- * Operações de tarefas do I3 em openapi.yaml (tag Tarefas): listar e filtrar, criar, consultar,
- * editar, mudar o estado e apagar (US05, US07, US10, US11, US16). O filtro por responsável
- * ({@code assigneeId}, {@code unassigned}), os responsáveis e os comentários chegam no I4.
+ * Operações de tarefas de openapi.yaml (tags Tarefas, Responsáveis e Comentários): listar e
+ * filtrar, criar, consultar, editar, mudar o estado e apagar (I3: US05, US07, US10, US11, US16);
+ * responsáveis, filtro por responsável e comentários (I4: US06, US11, US19).
+ * "As minhas tarefas" ({@code GET /me/tasks}) fica para o I7.
  */
 @RestController
 class TaskController {
 
     private final TaskService tasks;
+    private final CommentService comments;
     private final CurrentUserProvider currentUser;
 
-    TaskController(TaskService tasks, CurrentUserProvider currentUser) {
+    TaskController(TaskService tasks, CommentService comments, CurrentUserProvider currentUser) {
         this.tasks = tasks;
+        this.comments = comments;
         this.currentUser = currentUser;
     }
 
@@ -43,8 +49,10 @@ class TaskController {
     Items<TaskView> list(@PathVariable("projectId") long projectId,
             @RequestParam(name = "status", required = false) Set<TaskStatus> status,
             @RequestParam(name = "priority", required = false) Set<TaskPriority> priority,
-            @RequestParam(name = "overdue", required = false, defaultValue = "false") boolean overdue) {
-        return new Items<>(tasks.list(currentUser.get(), projectId, status, priority, overdue));
+            @RequestParam(name = "overdue", required = false, defaultValue = "false") boolean overdue,
+            @RequestParam(name = "assigneeId", required = false) Long assigneeId,
+            @RequestParam(name = "unassigned", required = false, defaultValue = "false") boolean unassigned) {
+        return new Items<>(tasks.list(currentUser.get(), projectId, status, priority, overdue, assigneeId, unassigned));
     }
 
     @PostMapping("/api/projects/{projectId}/tasks")
@@ -72,5 +80,28 @@ class TaskController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(@PathVariable("taskId") long taskId) {
         tasks.delete(currentUser.get(), taskId);
+    }
+
+    @PutMapping("/api/tasks/{taskId}/assignees/{userId}")
+    TaskView addAssignee(@PathVariable("taskId") long taskId, @PathVariable("userId") long userId) {
+        return tasks.addAssignee(currentUser.get(), taskId, userId);
+    }
+
+    @DeleteMapping("/api/tasks/{taskId}/assignees/{userId}")
+    TaskView removeAssignee(@PathVariable("taskId") long taskId, @PathVariable("userId") long userId) {
+        return tasks.removeAssignee(currentUser.get(), taskId, userId);
+    }
+
+    @GetMapping("/api/tasks/{taskId}/comments")
+    Items<CommentView> comments(@PathVariable("taskId") long taskId) {
+        List<CommentView> found = comments.list(currentUser.get(), taskId);
+        return new Items<>(found);
+    }
+
+    /** O autor e a data e hora vêm do backend: outros campos do pedido são ignorados (E43). */
+    @PostMapping("/api/tasks/{taskId}/comments")
+    ResponseEntity<CommentView> comment(@PathVariable("taskId") long taskId, @RequestBody CreateCommentRequest body) {
+        CommentView created = comments.create(currentUser.get(), taskId, body.content());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 }

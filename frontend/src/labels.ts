@@ -91,3 +91,21 @@ export function textLength(text: string): number {
 export function deleteTaskMessage(title: string): string {
   return `Apagar a tarefa «${title}»? Esta ação não pode ser desfeita.`
 }
+
+// Fuso horário da organização (DA24). É fixo no MVP, por isso fica aqui como constante.
+const ORGANIZATION_TIME_ZONE = 'Europe/Lisbon'
+const dateTimeFormat = new Intl.DateTimeFormat('pt-PT', {
+  timeZone: ORGANIZATION_TIME_ZONE,
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
+
+/** Data e hora no formato dd/mm/aaaa hh:mm, no fuso da organização (DA23, DA24). */
+export function formatDateTime(iso: string): string {
+  const parts = Object.fromEntries(dateTimeFormat.formatToParts(new Date(iso)).map((p) => [p.type, p.value]))
+  return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`
+}
