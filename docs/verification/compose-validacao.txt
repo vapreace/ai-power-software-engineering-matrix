@@ -1,0 +1,137 @@
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+{"status":"UP"}
+== docker compose ps
+NAME                IMAGE          COMMAND                  SERVICE    CREATED          STATUS                             PORTS
+matriz-app-1        matriz:local   "java -jar /app/matr…"   app        18 seconds ago   Up 12 seconds (health: starting)   127.0.0.1:8080->8080/tcp
+matriz-postgres-1   postgres:18    "docker-entrypoint.s…"   postgres   18 seconds ago   Up 18 seconds (healthy)            127.0.0.1:5432->5432/tcp
+== Rede data
+matriz-postgres-1 matriz-app-1 
+== A aplicação encontra o serviço postgres
+Server:		127.0.0.11
+Address:	127.0.0.11:53
+
+Non-authoritative answer:
+
+Non-authoritative answer:
+Name:	postgres
+Address: 172.20.0.2
+
+== Utilizador e sistema de ficheiros só de leitura
+uid=10001(matriz) gid=10001(matriz) groups=10001(matriz)
+touch: cannot touch '/app/teste': Read-only file system
+== Portas publicadas
+127.0.0.1:8080
+127.0.0.1:5432
+== Pedidos
+HTTP/1.1 200 
+/api/projects sem sessão: 401
+== Memória
+CONTAINER ID   NAME                CPU %     MEM USAGE / LIMIT   MEM %     NET I/O           BLOCK I/O        PIDS
+8f6785903c40   matriz-app-1        0.39%     304.9MiB / 512MiB   59.54%    66kB / 78.3kB     2.64MB / 0B      32
+4f0e58efe3d7   matriz-postgres-1   0.04%     56.5MiB / 6.69GiB   0.82%     74.2kB / 50.9kB   4.1kB / 54.2MB   19
+== Erros e avisos nos logs da app
+ERROR: 0  WARN: 0
+[Nota da revisão: contagem errada. O padrão procurava "log.level", mas o formato ECS escreve "log":{"level":...}. Nas 50 linhas abaixo há 1 WARN da aplicação (palavra-passe gerada, F14) e nenhum ERROR. A contagem correta repete-se depois da correção de F14 (passo 4).]
+== Logs (últimas 50 linhas)
+app-1  | {"@timestamp":"2026-11-16T16:11:06.414185837Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"New row inserted into users","ecs":{"version":"8.11"}}
+app-1  | {"@timestamp":"2026-11-16T16:11:06.415559528Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"New row inserted into users","ecs":{"version":"8.11"}}
+app-1  | {"@timestamp":"2026-11-16T16:11:06.417361882Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"New row inserted into users","ecs":{"version":"8.11"}}
+postgres-1  | 
+app-1       | {"@timestamp":"2026-11-16T16:11:06.418982893Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"New row inserted into users","ecs":{"version":"8.11"}}
+postgres-1  | fixing permissions on existing directory /var/lib/postgresql/18/docker ... ok
+postgres-1  | creating subdirectories ... ok
+postgres-1  | selecting dynamic shared memory implementation ... posix
+postgres-1  | selecting default "max_connections" ... 100
+postgres-1  | selecting default "shared_buffers" ... 128MB
+postgres-1  | selecting default time zone ... Etc/UTC
+app-1       | {"@timestamp":"2026-11-16T16:11:06.420174569Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"New row inserted into users","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.421732067Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"ChangeSet db/changelog/demo/100-demo-data.xml::100-demo-users::matriz ran successfully in 16ms","ecs":{"version":"8.11"}}
+postgres-1  | creating configuration files ... ok
+postgres-1  | running bootstrap script ... ok
+postgres-1  | performing post-bootstrap initialization ... ok
+postgres-1  | syncing data to disk ... ok
+app-1       | {"@timestamp":"2026-11-16T16:11:06.426291502Z","log":{"level":"INFO","logger":"liquibase.ui"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Running Changeset: db/changelog/demo/100-demo-data.xml::100-demo-teams::matriz","ecs":{"version":"8.11"}}
+postgres-1  | 
+postgres-1  | 
+postgres-1  | Success. You can now start the database server using:
+app-1       | {"@timestamp":"2026-11-16T16:11:06.429380292Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"New row inserted into teams","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.430597502Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"New row inserted into teams","ecs":{"version":"8.11"}}
+postgres-1  | 
+app-1       | {"@timestamp":"2026-11-16T16:11:06.435542527Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Custom SQL executed","ecs":{"version":"8.11"}}
+postgres-1  |     pg_ctl -D /var/lib/postgresql/18/docker -l logfile start
+postgres-1  | 
+postgres-1  | initdb: warning: enabling "trust" authentication for local connections
+postgres-1  | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+app-1       | {"@timestamp":"2026-11-16T16:11:06.437247073Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"ChangeSet db/changelog/demo/100-demo-data.xml::100-demo-teams::matriz ran successfully in 11ms","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.441230897Z","log":{"level":"INFO","logger":"liquibase.ui"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Running Changeset: db/changelog/demo/100-demo-data.xml::100-demo-projects::matriz","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.447225939Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Custom SQL executed","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.449052486Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"ChangeSet db/changelog/demo/100-demo-data.xml::100-demo-projects::matriz ran successfully in 7ms","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.452711930Z","log":{"level":"INFO","logger":"liquibase.ui"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Running Changeset: db/changelog/demo/100-demo-data.xml::100-demo-tasks::matriz","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.460337949Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Custom SQL executed","ecs":{"version":"8.11"}}
+postgres-1  | waiting for server to start....2026-11-16 16:10:55.443 UTC [53] LOG:  starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+postgres-1  | 2026-11-16 16:10:55.445 UTC [53] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+postgres-1  | 2026-11-16 16:10:55.454 UTC [59] LOG:  database system was shut down at 2026-11-16 16:10:55 UTC
+postgres-1  | 2026-11-16 16:10:55.460 UTC [53] LOG:  database system is ready to accept connections
+app-1       | {"@timestamp":"2026-11-16T16:11:06.462054093Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"ChangeSet db/changelog/demo/100-demo-data.xml::100-demo-tasks::matriz ran successfully in 9ms","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.465333400Z","log":{"level":"INFO","logger":"liquibase.ui"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Running Changeset: db/changelog/demo/100-demo-data.xml::100-demo-task-assignees::matriz","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.471842574Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Custom SQL executed","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.473408038Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"ChangeSet db/changelog/demo/100-demo-data.xml::100-demo-task-assignees::matriz ran successfully in 8ms","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.476981399Z","log":{"level":"INFO","logger":"liquibase.ui"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Running Changeset: db/changelog/demo/100-demo-data.xml::100-demo-task-comments::matriz","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.481497364Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Custom SQL executed","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.483152899Z","log":{"level":"INFO","logger":"liquibase.changelog"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"ChangeSet db/changelog/demo/100-demo-data.xml::100-demo-task-comments::matriz ran successfully in 5ms","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.493639653Z","log":{"level":"INFO","logger":"liquibase.util"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"UPDATE SUMMARY","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.493921836Z","log":{"level":"INFO","logger":"liquibase.util"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Run:                         15","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.494014490Z","log":{"level":"INFO","logger":"liquibase.util"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Previously run:               0","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.494123569Z","log":{"level":"INFO","logger":"liquibase.util"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Filtered out:                 0","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.494282504Z","log":{"level":"INFO","logger":"liquibase.util"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"-------------------------------","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.494459883Z","log":{"level":"INFO","logger":"liquibase.util"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Total change sets:           15","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.495376305Z","log":{"level":"INFO","logger":"liquibase.util"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Update summary generated","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.499403149Z","log":{"level":"INFO","logger":"liquibase.command"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Update command completed successfully.","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.499747878Z","log":{"level":"INFO","logger":"liquibase.ui"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Liquibase: Update has been successful. Rows affected: 54","ecs":{"version":"8.11"}}
+postgres-1  |  done
+app-1       | {"@timestamp":"2026-11-16T16:11:06.504433346Z","log":{"level":"INFO","logger":"liquibase.lockservice"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Successfully released change log lock","ecs":{"version":"8.11"}}
+postgres-1  | server started
+postgres-1  | CREATE DATABASE
+app-1       | {"@timestamp":"2026-11-16T16:11:06.506912995Z","log":{"level":"INFO","logger":"liquibase.command"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Command execution complete","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:06.630568951Z","log":{"level":"INFO","logger":"org.hibernate.orm.jpa"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"HHH008540: Processing PersistenceUnitInfo [name: default]","ecs":{"version":"8.11"}}
+postgres-1  | 
+postgres-1  | 
+app-1       | {"@timestamp":"2026-11-16T16:11:06.701074290Z","log":{"level":"INFO","logger":"org.hibernate.orm.core"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"HHH000001: Hibernate ORM core version 7.4.13.Final","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:07.200795219Z","log":{"level":"INFO","logger":"org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"No LoadTimeWeaver setup: ignoring JPA class transformer","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+postgres-1  | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+postgres-1  | 
+postgres-1  | waiting for server to shut down...2026-11-16 16:10:55.683 UTC [53] LOG:  received fast shutdown request
+postgres-1  | .2026-11-16 16:10:55.685 UTC [53] LOG:  aborting any active transactions
+app-1       | {"@timestamp":"2026-11-16T16:11:07.290013839Z","log":{"level":"INFO","logger":"org.hibernate.orm.connections.pooling"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"HHH10001005: Database info:\n\tDatabase JDBC URL [jdbc:postgresql://postgres:5432/matriz]\n\tDatabase driver: PostgreSQL JDBC Driver\n\tDatabase dialect: PostgreSQLDialect\n\tDatabase version: 18.6\n\tDefault catalog/schema: matriz/public\n\tAutocommit mode: undefined/unknown\n\tIsolation level: READ_COMMITTED [default READ_COMMITTED]\n\tJDBC fetch size: none\n\tPool: DataSourceConnectionProvider\n\tMinimum pool size: undefined/unknown\n\tMaximum pool size: undefined/unknown","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:08.243774041Z","log":{"level":"INFO","logger":"org.hibernate.orm.core"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)","ecs":{"version":"8.11"}}
+postgres-1  | 2026-11-16 16:10:55.688 UTC [53] LOG:  background worker "logical replication launcher" (PID 62) exited with exit code 1
+postgres-1  | 2026-11-16 16:10:55.688 UTC [57] LOG:  shutting down
+app-1       | {"@timestamp":"2026-11-16T16:11:08.290674965Z","log":{"level":"INFO","logger":"org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Initialized JPA EntityManagerFactory for persistence unit 'default'","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:08.380008134Z","log":{"level":"INFO","logger":"org.springframework.data.jpa.repository.query.QueryEnhancerFactories"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Hibernate is in classpath; If applicable, HQL parser will be used.","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:09.188462560Z","log":{"level":"WARN","logger":"org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"\n\nUsing generated security password: [omitida: gerada no arranque, ver F14]\n\nThis generated password is for development use only. Your security configuration must be updated before running your application in production.\n","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:09.199194445Z","log":{"level":"INFO","logger":"org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:09.492782982Z","log":{"level":"INFO","logger":"org.springframework.boot.webmvc.autoconfigure.WelcomePageHandlerMapping"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Adding welcome page: class path resource [static/index.html]","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+postgres-1  | 2026-11-16 16:10:55.691 UTC [57] LOG:  checkpoint starting: shutdown immediate
+app-1       | {"@timestamp":"2026-11-16T16:11:09.986801537Z","log":{"level":"INFO","logger":"org.springframework.boot.actuate.endpoint.web.EndpointLinksResolver"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Exposing 1 endpoint beneath base path '/actuator'","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:10.156923155Z","log":{"level":"INFO","logger":"org.springframework.boot.tomcat.TomcatWebServer"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Tomcat started on port 8080 (http) with context path '/'","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+postgres-1  | 2026-11-16 16:10:55.795 UTC [57] LOG:  checkpoint complete: wrote 943 buffers (5.8%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.032 s, sync=0.068 s, total=0.108 s; sync files=303, longest=0.003 s, average=0.001 s; distance=4352 kB, estimate=4352 kB; lsn=0/1BA1BD8, redo lsn=0/1BA1BD8
+postgres-1  | 2026-11-16 16:10:55.823 UTC [53] LOG:  database system is shut down
+app-1       | {"@timestamp":"2026-11-16T16:11:10.176051397Z","log":{"level":"INFO","logger":"pt.matriz.MatrizApplication"},"process":{"pid":1,"thread":{"name":"main"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Started MatrizApplication in 9.478 seconds (process running for 10.396)","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+postgres-1  |  done
+postgres-1  | server stopped
+app-1       | {"@timestamp":"2026-11-16T16:11:11.506911647Z","log":{"level":"INFO","logger":"org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/]"},"process":{"pid":1,"thread":{"name":"http-nio-8080-exec-1"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Initializing Spring DispatcherServlet 'dispatcherServlet'","ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:11.507202968Z","log":{"level":"INFO","logger":"org.springframework.web.servlet.DispatcherServlet"},"process":{"pid":1,"thread":{"name":"http-nio-8080-exec-1"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Initializing Servlet 'dispatcherServlet'","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+app-1       | {"@timestamp":"2026-11-16T16:11:11.508431720Z","log":{"level":"INFO","logger":"org.springframework.web.servlet.DispatcherServlet"},"process":{"pid":1,"thread":{"name":"http-nio-8080-exec-1"}},"service":{"name":"matriz","version":"0.0.1-SNAPSHOT","node":{}},"message":"Completed initialization in 1 ms","tags":["COMMONS-LOGGING"],"ecs":{"version":"8.11"}}
+postgres-1  | 
+postgres-1  | PostgreSQL init process complete; ready for start up.
+postgres-1  | 
+postgres-1  | 2026-11-16 16:10:55.920 UTC [1] LOG:  starting PostgreSQL 18.6 (Debian 18.6-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+postgres-1  | 2026-11-16 16:10:55.921 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+postgres-1  | 2026-11-16 16:10:55.921 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+postgres-1  | 2026-11-16 16:10:55.924 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+postgres-1  | 2026-11-16 16:10:55.933 UTC [75] LOG:  database system was shut down at 2026-11-16 16:10:55 UTC
+postgres-1  | 2026-11-16 16:10:55.938 UTC [1] LOG:  database system is ready to accept connections
+postgres-1  | 2026-11-16 16:11:05.994 UTC [87] ERROR:  relation "public.databasechangeloglock" does not exist at character 22
+postgres-1  | 2026-11-16 16:11:05.994 UTC [87] STATEMENT:  SELECT COUNT(*) FROM public.databasechangeloglock

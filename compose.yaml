@@ -1,5 +1,18 @@
-# PostgreSQL local para desenvolvimento (DA03, DA30).
-# Os valores vêm do ficheiro .env (copiar de .env.example).
+# Matriz com Docker Compose (DA38): a aplicação e o PostgreSQL 18.
+# Os valores vêm do ficheiro .env (copiar de .env.example). Nenhuma credencial neste ficheiro.
+#   docker compose up -d --build     aplicação completa em http://localhost:8080
+#   docker compose up -d postgres    só a base de dados, para desenvolver com o mvnw e o Vite
+#   docker compose down              para e remove os containers; os dados ficam no volume
+#   docker compose down -v           remove também o volume (base de dados apagada)
+name: matriz
+
+# Rotação dos logs de cada container: até 3 ficheiros de 10 MB.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:18
@@ -8,15 +21,73 @@ services:
       POSTGRES_USER: ${MATRIZ_DB_USER:-matriz}
       POSTGRES_PASSWORD: ${MATRIZ_DB_PASSWORD:?Defina MATRIZ_DB_PASSWORD no ficheiro .env}
     ports:
-      - "${MATRIZ_DB_PORT:-5432}:5432"
+      # Só nesta máquina, para o backend em desenvolvimento (mvnw). A aplicação usa a rede data.
+      - "127.0.0.1:${MATRIZ_DB_PORT:-5432}:5432"
     volumes:
       # A partir do PostgreSQL 18, a imagem guarda os dados em /var/lib/postgresql/18/docker.
       - matriz-data:/var/lib/postgresql
+    networks:
+      - data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 3s
       retries: 10
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging: *logging
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: matriz:local
+    depends_on:
+      # Só arranca com a base de dados pronta: o Liquibase cria o esquema no arranque (DA30).
+      postgres:
+        condition: service_healthy
+    environment:
+      MATRIZ_DB_HOST: postgres
+      MATRIZ_DB_PORT: "5432"
+      MATRIZ_DB_NAME: ${MATRIZ_DB_NAME:-matriz}
+      MATRIZ_DB_USER: ${MATRIZ_DB_USER:-matriz}
+      MATRIZ_DB_PASSWORD: ${MATRIZ_DB_PASSWORD:?Defina MATRIZ_DB_PASSWORD no ficheiro .env}
+      MATRIZ_ADMIN_NAME: ${MATRIZ_ADMIN_NAME:-Administrador}
+      MATRIZ_ADMIN_EMAIL: ${MATRIZ_ADMIN_EMAIL:-}
+      MATRIZ_ADMIN_PASSWORD: ${MATRIZ_ADMIN_PASSWORD:-}
+      # demo carrega as contas e os projetos de demonstração (DA30); vazio, a base de dados fica vazia.
+      SPRING_PROFILES_ACTIVE: ${MATRIZ_PROFILES-demo}
+      # Logs em JSON, no formato ECS do Spring Boot (DA38).
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    ports:
+      - "127.0.0.1:${MATRIZ_APP_PORT:-8080}:8080"
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/actuator/health/readiness || exit 1"]
+      interval: 10s
+      timeout: 3s
+      start_period: 120s
+      retries: 5
+    # Restrições de execução: sem privilégios novos, sem capacidades Linux, sistema de ficheiros
+    # só de leitura (o Tomcat escreve só em /tmp, em memória), limite de processos.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    pids_limit: 200
+    # A mesma memória do ambiente publicado (512 MB, DA40), para detetar problemas cá.
+    mem_limit: 512m
+    restart: unless-stopped
+    logging: *logging
+
+networks:
+  # A aplicação chega à base de dados pelo nome do serviço (postgres:5432).
+  data:
 
 volumes:
   matriz-data:

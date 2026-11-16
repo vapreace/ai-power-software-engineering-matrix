@@ -1,0 +1,38 @@
+== Persistência com o Docker Compose (16/11/2026 16:11)
+Readiness: {"status":"UP"}
+Entrar como rui@empresa.example: 200
+Criar o projeto "Persistencia 20261116-161132": 201 (id 7)
+
+== Recriar os containers (docker compose down, sem -v)
+ Container matriz-app-1 Stopping 
+ Container matriz-app-1 Stopped 
+ Container matriz-app-1 Removing 
+ Container matriz-app-1 Removed 
+ Container matriz-postgres-1 Stopping 
+ Container matriz-postgres-1 Stopped 
+ Container matriz-postgres-1 Removing 
+ Container matriz-postgres-1 Removed 
+ Network matriz_data Removing 
+ Network matriz_data Removed 
+Containers depois do down: 0
+Volume: matriz_matriz-data
+ Network matriz_data Creating 
+ Network matriz_data Created 
+ Container matriz-postgres-1 Creating 
+ Container matriz-postgres-1 Created 
+ Container matriz-app-1 Creating 
+ Container matriz-app-1 Created 
+ Container matriz-postgres-1 Starting 
+ Container matriz-postgres-1 Started 
+ Container matriz-postgres-1 Waiting 
+ Container matriz-postgres-1 Healthy 
+ Container matriz-app-1 Starting 
+ Container matriz-app-1 Started 
+Readiness: {"status":"UP"}
+
+== Consultar o projeto depois de recriar (sessão nova: a anterior terminou com o container, DA26)
+Entrar como rui@empresa.example: 200
+GET /projects/7: 200, nome: Persistencia 20261116-161132
+
+== Limpeza: eliminar o projeto de teste
+DELETE /projects/7: 204

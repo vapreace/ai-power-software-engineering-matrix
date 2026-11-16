@@ -105,7 +105,8 @@ Stack e versões em `docs/architecture.md` (DA28, DA30, DA31). Os comandos são 
 
 | Para quê | Comando | Onde |
 |----------|---------|------|
-| Arrancar a base de dados | `docker compose up -d` | raiz |
+| Arrancar só a base de dados (desenvolvimento) | `docker compose up -d postgres` | raiz |
+| Arrancar a aplicação completa com Docker Compose (DA38) | `docker compose up -d --build` | raiz |
 | Testes do backend, incluindo o de arquitetura (precisam do Docker) | `./mvnw verify` | `backend/` |
 | Só os testes unitários (sem Docker) | `./mvnw test -Dtest='*RulesTests'` | `backend/` |
 | Cobertura só dos testes unitários (JaCoCo; o total sai no fim de `./mvnw verify`) | `./mvnw clean test -Dtest='*RulesTests' jacoco:report` | `backend/` |

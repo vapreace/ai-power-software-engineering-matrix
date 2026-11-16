@@ -74,8 +74,8 @@ Requisitos: Java 21, Docker e Node 22.22.2 ou mais recente na versão 22, ou 24.
 # 1. Configuração local (só da primeira vez). Mudar MATRIZ_DB_PASSWORD no .env.
 cp .env.example .env
 
-# 2. Base de dados (PostgreSQL 18)
-docker compose up -d
+# 2. Só a base de dados (PostgreSQL 18), para desenvolver com o mvnw e o Vite
+docker compose up -d postgres
 
 # 3. Backend com os dados de demonstração, em http://localhost:8080
 cd backend
@@ -87,6 +87,8 @@ npm install
 npm run dev
 ```
 
+A aplicação completa também corre só com o Docker, sem Java nem Node: `docker compose up -d --build` (tabela abaixo). Desde a Ficha PL 05, o projeto do Compose chama-se `matriz`; uma base de dados criada antes fica num volume antigo, que se apaga com `docker compose -p ai-power-software-engineering-matrix down -v`.
+
 | Tarefa | Comando | Onde |
 |--------|---------|------|
 | Todos os testes do backend: unitários, integração e arquitetura (precisam do Docker) | `./mvnw verify` | `backend/` |
@@ -97,6 +99,7 @@ npm run dev
 | Testes E2E (com a aplicação a correr, ver abaixo) | `npm run test:e2e` | `frontend/` |
 | Análise estática do frontend (ESLint) | `npm run lint` | `frontend/` |
 | Build para entregar | `npm run build` e depois `./mvnw package` | `frontend/`, depois `backend/` |
+| Aplicação completa num container, com o PostgreSQL, em http://localhost:8080 (DA38) | `docker compose up -d --build` | raiz |
 | Apagar a base de dados local | `docker compose down -v` | raiz |
 
 ### Testes E2E e verificação de autorização
@@ -105,7 +108,7 @@ Os testes E2E (Playwright, DA37) correm contra a aplicação com os dados de dem
 
 ```bash
 # 1. Base de dados de demonstração acabada de criar e backend com o perfil demo (passos 2 e 3 acima)
-docker compose down -v && docker compose up -d
+docker compose down -v && docker compose up -d postgres
 cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 
 # 2. Noutro terminal (o servidor do Vite arranca sozinho se não estiver a correr)
@@ -168,7 +171,8 @@ Código:
 
 ```
 .
-├── compose.yaml           PostgreSQL local
+├── compose.yaml           Aplicação e PostgreSQL com Docker Compose (DA38)
+├── Dockerfile             Imagem da aplicação (DA38)
 ├── .env.example           Configuração com valores fictícios
 ├── backend/               Spring Boot 4 com Maven (DA28)
 └── frontend/              Vue 3 com Vite (DA28)
