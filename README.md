@@ -2,7 +2,7 @@
 
 Aplicação de gestão de projetos e tarefas para equipas, desenvolvida no curso **AI-Powered Software Engineering: From Mindset to Delivery**.
 
-> Fase atual: **Ficha PL 03** entregue (tag `ficha-pl03`) e MVP completo com o incremento I7, pronto para revisão. Verificação em [docs/verification.md](docs/verification.md).
+> Fase atual: **Ficha PL 04** entregue (tag `ficha-pl04`): testes unitários, de integração e E2E, Code Review e Security Review. MVP completo (I0 a I7); a entrega da Ficha PL 03 está na tag `ficha-pl03`. Verificação em [docs/verification.md](docs/verification.md).
 
 ---
 
@@ -89,11 +89,33 @@ npm run dev
 
 | Tarefa | Comando | Onde |
 |--------|---------|------|
-| Testes (precisam do Docker) | `./mvnw verify` | `backend/` |
+| Todos os testes do backend: unitários, integração e arquitetura (precisam do Docker) | `./mvnw verify` | `backend/` |
+| Só os testes unitários (não precisam do Docker) | `./mvnw test -Dtest=TaskTitleRulesTests` | `backend/` |
 | Verificar os tipos do frontend | `npm run type-check` | `frontend/` |
 | Testes de regressão do frontend | `npm run test:unit` | `frontend/` |
+| Testes E2E (com a aplicação a correr, ver abaixo) | `npm run test:e2e` | `frontend/` |
+| Análise estática do frontend (ESLint) | `npm run lint` | `frontend/` |
 | Build para entregar | `npm run build` e depois `./mvnw package` | `frontend/`, depois `backend/` |
 | Apagar a base de dados local | `docker compose down -v` | raiz |
+
+### Testes E2E e verificação de autorização
+
+Os testes E2E (Playwright, DA37) correm contra a aplicação com os dados de demonstração. Os cenários estão em [docs/test-plan.md](docs/test-plan.md).
+
+```bash
+# 1. Base de dados de demonstração acabada de criar e backend com o perfil demo (passos 2 e 3 acima)
+docker compose down -v && docker compose up -d
+cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
+
+# 2. Noutro terminal (o servidor do Vite arranca sozinho se não estiver a correr)
+cd frontend
+npx playwright install chromium   # só da primeira vez
+npm run test:e2e
+```
+
+Cada teste cria dados com um nome único e apaga-os no fim, por isso pode repetir-se sem recriar a base de dados. Quando um teste falha, o relatório fica em `frontend/playwright-report/` (com trace e screenshot). Para testar o `.jar` de entrega: `MATRIZ_E2E_BASE_URL=http://localhost:8080 npm run test:e2e`.
+
+A verificação de autorização com duas contas de demonstração (Ficha PL 04, exercício 5) corre com o backend demo ligado, a partir da raiz: `bash docs/verification/autorizacao-demo.sh`. Resultados em [docs/quality-security-review.md](docs/quality-security-review.md).
 
 O Liquibase cria o esquema no arranque do backend (DA30). Sem o perfil `demo`, a base de dados fica vazia. Os dados de demonstração entram uma só vez: reiniciar o backend não os repete. O build para entregar gera `backend/target/matriz-0.0.1-SNAPSHOT.jar`, que serve também o frontend. Para o arrancar, a partir de `backend/` e com a base de dados ligada:
 
@@ -135,8 +157,9 @@ Sem o perfil `demo`, a primeira conta de Administrador é criada no arranque com
     ├── database.md        Que dados a Matriz guarda
     ├── implementation-plan.md  Incrementos da implementação e o seu estado
     ├── test-plan.md       Cenários de teste, resultados esperados e testes
+    ├── quality-security-review.md  Code Review e Security Review
     ├── verification.md    Verificações, testes, bugs e uso da IA
-    ├── verification/      Evidências (prints)
+    ├── verification/      Evidências (prints e saídas de scripts)
     └── ui/                Navegação, ecrãs, wireframe e designs (ui/design/)
 ```
 
@@ -165,6 +188,7 @@ Cada tipo de informação tem **um único documento de referência**, para evita
 | Navegação, ecrãs, wireframe e decisões de interface | [ui/README.md](docs/ui/README.md) |
 | Incrementos da implementação e o seu estado | [implementation-plan.md](docs/implementation-plan.md) |
 | Cenários de teste (CT), resultados esperados e testes associados | [test-plan.md](docs/test-plan.md) |
+| Code Review e Security Review: findings, evidências e decisões | [quality-security-review.md](docs/quality-security-review.md) |
 | Resultados das verificações, bugs e uso da IA | [verification.md](docs/verification.md) |
 | Instruções para agentes de IA | [AGENTS.md](AGENTS.md) |
 
@@ -199,15 +223,17 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Âmbito funcional e MVP | Concluído e conciliado com a Ficha PL 03, por validar com o Product Owner |
 | User Stories e critérios de aceitação | Concluídas (22 histórias), por validar |
 | Documentação de contexto | requirements.md 0.7, user-stories.md 0.7, constraints.md 1.1 |
-| Instruções para agentes (AGENTS.md) | Atualizado na Ficha PL 02: fase, stack, documentos e convenções |
+| Instruções para agentes (AGENTS.md) | Atualizado na Ficha PL 04: fase, documentos de testes e de revisão, comandos |
 | Revisão crítica da documentação | Concluída: revisão 1 e revisão independente (2 agentes) aplicadas |
 | Revisão crítica do Architecture Pack | Concluída: revisão 1, revisão independente e revisão final aplicadas (Ficha PL 02) |
 | Arquitetura | Proposta (architecture.md 0.10) |
 | Modelo de dados | Proposta (database.md 0.2) |
 | API | Contrato completo, 34 operações (openapi.yaml 0.3.2) |
 | Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.7). Designs dos ecrãs em `docs/ui/design/` e estilo visual DA36 |
-| Plano de implementação | 8 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
-| Implementação | I0 a I6 entregues na Ficha PL 03 (tag `ficha-pl03`). I7 (resto do MVP) pronto para revisão |
-| Verificação | Casos 01 a 09 da ficha, testes e bugs em [verification.md](docs/verification.md) |
+| Plano de implementação | 9 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
+| Implementação | I0 a I6 entregues na Ficha PL 03 (tag `ficha-pl03`). I7 (resto do MVP) pronto para revisão. I8 (testes e revisão, Ficha PL 04) entregue (tag `ficha-pl04`) |
+| Testes | Estratégia em três níveis (DA37) e plano de testes ([test-plan.md](docs/test-plan.md) 0.2): 140 testes no backend (15 unitários), 4 de regressão no frontend e 3 E2E |
+| Qualidade e segurança | Code Review do I7 e Security Review, com 12 findings e 6 correções ([quality-security-review.md](docs/quality-security-review.md) 0.2) |
+| Verificação | Casos 01 a 09 da Ficha PL 03, resultados da Ficha PL 04 (secção 13), testes e bugs em [verification.md](docs/verification.md) |
 
 As decisões técnicas estão em [architecture.md, secção 9](docs/architecture.md#9-decisões-técnicas). As que faltam estão em [constraints.md, secção 4](docs/constraints.md#4-decisões-técnicas-pendentes).

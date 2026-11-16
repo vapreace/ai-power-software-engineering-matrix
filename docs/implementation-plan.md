@@ -1,6 +1,6 @@
 # Plano de implementação da Matriz
 
-> **Versão:** 0.1 (Ficha PL 03, exercício 1)
+> **Versão:** 0.2 (Ficha PL 04: incremento I8)
 > **Estado:** em curso. O estado de cada incremento atualiza-se no fim do incremento, na mesma alteração.
 
 Documentos relacionados:
@@ -72,7 +72,7 @@ O MVP completo mantém-se: as 22 histórias. O âmbito da ficha (R08) vem primei
 
 ```mermaid
 flowchart LR
-    I0["I0 Esqueleto<br/>Ex. 2"] --> I1["I1 Sessão<br/>Ex. 3"] --> I2["I2 Projetos<br/>Ex. 4"] --> I3["I3 Tarefas<br/>Ex. 5"] --> I4["I4 Responsáveis<br/>e comentários<br/>Ex. 6"] --> I5["I5 Painel<br/>Ex. 7"] --> I6["I6 Verificação<br/>e entrega<br/>Ex. 8 e 9"] --> I7["I7 Resto<br/>do MVP"]
+    I0["I0 Esqueleto<br/>Ex. 2"] --> I1["I1 Sessão<br/>Ex. 3"] --> I2["I2 Projetos<br/>Ex. 4"] --> I3["I3 Tarefas<br/>Ex. 5"] --> I4["I4 Responsáveis<br/>e comentários<br/>Ex. 6"] --> I5["I5 Painel<br/>Ex. 7"] --> I6["I6 Verificação<br/>e entrega<br/>Ex. 8 e 9"] --> I7["I7 Resto<br/>do MVP"] --> I8["I8 Testes e revisão<br/>Ficha PL 04"]
 ```
 
 O exercício 7 (frontend) não fica só no I5: cada incremento entrega a sua parte da interface, ligada à API real, sem mocks. O I5 fecha o painel e revê a interface toda face ao wireframe.
@@ -87,6 +87,7 @@ O exercício 7 (frontend) não fica só no I5: cada incremento entrega a sua par
 | I5 | Painel e progresso | US09, US21 | Ex. 7 | Pronto para revisão |
 | I6 | Verificação, revisão e entrega da Ficha 03 | | Ex. 8, Ex. 9 | Pronto para revisão |
 | I7 | Resto do MVP | US02, US03, US08, US13, US14, US17 (gestor), US18 | | Pronto para revisão |
+| I8 | Testes, Code Review e Security Review | | Ficha PL 04, ex. 1 a 5 | Pronto para revisão |
 
 ### I0 Esqueleto e persistência (exercício 2)
 
@@ -204,6 +205,22 @@ Não é pedido pela Ficha PL 03: completa o MVP das Fichas PL 01 e 02. A entrega
 **Verificação:** testes `AccountApiTests`, `TeamApiTests`, `ProjectStatusApiTests` e `MyTasksApiTests`; percursos no browser a 360 e 1280 px; verificações manuais em `docs/verification.md`, secção 12.
 
 ---
+
+### I8 Testes e revisão de qualidade e segurança (Ficha PL 04)
+
+Não acrescenta funcionalidades. Define a estratégia de testes (DA37, resolve DP09), acrescenta os testes que faltavam e revê o último incremento. A entrega fica identificada pela tag `ficha-pl04`.
+
+| Ex. | O quê | Resultado |
+|-----|-------|-----------|
+| 1 | Plano de testes a partir dos requisitos, com uma matriz de cenários feita por um agente que não viu o código | [test-plan.md](test-plan.md) |
+| 2 | Testes unitários da regra do título (RN11) | `TaskTitleRulesTests` |
+| 3 | Teste de integração de criar e consultar uma tarefa, com verificação na base de dados | `TaskApiTests` (2 testes novos) |
+| 4 | Testes E2E com Playwright: criar tarefa, fluxo do projeto e acesso recusado | `frontend/e2e/` (3 testes) |
+| 5 | Code Review do I7, Security Review com duas contas de demonstração, ESLint, Semgrep e `npm audit`; correções aprovadas com teste de regressão | [quality-security-review.md](quality-security-review.md), `AccessControlApiTests` |
+
+**Critérios de aceitação (da ficha):** pelo menos um teste unitário, um de integração e um E2E; resultados de execuções reais e reproduzíveis; um cenário de autorização entre dois utilizadores de demonstração validado; recomendações da IA revistas e alterações registadas.
+
+**Verificação:** [verification.md](verification.md), secção 13.
 
 ## 5. Riscos do plano
 

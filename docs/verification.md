@@ -113,6 +113,8 @@ Percursos automáticos com Playwright (Chromium) contra uma simulação da API c
 
 ## 7. O que não foi possível executar
 
+Situação na entrega da Ficha PL 03. O que ficou por executar na Ficha PL 04 está na secção 13.5.
+
 | O que | Porquê |
 |-------|--------|
 | Testes de carga e de tempo de resposta (RNF03, RNF04) | Fora do âmbito da Ficha PL 03. A estratégia de testes é do Módulo 4 (DP09). |
@@ -243,6 +245,8 @@ Não faz parte da entrega da Ficha PL 03 (tag `ficha-pl03`). Completa as 22 hist
 
 Resultados das execuções dos testes da Ficha PL 04. Os cenários e os resultados esperados estão em [test-plan.md](test-plan.md); a estratégia em DA37.
 
+Versão entregue: tag `ficha-pl04` no Git. Ambiente: Windows com Git Bash e Docker Desktop, Java 21, Node 24, PostgreSQL 18 (Testcontainers nos testes e Docker Compose na aplicação), Chromium do Playwright 1.65.1.
+
 ### 13.1 Testes unitários (exercício 2)
 
 | Item | Registo |
@@ -291,3 +295,20 @@ Findings, evidências e decisões em [quality-security-review.md](quality-securi
 | Depois das correções F1, F2, F4, F8, F9 e F10 | `./mvnw verify` em `backend/` | 140 testes (110 de antes, 15 unitários, 2 do exercício 3, 11 de `AccessControlApiTests` e 2 novos em `TeamApiTests`), 0 falhas, `BUILD SUCCESS`, 2 min 17 s (16/11/2026). |
 | | `npm run type-check && npm run lint && npm run test:unit && npm run build` em `frontend/` | Sem erros; 4 testes, 0 falhas; build sem erros. |
 | | Script de autorização repetido com o backend reiniciado | 403 em todos os pedidos do Pedro, incluindo o comentário e os quatro pedidos de F1 e F2 (antes: 404 em dois deles). A Ana confirma que nada mudou (16/11/2026, 14:18). |
+
+### 13.5 Testes não executados e problemas pendentes
+
+| O que | Porquê |
+|-------|--------|
+| Testes de carga e de tempo de resposta (RNF03, RNF04) | Fora do âmbito da Ficha PL 04. |
+| Testes de componentes do frontend | Não previstos na DA37: os percursos da interface estão cobertos pelos testes E2E. |
+| E2E noutros browsers e em ecrã de telemóvel (360 px, RNF01) | Os E2E correm só no Chromium em ecrã de computador. O ecrã de 360 px fica para o passo seguinte, com o percurso do Membro em "As minhas tarefas". |
+| Análise das dependências do backend (Maven) | Sem ferramenta configurada (quality-security-review.md, secção 5). Fica para a pipeline da Ficha PL 05. |
+| Verificação formal de acessibilidade (DP12) | Como na Ficha PL 03. |
+
+| Problema pendente | Estado |
+|-------------------|--------|
+| F3 (enumeração de identificadores) e F7 (`minimatch` nas ferramentas de desenvolvimento) | Risco aceite, com o motivo em quality-security-review.md. |
+| F5 (concorrência no último Administrador) e F6 (cookie sem `Secure`) | Ficam para a Ficha PL 05. |
+| Avisos `EBADENGINE` no `npm install` com Node 24.11 | Desaparecem com Node 24.15 ou mais recente (F10). |
+| Mais testes unitários das regras do backend e relatório de cobertura (JaCoCo) | Combinados para depois da entrega desta ficha. |

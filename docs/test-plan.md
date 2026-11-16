@@ -1,7 +1,7 @@
 # Plano de testes da Matriz
 
 > **Versão:** 0.2 (Ficha PL 04, exercícios 1 e 5)
-> **Estado:** em curso. A coluna "Teste" atualiza-se quando cada teste entra no repositório. Os resultados das execuções ficam em [verification.md](verification.md).
+> **Estado:** concluído para a Ficha PL 04. Todos os testes marcados "Novo" estão no repositório e passam. Os resultados das execuções ficam em [verification.md](verification.md), secção 13.
 
 Documentos relacionados:
 

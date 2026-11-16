@@ -6,7 +6,7 @@ Instruções para agentes de IA que trabalham neste repositório.
 
 A Matriz é uma aplicação de gestão de projetos e tarefas para equipas.
 
-Fase atual: **Ficha PL 03** entregue (tag `ficha-pl03`); o I7 completa o MVP e está pronto para revisão. Segue os incrementos de `docs/implementation-plan.md`, atualiza o estado do incremento no fim e regista as verificações e os bugs em `docs/verification.md`.
+Fase atual: **Ficha PL 04** entregue (tag `ficha-pl04`): testes e revisão de qualidade e segurança (incremento I8). O MVP está completo (I0 a I7). Segue os incrementos de `docs/implementation-plan.md`, atualiza o estado do incremento no fim e regista as verificações e os bugs em `docs/verification.md`.
 
 Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java com Spring Boot 4 e API REST; frontend em Vue 3 com TypeScript e Vite; base de dados PostgreSQL; autenticação com sessão no servidor.
 
@@ -25,6 +25,7 @@ Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java 
    | Navegação, ecrãs e componentes da interface | `docs/ui/README.md` |
    | Incrementos, critérios de aceitação e verificação de cada um | `docs/implementation-plan.md` |
    | Cenários de teste, resultados esperados e testes associados | `docs/test-plan.md` |
+   | Findings do Code Review e da Security Review e decisões | `docs/quality-security-review.md` |
    | Resultados das verificações, bugs encontrados e uso da IA | `docs/verification.md` |
 
 2. Identifica os IDs relacionados com a tarefa (ex.: US05, RN11) e usa-os no plano e no relatório final.
@@ -106,9 +107,12 @@ Stack e versões em `docs/architecture.md` (DA28, DA30, DA31). Os comandos são 
 |----------|---------|------|
 | Arrancar a base de dados | `docker compose up -d` | raiz |
 | Testes do backend, incluindo o de arquitetura (precisam do Docker) | `./mvnw verify` | `backend/` |
+| Só uma classe de testes unitários (sem Docker) | `./mvnw test -Dtest=TaskTitleRulesTests` | `backend/` |
 | Arrancar o backend com os dados de demonstração | `./mvnw spring-boot:run -Dspring-boot.run.profiles=demo` | `backend/` |
 | Verificar os tipos do frontend | `npm run type-check` | `frontend/` |
 | Testes de regressão do frontend | `npm run test:unit` | `frontend/` |
+| Testes E2E (com a base de dados e o backend demo a correr, README.md) | `npm run test:e2e` | `frontend/` |
+| Análise estática do frontend (ESLint) | `npm run lint` | `frontend/` |
 | Build do frontend (vai para `backend/src/main/resources/static`) | `npm run build` | `frontend/` |
 | Arrancar o frontend em desenvolvimento | `npm run dev` | `frontend/` |
 
@@ -124,4 +128,4 @@ O esquema da base de dados muda só com um changeset Liquibase novo em `backend/
 
 ## Manutenção deste ficheiro
 
-A stack e as convenções foram acrescentadas na Ficha PL 02. Os comandos e os pacotes foram acrescentados na Ficha PL 03 (incremento I0); os testes de regressão do frontend e `docs/verification.md` no incremento I6. Na Ficha PL 04 entraram a estratégia de testes (DA37) e `docs/test-plan.md`.
+A stack e as convenções foram acrescentadas na Ficha PL 02. Os comandos e os pacotes foram acrescentados na Ficha PL 03 (incremento I0); os testes de regressão do frontend e `docs/verification.md` no incremento I6. Na Ficha PL 04 entraram a estratégia de testes (DA37), `docs/test-plan.md`, `docs/quality-security-review.md` e os comandos dos testes E2E e do ESLint.
