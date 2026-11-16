@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Matriz API
-  version: 0.3.1
+  version: 0.3.2
   summary: Contrato REST do MVP da Matriz (Ficha PL 03, exercício 1).
   description: |
     Contrato da API REST da Matriz. Documenta todas as operações do MVP
@@ -38,6 +38,9 @@ info:
     - Projetos e tarefas eliminados, e associações removidas, respondem como
       inexistentes: 404 ou ausência nas listas (RN32, DA29).
     - Sem paginação: as listas vêm dentro de `items` (DA18).
+    - Campos a mais no corpo: os pedidos de edição (`PATCH`) recusam-nos com 400;
+      os outros pedidos ignoram-nos, sem efeito nos dados (Ficha PL 04,
+      docs/quality-security-review.md, F4).
     - O frontend nunca envia a identidade de quem faz o pedido. O backend
       obtém-na da sessão (SEG02).
 servers:
@@ -1965,7 +1968,7 @@ components:
     LoginRequest:
       type: object
       required: [email, password]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         email:
           type: string
@@ -1976,7 +1979,7 @@ components:
     SetPasswordRequest:
       type: object
       required: [newPassword]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         newPassword:
           type: string
@@ -2033,7 +2036,7 @@ components:
     CreateUserRequest:
       type: object
       required: [name, email, role, temporaryPassword]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         name:
           type: string
@@ -2065,14 +2068,14 @@ components:
     ChangeUserStatusRequest:
       type: object
       required: [status]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         status:
           $ref: '#/components/schemas/AccountStatus'
     ResetPasswordRequest:
       type: object
       required: [temporaryPassword]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         temporaryPassword:
           type: string
@@ -2101,7 +2104,7 @@ components:
     TeamRequest:
       type: object
       required: [name]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         name:
           type: string
@@ -2205,7 +2208,7 @@ components:
     CreateProjectRequest:
       type: object
       required: [teamId, name, startDate]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         teamId:
           type: integer
@@ -2256,7 +2259,7 @@ components:
     ChangeProjectManagerRequest:
       type: object
       required: [managerId, version]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         managerId:
           type: integer
@@ -2267,7 +2270,7 @@ components:
     ChangeProjectStatusRequest:
       type: object
       required: [status, version]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         status:
           $ref: '#/components/schemas/ProjectStatus'
@@ -2329,7 +2332,7 @@ components:
     CreateTaskRequest:
       type: object
       required: [title]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         title:
           type: string
@@ -2372,7 +2375,7 @@ components:
     ChangeTaskStatusRequest:
       type: object
       required: [status, version]
-      additionalProperties: false
+      description: Os campos que não estão neste schema são ignorados e não têm efeito.
       properties:
         status:
           $ref: '#/components/schemas/TaskStatus'

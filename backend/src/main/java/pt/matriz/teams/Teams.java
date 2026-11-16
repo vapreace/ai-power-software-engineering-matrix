@@ -169,14 +169,18 @@ public class Teams {
         }
     }
 
-    /** Remover uma pessoa (US03). As consequências (RN17, RN22) vêm do evento {@link TeamMemberRemoved}. */
+    /**
+     * Remover uma pessoa (US03). As consequências (RN17, RN22) vêm do evento {@link TeamMemberRemoved}.
+     * O papel verifica-se antes de saber se a pessoa pertence à equipa: assim, quem não é Administrador
+     * não fica a saber quem pertence a outras equipas (F2 de quality-security-review.md).
+     */
     @Transactional
     public void removeMember(CurrentUser user, long teamId, long accountId) {
         findOrThrow(teamId);
+        requireAdministrator(user);
         if (!queries.isActiveMember(teamId, accountId)) {
             throw new ApiException(HttpStatus.NOT_FOUND, ProblemCode.NOT_FOUND, NOT_A_MEMBER);
         }
-        requireAdministrator(user);
         leave(teamId, accountId);
     }
 

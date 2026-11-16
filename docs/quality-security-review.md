@@ -1,7 +1,7 @@
 # Code Review e Security Review da Matriz
 
-> **Versão:** 0.1 (Ficha PL 04, exercício 5)
-> **Estado:** findings registados e revistos. As correções propostas (secção 6) esperam pela aprovação da equipa.
+> **Versão:** 0.2 (Ficha PL 04, exercício 5: correções aplicadas)
+> **Estado:** concluído. Correções aprovadas pela equipa e aplicadas em 16/11/2026 (secção 6).
 
 Documentos relacionados:
 
@@ -55,10 +55,10 @@ Severidade: **Alta**, **Média**, **Baixa** ou **Informativo**. Estado: **Confir
 
 | ID | Severidade | Categoria | Ficheiro | Evidência | Impacto | Estado | Correção proposta | Teste de regressão |
 |----|------------|-----------|----------|-----------|---------|--------|-------------------|--------------------|
-| F1 | Média | A01 Broken Access Control (exposição de informação) | `tasks/application/TaskService.java`, `removeAssignee` | O teste "a pessoa é responsável?" (404) vem antes da verificação de acesso ao projeto (403). Script: o Pedro pede para retirar o João da tarefa 17 de Fornecedores e recebe 403; para a Marta, recebe 404 "Esta pessoa não é responsável pela tarefa.". | Quem não vê um projeto fica a saber quem é responsável pelas suas tarefas, contra a matriz de permissões ("Ver projetos, tarefas: projetos visíveis"). Não altera dados. | Confirmado | Verificar a visibilidade e a permissão logo depois de encontrar a tarefa; só depois responder 404 "não é responsável". Mantém a ordem de DA17 para a tarefa (404, 403). | Em `AccessControlApiTests`: o Pedro recebe 403 nos dois casos (responsável e não responsável), e a associação mantém-se. |
-| F2 | Baixa | A01 Broken Access Control (exposição de informação) | `teams/Teams.java`, `removeMember` | O teste "a pessoa pertence à equipa?" (404) vem antes da verificação de Administrador (403). Script: o Pedro pede para retirar o João de Compras e recebe 403; para o Rui, recebe 404 "A pessoa não pertence à equipa.". | Um Membro fica a saber quem pertence a equipas que não são suas, contra a matriz de permissões ("Ver quem pertence a cada equipa: equipas a que pertence"). Não altera dados. | Confirmado | Verificar o papel de Administrador antes de verificar a pertença. A equipa inexistente continua a dar 404 primeiro. | Em `TeamApiTests`: o Pedro recebe 403 com uma pessoa da equipa e com uma pessoa de fora, e a equipa fica igual. |
+| F1 | Média | A01 Broken Access Control (exposição de informação) | `tasks/application/TaskService.java`, `removeAssignee` | O teste "a pessoa é responsável?" (404) vem antes da verificação de acesso ao projeto (403). Script: o Pedro pede para retirar o João da tarefa 17 de Fornecedores e recebe 403; para a Marta, recebe 404 "Esta pessoa não é responsável pela tarefa.". | Quem não vê um projeto fica a saber quem é responsável pelas suas tarefas, contra a matriz de permissões ("Ver projetos, tarefas: projetos visíveis"). Não altera dados. | Confirmado. Corrigido | Verificar a visibilidade e a permissão logo depois de encontrar a tarefa; só depois responder 404 "não é responsável". Mantém a ordem de DA17 para a tarefa (404, 403). | `AccessControlApiTests.memberOfAnotherTeamCannotFindOutWhoIsAssigned` (CT34). |
+| F2 | Baixa | A01 Broken Access Control (exposição de informação) | `teams/Teams.java`, `removeMember` | O teste "a pessoa pertence à equipa?" (404) vem antes da verificação de Administrador (403). Script: o Pedro pede para retirar o João de Compras e recebe 403; para o Rui, recebe 404 "A pessoa não pertence à equipa.". | Um Membro fica a saber quem pertence a equipas que não são suas, contra a matriz de permissões ("Ver quem pertence a cada equipa: equipas a que pertence"). Não altera dados. | Confirmado. Corrigido | Verificar o papel de Administrador antes de verificar a pertença. A equipa inexistente continua a dar 404 primeiro. | `TeamApiTests.memberCannotFindOutWhoBelongsToAnotherTeam` (CT35). |
 | F3 | Baixa | A01 (enumeração de identificadores) | Todas as operações com identificador (`TaskService`, `Projects`, `AccountAdministration.update`, `Teams.addMember`, `TaskService.addAssignee`) | Recurso inexistente dá 404 e recurso não visível dá 403 (CT12, CT22). Ver também verification.md, secção 9. | Dá para saber se um identificador existe. Os identificadores são números sequenciais e não revelam dados pessoais. | Confirmado | Nenhuma: decisão documentada em DA17, com P13 (não há projetos confidenciais). Fica como risco aceite. | Já coberto por CT12 e CT22. |
-| F4 | Baixa | A04 Insecure Design (contrato) | `CreateTaskRequest`, `CreateUserRequest`, `CreateProjectRequest` e os outros pedidos que são `record` | O contrato diz `additionalProperties: false` (resposta 400), mas os campos a mais são ignorados. CT31: enviar `projectId`, `status`, `version`, `assignees` e `deletedAt` ao criar uma tarefa não tem efeito. Os pedidos de edição (`PATCH`) recusam campos a mais com 400. | Sem efeito nos dados (não há mass assignment). Diferença entre o contrato e a implementação. | Confirmado | Corrigir o contrato e não o código: recusar campos a mais em todos os pedidos contrariava `CreateCommentRequest`, que ignora `authorId` por regra (RN30, E43). | CT31 já existe. |
+| F4 | Baixa | A04 Insecure Design (contrato) | `CreateTaskRequest`, `CreateUserRequest`, `CreateProjectRequest` e os outros pedidos que são `record` | O contrato diz `additionalProperties: false` (resposta 400), mas os campos a mais são ignorados. CT31: enviar `projectId`, `status`, `version`, `assignees` e `deletedAt` ao criar uma tarefa não tem efeito. Os pedidos de edição (`PATCH`) recusam campos a mais com 400. | Sem efeito nos dados (não há mass assignment). Diferença entre o contrato e a implementação. | Confirmado. Contrato corrigido | Corrigir o contrato e não o código: recusar campos a mais em todos os pedidos contrariava `CreateCommentRequest`, que ignora `authorId` por regra (RN30, E43). | CT31 já existe. |
 | F5 | Baixa | A04 Insecure Design (concorrência) | `accounts/application/AccountAdministration.java`, `isLastActiveAdministrator` | Leitura do código: a contagem de Administradores ativos e a alteração não estão protegidas contra pedidos simultâneos. | Dois Administradores a desativarem-se um ao outro ao mesmo tempo poderiam deixar a organização sem Administrador ativo (RN18). | Suspeita | Bloquear as contas de Administrador na mesma transação (`SELECT ... FOR UPDATE`) antes de contar. | Teste com dois pedidos em paralelo. Fica por fazer. |
 | F6 | Baixa | A05 Security Misconfiguration | `backend/src/main/resources/application.yaml` | O cookie de sessão é `HttpOnly` e `SameSite=Lax`, mas não tem `Secure`. | Em localhost não tem efeito. Num deploy com HTTPS (Ficha PL 05, DP10), o cookie poderia seguir num pedido HTTP. | Confirmado (configuração) | Ativar `server.servlet.session.cookie.secure` por variável de ambiente no ambiente publicado. | Verificação do cabeçalho `Set-Cookie` no ambiente publicado (Ficha PL 05). |
 | F7 | Baixa | A06 Vulnerable and Outdated Components | `frontend/package-lock.json` | `npm audit`: 7 moderadas (9 em Linux), todas por causa de `minimatch` 10 (GHSA-g3hv-75wg-m249, negação de serviço com padrões glob), puxado pelo `typescript-eslint` do ESLint. `npm audit --omit=dev`: 0. | Só nas ferramentas de desenvolvimento; não entra no build entregue. Os padrões que o `minimatch` processa vêm da configuração do projeto, não de utilizadores. | Confirmado | Aceitar e rever quando o `typescript-eslint` passar a usar o `minimatch` corrigido (11.0.1 ou mais recente). O `npm audit fix` sugerido não resolve: a versão atual exige `minimatch` ^10.2.2. | Nova execução de `npm audit` na Ficha PL 05 (pipeline). |
@@ -67,9 +67,9 @@ Severidade: **Alta**, **Média**, **Baixa** ou **Informativo**. Estado: **Confir
 
 | ID | Severidade | Categoria | Ficheiro | Evidência | Impacto | Estado | Correção proposta | Teste de regressão |
 |----|------------|-----------|----------|-----------|---------|--------|-------------------|--------------------|
-| F8 | Baixa | Manutenção | `frontend/src/views/ComingSoonView.vue` | Deixou de ser usado no I7: o router passou a usar os ecrãs reais e nenhum outro ficheiro o importa. | Código morto. | Confirmado | Apagar o ficheiro. | `npm run type-check` e `npm run build`. |
-| F9 | Baixa | Testes em falta | `teams/TeamApiTests.java` | Não há teste para voltar a adicionar a uma equipa uma pessoa que já tinha sido removida. Pela leitura, funciona: o índice único só conta pertenças ativas (`ux_team_members_active`). | Uma alteração futura ao índice ou à consulta podia partir US03 sem nenhum teste falhar. | Suspeita (sem defeito conhecido) | Acrescentar o teste. | O próprio teste novo. |
-| F10 | Informativo | Documentação | `README.md`, secção "Como executar" | O README pede "Node 22.12 ou mais recente", mas o `npm install` avisa (`EBADENGINE`) que dependências que já existiam antes da Ficha PL 04 (`jsdom`, `npm-run-all2`) pedem Node `^22.22.2 \|\| ^24.15.0 \|\| >=26`. | Funciona com avisos; um Node mais antigo pode falhar no futuro. | Confirmado | Atualizar o requisito no README e no `package.json` (`engines`). | `npm install` sem avisos `EBADENGINE`. |
+| F8 | Baixa | Manutenção | `frontend/src/views/ComingSoonView.vue` | Deixou de ser usado no I7: o router passou a usar os ecrãs reais e nenhum outro ficheiro o importa. | Código morto. | Confirmado. Corrigido | Apagar o ficheiro. | `npm run type-check` e `npm run build`. |
+| F9 | Baixa | Testes em falta | `teams/TeamApiTests.java` | Não há teste para voltar a adicionar a uma equipa uma pessoa que já tinha sido removida. Pela leitura, funciona: o índice único só conta pertenças ativas (`ux_team_members_active`). | Uma alteração futura ao índice ou à consulta podia partir US03 sem nenhum teste falhar. | Teste acrescentado; passa | Acrescentar o teste. | `TeamApiTests.personRemovedFromATeamCanBeAddedAgain`. |
+| F10 | Informativo | Documentação | `README.md`, secção "Como executar" | O README pede "Node 22.12 ou mais recente", mas o `npm install` avisa (`EBADENGINE`) que dependências que já existiam antes da Ficha PL 04 (`jsdom`, `npm-run-all2`) pedem Node `^22.22.2 \|\| ^24.15.0 \|\| >=26`. | Funciona com avisos; um Node mais antigo pode falhar no futuro. | Confirmado. Corrigido | Atualizar o requisito no README e no `package.json` (`engines`). | `npm install` sem avisos `EBADENGINE`. |
 | F11 | Informativo | Tratamento de erros | `common/GlobalExceptionHandler.java` | Um corpo JSON inválido é recusado pela framework com 400 antes de chegar ao serviço, por isso antes da verificação de acesso (DA17 põe o 403 antes do 400). Observado no script: o comentário com acento mal codificado deu 400. | A resposta é igual para qualquer recurso: não revela nada. | Confirmado | Nenhuma. Fica registado. | |
 | F12 | Informativo | Segredos (falso positivo) | `db/changelog/demo/100-demo-data.xml` | O Semgrep encontra um hash bcrypt. | É o hash da palavra-passe de demonstração, fictícia e documentada no README (PRIV03). Só corre no perfil `demo`. | Falso positivo | Nenhuma. | |
 
@@ -100,20 +100,25 @@ Seguem a orientação da ficha: distinguir defeito da aplicação, problema do t
 
 ---
 
-## 6. Correções propostas
+## 6. Correções
 
-Corrigem-se só os problemas confirmados e prioritários, depois da revisão humana, cada um com um teste de regressão.
+Corrigiram-se só os problemas confirmados e prioritários, depois da revisão humana, cada um com um teste de regressão. Aprovadas pela utilizadora em 16/11/2026.
 
-| Finding | Proposta | Decisão |
-|---------|----------|---------|
-| F1 | Corrigir em `TaskService.removeAssignee`, com teste de regressão. | Por aprovar |
-| F2 | Corrigir em `Teams.removeMember`, com teste de regressão. | Por aprovar |
-| F4 | Corrigir a descrição dos pedidos de criação em `openapi.yaml` (campos a mais ignorados). | Por aprovar |
-| F8 | Apagar `ComingSoonView.vue`. | Por aprovar |
-| F9 | Acrescentar o teste em `TeamApiTests`. | Por aprovar |
-| F10 | Atualizar o requisito de Node no README e no `package.json`. | Por aprovar |
-| F3, F7, F11, F12 | Risco aceite ou sem ação, com o motivo indicado. | Proposto |
-| F5, F6 | Ficam para a Ficha PL 05 (pipeline e deploy). | Proposto |
+| Finding | Correção aplicada | Verificação |
+|---------|-------------------|-------------|
+| F1 | `TaskService.removeAssignee`: a permissão verifica-se antes de saber se a pessoa é responsável. | `AccessControlApiTests.memberOfAnotherTeamCannotFindOutWhoIsAssigned` passa. No script, os dois pedidos do Pedro dão 403 (antes: 403 e 404). |
+| F2 | `Teams.removeMember`: o papel de Administrador verifica-se antes de saber se a pessoa pertence à equipa. | `TeamApiTests.memberCannotFindOutWhoBelongsToAnotherTeam` passa. No script, os dois pedidos do Pedro dão 403 (antes: 403 e 404). |
+| F4 | `openapi.yaml` 0.3.2: os 11 pedidos que são `record` dizem que os campos a mais são ignorados (deixaram `additionalProperties: false`); os 3 `PATCH` continuam a recusá-los. A regra entrou nas convenções do contrato. | CT31 passa. |
+| F8 | `ComingSoonView.vue` apagado. | `npm run type-check`, `npm run lint` e `npm run build` sem erros. |
+| F9 | Novo teste `TeamApiTests.personRemovedFromATeamCanBeAddedAgain`. | Passa. |
+| F10 | README e `engines` do `frontend/package.json`: Node `^22.22.2 \|\| ^24.15.0 \|\| >=26`. | Revisão do texto. |
+
+Os testes que já existiam continuam a passar: o gestor e o Administrador continuam a receber 404 quando a pessoa não é responsável ou não pertence à equipa (`CollaborationApiTests`, `TeamApiTests`). Suite completa: 140 testes, 0 falhas (verification.md, secção 13.4).
+
+| Finding | Decisão sem correção |
+|---------|----------------------|
+| F3, F7, F11, F12 | Risco aceite ou sem ação, com o motivo indicado na secção 3. |
+| F5, F6 | Ficam para a Ficha PL 05 (pipeline e deploy). |
 
 ---
 

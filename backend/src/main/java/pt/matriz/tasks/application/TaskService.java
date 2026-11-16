@@ -291,16 +291,18 @@ public class TaskService {
     /**
      * Remove um responsável (US06): a associação fica marcada como removida (RN32). Os outros
      * responsáveis mantêm-se; sem nenhum, a tarefa fica "Sem responsável" (E41). A versão aumenta (DA20).
+     * A permissão verifica-se antes de saber se a pessoa é responsável: assim, quem não gere o projeto
+     * não fica a saber quem são os responsáveis de tarefas que não vê (F1 de quality-security-review.md).
      */
     @Transactional
     public TaskView removeAssignee(CurrentUser user, long taskId, long accountId) {
         Task task = findTask(taskId);
-        if (!queries.isAssignee(task.getId(), accountId)) {
-            throw new ApiException(HttpStatus.NOT_FOUND, ProblemCode.NOT_FOUND, NOT_AN_ASSIGNEE);
-        }
         ProjectAccess access = taskProjectAccess(user, task);
         if (!access.manageable()) {
             throw forbidden(FORBIDDEN);
+        }
+        if (!queries.isAssignee(task.getId(), accountId)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, ProblemCode.NOT_FOUND, NOT_AN_ASSIGNEE);
         }
         requireOpenProject(access);
         queries.removeAssignee(task.getId(), accountId, clock.now());

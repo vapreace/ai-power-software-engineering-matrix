@@ -189,6 +189,39 @@ class TeamApiTests extends ApiTestSupport {
                 .andExpect(jsonPath("$.detail").value("A pessoa não pertence à equipa."));
     }
 
+    @Test
+    void personRemovedFromATeamCanBeAddedAgain() throws Exception {
+        // F9 de quality-security-review.md (US03): a pertença removida fica guardada (RN32) e voltar a
+        // adicionar a pessoa cria uma pertença nova, sem conflito com a antiga.
+        MockHttpSession ana = login("ana");
+        mvc.perform(removeMember(ana, "norte", "pedro")).andExpect(status().isNoContent());
+        mvc.perform(addMember(ana, "norte", "pedro")).andExpect(status().isNoContent());
+        mvc.perform(get("/api/teams/{id}/members", ids.get("norte")).session(ana))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].name", hasItem("Pedro")));
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM team_members WHERE team_id = ? AND user_id = ? AND removed_at IS NULL""",
+                Integer.class, ids.get("norte"), ids.get("pedro"))).isEqualTo(1);
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM team_members WHERE team_id = ? AND user_id = ? AND removed_at IS NOT NULL""",
+                Integer.class, ids.get("norte"), ids.get("pedro"))).isEqualTo(1);
+    }
+
+    @Test
+    void memberCannotFindOutWhoBelongsToAnotherTeam() throws Exception {
+        // Regressão de F2 de quality-security-review.md: o Pedro (Logística Norte) recebe a mesma
+        // resposta, 403, quer a pessoa pertença a Compras (João) quer não (Rui). Antes, o Rui dava 404.
+        MockHttpSession pedro = login("pedro");
+        mvc.perform(removeMember(pedro, "compras", "joao"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+        mvc.perform(removeMember(pedro, "compras", "rui"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM team_members WHERE team_id = ? AND removed_at IS NULL",
+                Integer.class, ids.get("compras"))).isEqualTo(3);
+    }
+
     private Long managerOf(String project) {
         return jdbc.queryForObject("SELECT manager_id FROM projects WHERE id = ?", Long.class, ids.get(project));
     }

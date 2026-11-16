@@ -359,7 +359,7 @@ Esta arquitetura apoia-se em P05, P11, P12 e no pressuposto novo P14 (equipa peq
 
 ## 13. API
 
-O contrato está em [openapi.yaml](../openapi.yaml) (versão 0.3.1) e documenta as 34 operações do MVP, com as convenções desta secção. Uma operação nova ou alterada entra primeiro no contrato.
+O contrato está em [openapi.yaml](../openapi.yaml) (versão 0.3.2) e documenta as 34 operações do MVP, com as convenções desta secção. Uma operação nova ou alterada entra primeiro no contrato.
 
 ### 13.1 Convenções
 

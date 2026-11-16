@@ -282,9 +282,12 @@ Findings, evidências e decisões em [quality-security-review.md](quality-securi
 
 | Verificação | Comando | Resultado |
 |-------------|---------|-----------|
-| `AccessControlApiTests` (CT13 a CT19, CT21, CT31, CT32) | `./mvnw test -Dtest=AccessControlApiTests` em `backend/` | Primeira execução: 2 falhas, problema do teste (asserção sobre `$.title`, que também é campo do Problem Details). Depois da correção do teste: 10 testes, 0 falhas, 30 s (16/11/2026). |
+| `AccessControlApiTests` (CT13 a CT19, CT21, CT31, CT32; CT34 depois das correções) | `./mvnw test -Dtest=AccessControlApiTests` em `backend/` | Primeira execução: 2 falhas, problema do teste (asserção sobre `$.title`, que também é campo do Problem Details). Depois da correção do teste: 10 testes, 0 falhas, 30 s (16/11/2026). |
 | Autorização com duas contas de demonstração | `bash docs/verification/autorizacao-demo.sh \| tee docs/verification/autorizacao-demo.txt`, com a base de dados de demonstração recriada e o backend com o perfil `demo` | Pedro: 403 em 10 pedidos de leitura e alteração sobre Fornecedores; 400 no comentário (acento mal codificado no Git Bash, corrigido no script). Ana: tarefa, comentários e equipa iguais no fim. Revelou F1 e F2 (16/11/2026, 13:26). |
 | ESLint | `npm run lint` em `frontend/` | 60 ficheiros, 0 erros, 0 avisos (numa cópia em Linux e no Windows, 16/11/2026). |
 | Semgrep 1.185 | Regras abertas do repositório `semgrep-rules` (Java, TypeScript, JavaScript de browser, YAML, segredos), numa cópia do repositório | 0 findings de código; 1 falso positivo de segredos (F12). |
 | `npm audit` | `npm audit` e `npm audit --omit=dev` em `frontend/` | Produção: 0. Desenvolvimento: 7 moderadas no Windows, 9 em Linux, todas da cadeia `minimatch` (F7). |
 | `type-check` e testes de regressão do frontend | `npm run type-check`, `npm run test:unit` | Sem erros; 4 testes, 0 falhas. |
+| Depois das correções F1, F2, F4, F8, F9 e F10 | `./mvnw verify` em `backend/` | 140 testes (110 de antes, 15 unitários, 2 do exercício 3, 11 de `AccessControlApiTests` e 2 novos em `TeamApiTests`), 0 falhas, `BUILD SUCCESS`, 2 min 17 s (16/11/2026). |
+| | `npm run type-check && npm run lint && npm run test:unit && npm run build` em `frontend/` | Sem erros; 4 testes, 0 falhas; build sem erros. |
+| | Script de autorização repetido com o backend reiniciado | 403 em todos os pedidos do Pedro, incluindo o comentário e os quatro pedidos de F1 e F2 (antes: 404 em dois deles). A Ana confirma que nada mudou (16/11/2026, 14:18). |

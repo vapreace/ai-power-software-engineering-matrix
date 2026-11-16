@@ -25,7 +25,7 @@ import pt.matriz.TestcontainersConfiguration;
 
 /**
  * Ficha PL 04, exercício 5: controlo de acesso às tarefas entre equipas (IDOR / Broken Access
- * Control, SEG02). Cenários CT13 a CT19, CT21, CT31 e CT32 de docs/test-plan.md.
+ * Control, SEG02). Cenários CT13 a CT19, CT21, CT31, CT32 e CT34 de docs/test-plan.md.
  * <p>
  * Uma pessoa autenticada muda o identificador no pedido para chegar a uma tarefa de um projeto que
  * não vê. Pela DA17, um recurso que existe mas não é visível dá 403, e a permissão verifica-se antes
@@ -150,6 +150,22 @@ class AccessControlApiTests extends ApiTestSupport {
         assertThat(jdbc.queryForObject(
                 "SELECT count(*) FROM task_assignees WHERE task_id = ? AND removed_at IS NULL",
                 Integer.class, ids.get("N1"))).isEqualTo(1);
+    }
+
+    @Test
+    void memberOfAnotherTeamCannotFindOutWhoIsAssigned() throws Exception {
+        // Regressão de F1 de quality-security-review.md: o Pedro (Logística Norte) recebe a mesma
+        // resposta, 403, quer a pessoa seja responsável pela tarefa de Fornecedores (João) quer não
+        // (Marta). Antes, a Marta dava 404 "Esta pessoa não é responsável pela tarefa.".
+        send(delete("/api/tasks/{id}/assignees/{userId}", ids.get("F1"), ids.get("joao")), "pedro", null)
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+        send(delete("/api/tasks/{id}/assignees/{userId}", ids.get("F1"), ids.get("marta")), "pedro", null)
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+        assertThat(jdbc.queryForObject(
+                "SELECT count(*) FROM task_assignees WHERE task_id = ? AND user_id = ? AND removed_at IS NULL",
+                Integer.class, ids.get("F1"), ids.get("joao"))).isEqualTo(1);
     }
 
     @Test

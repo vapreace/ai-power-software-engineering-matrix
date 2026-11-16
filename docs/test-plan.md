@@ -1,6 +1,6 @@
 # Plano de testes da Matriz
 
-> **Versão:** 0.1 (Ficha PL 04, exercício 1)
+> **Versão:** 0.2 (Ficha PL 04, exercícios 1 e 5)
 > **Estado:** em curso. A coluna "Teste" atualiza-se quando cada teste entra no repositório. Os resultados das execuções ficam em [verification.md](verification.md).
 
 Documentos relacionados:
@@ -86,7 +86,7 @@ Estado: **Existe** (teste já no repositório), **Novo** (teste a acrescentar na
 
 ### 4.3 Permissões e acesso sem autorização
 
-Os cenários CT12 a CT21 são o cenário de autorização entre dois utilizadores de demonstração pedido pela ficha (IDOR / Broken Access Control): uma pessoa autenticada muda o identificador no pedido para chegar a uma tarefa de um projeto que não vê. Pela DA17, um recurso que existe mas não é visível dá 403, e a verificação de permissão vem antes da validação dos dados.
+Os cenários CT12 a CT21, CT34 e CT35 são o cenário de autorização entre dois utilizadores de demonstração pedido pela ficha (IDOR / Broken Access Control): uma pessoa autenticada muda o identificador no pedido para chegar a uma tarefa de um projeto que não vê. Pela DA17, um recurso que existe mas não é visível dá 403, e a verificação de permissão vem antes da validação dos dados.
 
 | ID | Cenário | Quem | Entrada | Resultado esperado | Nível | Teste | Origem |
 |----|---------|------|---------|--------------------|-------|-------|--------|
@@ -111,6 +111,8 @@ Os cenários CT12 a CT21 são o cenário de autorização entre dois utilizadore
 | CT30 | Responsável inválido ou repetido | Rui | `PUT /api/tasks/{t}/assignees/{João}` e a Marta duas vezes | 409 `INVALID_ASSIGNEE` e 409 `DUPLICATE_ASSIGNEE`. | Integração | Existe: `CollaborationApiTests.invalidAssigneesAreRefused`, `CollaborationApiTests.theSamePersonIsNotAssignedTwice` | RN14, E40 |
 | CT31 | Campos a mais ao criar (mass assignment) | Rui | `POST /api/projects/{novo}/tasks` com `status`, `projectId` ou `assignees` | Os campos a mais não têm efeito. O contrato diz `additionalProperties: false` (resposta 400): o comportamento real confirma-se no exercício 5. | Integração | Novo (Ex. 5): `AccessControlApiTests` | SEG02, openapi.yaml |
 | CT32 | Pedido de alteração sem token CSRF | Rui | `POST /api/projects/{novo}/tasks` sem `X-XSRF-TOKEN` | 403 em Problem Details. Nada fica gravado. | Integração | Novo (Ex. 5): `AccessControlApiTests` | DA04, SEG |
+| CT34 | Responsáveis de tarefa de outra equipa não se descobrem | Pedro | `DELETE /api/tasks/{tarefa de Fornecedores}/assignees/{João}` (responsável) e `.../{Marta}` (não responsável) | 403 nos dois, sem revelar quem é responsável. A associação mantém-se. | Integração | Novo (Ex. 5, regressão de F1): `AccessControlApiTests.memberOfAnotherTeamCannotFindOutWhoIsAssigned` | SEG02, 3.1 |
+| CT35 | Pessoas de outra equipa não se descobrem | Pedro | `DELETE /api/teams/{compras}/members/{João}` (pertence) e `.../{Rui}` (não pertence) | 403 nos dois, sem revelar quem pertence. A equipa fica igual. | Integração | Novo (Ex. 5, regressão de F2): `TeamApiTests.memberCannotFindOutWhoBelongsToAnotherTeam` | SEG02, 3.1 |
 
 ---
 

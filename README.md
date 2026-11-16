@@ -68,7 +68,7 @@ Fora do MVP: quadro, histórico, registo das ações do Administrador, pesquisa 
 
 ## Como executar
 
-Requisitos: Java 21, Docker e Node 22.12 ou mais recente. Os comandos são para o Git Bash e começam na raiz do repositório.
+Requisitos: Java 21, Docker e Node 22.22.2 ou mais recente na versão 22, ou 24.15 ou mais recente (como em `engines` no `frontend/package.json`). Os comandos são para o Git Bash e começam na raiz do repositório.
 
 ```bash
 # 1. Configuração local (só da primeira vez). Mudar MATRIZ_DB_PASSWORD no .env.
@@ -204,7 +204,7 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Revisão crítica do Architecture Pack | Concluída: revisão 1, revisão independente e revisão final aplicadas (Ficha PL 02) |
 | Arquitetura | Proposta (architecture.md 0.10) |
 | Modelo de dados | Proposta (database.md 0.2) |
-| API | Contrato completo, 34 operações (openapi.yaml 0.3.1) |
+| API | Contrato completo, 34 operações (openapi.yaml 0.3.2) |
 | Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.7). Designs dos ecrãs em `docs/ui/design/` e estilo visual DA36 |
 | Plano de implementação | 8 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
 | Implementação | I0 a I6 entregues na Ficha PL 03 (tag `ficha-pl03`). I7 (resto do MVP) pronto para revisão |
