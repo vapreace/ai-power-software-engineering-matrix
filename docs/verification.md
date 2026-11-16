@@ -264,3 +264,14 @@ Resultados das execuções dos testes da Ficha PL 04. Os cenários e os resultad
 | Ambiente | API real com MockMvc e Spring Security; PostgreSQL 18 em Testcontainers, com uma base nova em cada execução; tabelas limpas antes de cada teste (`ApiTestSupport`); Relógio da organização fixo em 10/11/2026. |
 | Comando | `./mvnw test -Dtest=TaskApiTests` em `backend/` (com o Docker) |
 | Resultado | 17 testes (15 do I3 e os 2 novos), 0 falhas, 0 erros, 40 s (16/11/2026, Windows com Git Bash e Docker Desktop). |
+
+### 13.3 Testes E2E (exercício 4)
+
+| Item | Registo |
+|------|---------|
+| Testes | `frontend/e2e/create-task.spec.ts` (CT03), `frontend/e2e/project-flow.spec.ts` (CT33) e `frontend/e2e/direct-access.spec.ts` (CT20) |
+| Percursos | CT03, fluxo da ficha: o Rui entra, abre o Novo armazém, cria uma tarefa e vê-a na lista "Por fazer" e "Sem responsável", sem recarregar. CT33, fluxo do slide do Módulo 4 e do prompt E2E dos anexos: o Rui cria um projeto e uma tarefa, muda o estado para "Em curso" e o painel mostra 0, 1 e 0. CT20: o Carlos (Observador) dá o endereço de Fornecedores; o Pedro (Membro da Logística Norte) não o vê na lista e, ao abri-lo diretamente, vê "Não tem acesso a esta página." sem dados do projeto. |
+| Como | Playwright 1.65.1 com Chromium (perfil "Desktop Chrome"); seletores por papel e rótulo (`getByRole`, `getByLabel`), sem `data-testid` e sem esperas fixas; o identificador do que é criado vem da resposta 201 da API. Cada teste usa nomes únicos e apaga pela API o que criou (eliminação lógica, RN32). Trace e screenshot só em caso de falha. |
+| Ambiente | Base de dados de demonstração recriada antes da execução (`docker compose down -v` e `up -d`), porque as verificações manuais M9 a M11 tinham mudado os dados de partida. Backend com o perfil `demo` e servidor do Vite. |
+| Comando | `npm run test:e2e` em `frontend/`, com o backend a correr (o Vite arranca sozinho se não estiver a correr). Uma vez antes: `npx playwright install chromium`. `npm run type-check` sem erros, já com os testes E2E. |
+| Resultado | 3 testes, 3 passam, 0 falhas e 0 repetições, 14 s (16/11/2026, Windows). Executado duas vezes seguidas com o mesmo resultado, sem limpar a base de dados entre execuções: os testes não dependem de execuções anteriores. Relatório em `frontend/playwright-report/` e `frontend/test-results/results.json` (fora do Git). |

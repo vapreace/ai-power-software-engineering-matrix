@@ -2,8 +2,8 @@ import { fileURLToPath } from 'node:url'
 import { mergeConfig, defineConfig, configDefaults } from 'vitest/config'
 import viteConfig from './vite.config'
 
-// Testes unitários do frontend (DA31). Na Ficha PL 03 servem só para testes de regressão;
-// a estratégia completa de testes do frontend fica para o Módulo 4 (DP09).
+// Testes de regressão do frontend (DA31). A estratégia de testes está em DA37: os percursos
+// do utilizador são testes E2E com Playwright, em e2e/ (fora do Vitest).
 export default mergeConfig(
   viteConfig,
   defineConfig({
