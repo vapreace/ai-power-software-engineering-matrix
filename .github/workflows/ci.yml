@@ -332,7 +332,7 @@ jobs:
           echo "${TRIVY_SHA256}  $RUNNER_TEMP/trivy.tar.gz" | sha256sum -c -
           mkdir -p "$RUNNER_TEMP/trivy" && tar -xzf "$RUNNER_TEMP/trivy.tar.gz" -C "$RUNNER_TEMP/trivy" trivy
           echo "$RUNNER_TEMP/trivy" >> "$GITHUB_PATH"
-      # --offline-scan: o Trivy não pergunta nada ao Maven Central. Os runners partilham endereços e o
+      # --offline-scan (image e fs): o Trivy não pergunta nada ao Maven Central. Os runners partilham endereços e o
       # Maven Central responde 429 (Too Many Requests); os JAR da imagem trazem os metadados do Maven.
       - name: "Trivy: relatório das vulnerabilidades altas e críticas da imagem"
         run: trivy image --offline-scan --scanners vuln --severity HIGH,CRITICAL --format table --output trivy-image.txt matriz:local && cat trivy-image.txt
@@ -341,7 +341,7 @@ jobs:
       - name: "Trivy: segredos no repositório"
         run: trivy fs --offline-scan --scanners secret --skip-files .env --exit-code 1 .
       - name: "Trivy: configuração do Dockerfile (relatório)"
-        run: trivy config --offline-scan --format table --output trivy-config.txt . && cat trivy-config.txt
+        run: trivy config --format table --output trivy-config.txt . && cat trivy-config.txt
       - name: Logs da aplicação em caso de falha
         if: ${{ failure() }}
         run: docker compose logs --tail=200
