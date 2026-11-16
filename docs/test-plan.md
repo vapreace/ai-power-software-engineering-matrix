@@ -1,6 +1,6 @@
 # Plano de testes da Matriz
 
-> **Versão:** 0.3 (Ficha PL 04, exercícios 1 e 5; passo 2b depois da entrega)
+> **Versão:** 0.4 (Ficha PL 05: cenários de entrega e configuração, secção 4.4)
 > **Estado:** concluído para a Ficha PL 04. Todos os testes marcados "Novo" estão no repositório e passam. Os resultados das execuções ficam em [verification.md](verification.md), secção 13.
 
 Documentos relacionados:
@@ -61,7 +61,7 @@ Regras para todos os níveis:
 
 Pessoas e projetos de partida de [user-stories.md](user-stories.md): Rui gere o Novo armazém (Logística Norte), Tiago gere Fornecedores (Compras), Sofia é Gestor da Logística Norte sem gerir o Novo armazém, Marta e Pedro são Membros da Logística Norte, João é Membro de Compras, Carlos é Observador e Ana é Administrador. O Armazém Sul está arquivado.
 
-Estado: **Existe** (teste já no repositório), **Novo** (teste a acrescentar na Ficha PL 04, com o exercício) ou **Não automatizado** (com o motivo na secção 7).
+Estado: **Existe** (teste já no repositório), **Novo** (teste acrescentado na Ficha PL 04 ou na Ficha PL 05, com o exercício ou o passo) ou **Não automatizado** (com o motivo na secção 7).
 
 ### 4.1 Criação e consulta
 
@@ -116,6 +116,14 @@ Os cenários CT12 a CT21, CT34 e CT35 são o cenário de autorização entre doi
 | CT34 | Responsáveis de tarefa de outra equipa não se descobrem | Pedro | `DELETE /api/tasks/{tarefa de Fornecedores}/assignees/{João}` (responsável) e `.../{Marta}` (não responsável) | 403 nos dois, sem revelar quem é responsável. A associação mantém-se. | Integração | Novo (Ex. 5, regressão de F1): `AccessControlApiTests.memberOfAnotherTeamCannotFindOutWhoIsAssigned` | SEG02, 3.1 |
 | CT35 | Pessoas de outra equipa não se descobrem | Pedro | `DELETE /api/teams/{compras}/members/{João}` (pertence) e `.../{Rui}` (não pertence) | 403 nos dois, sem revelar quem pertence. A equipa fica igual. | Integração | Novo (Ex. 5, regressão de F2): `TeamApiTests.memberCannotFindOutWhoBelongsToAnotherTeam` | SEG02, 3.1 |
 
+### 4.4 Entrega e configuração (Ficha PL 05)
+
+Cenários da imagem Docker, do ambiente publicado e das correções F5, F6 e F13 ([quality-security-review.md](quality-security-review.md)). Decisões em DA38 a DA40.
+
+| ID | Cenário | Quem | Entrada | Resultado esperado | Nível | Teste | Origem |
+|----|---------|------|---------|--------------------|-------|-------|--------|
+| CT37 | Saúde da aplicação para o Docker, a pipeline e o alojamento | Sem sessão | `GET /actuator/health`, `/actuator/health/liveness` e `/actuator/health/readiness`; `GET /actuator`, `/actuator/env`, `/actuator/beans`, `/actuator/configprops` e `/actuator/loggers` | Os três primeiros: 200 com `status` "UP" e sem pormenores dos componentes. Os outros não chegam ao Actuator: nenhum devolve configuração, beans, níveis de log nem a lista de endpoints. | Integração | Novo (Ficha PL 05, passo 2): `HealthEndpointTests` | DA38 |
+
 ---
 
 ## 5. Valores-limite do título (RN11)
@@ -165,6 +173,7 @@ O título conta-se depois de retirar os espaços nas pontas e de normalizar o te
 |---------|--------|
 | Mudar o estado para o mesmo valor | Comportamento não definido nos requisitos (secção 6, linha 10). |
 | Testes de carga e tempo de resposta (RNF03, RNF04) | Fora do âmbito da Ficha PL 04. |
+| Readiness com a base de dados parada | Verificação manual no troubleshooting da Ficha PL 05 (exercício 6): parar o PostgreSQL no Compose e confirmar que a readiness passa a 503 e a liveness continua 200. |
 | E2E noutros browsers além do Chromium | Um browser chega para o percurso da ficha. Os outros ficam por verificar. O ecrã de 360 px está coberto desde o passo 2b. |
 
 ---

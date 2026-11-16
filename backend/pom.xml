@@ -18,6 +18,11 @@
 		<spring-modulith.version>2.1.2</spring-modulith.version>
 	</properties>
 	<dependencies>
+		<!-- Só os endereços de saúde (liveness e readiness) para o Docker, a pipeline e o alojamento (DA38). -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>

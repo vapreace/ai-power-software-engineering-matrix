@@ -35,6 +35,25 @@ server:
         http-only: true
         same-site: lax
 
+# Saúde da aplicação para o Docker, a pipeline e o alojamento (DA38). Só /actuator/health,
+# com liveness e readiness (a readiness inclui a base de dados), sem pormenores dos componentes.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      discovery:
+        enabled: false
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+      show-components: never
+      group:
+        readiness:
+          include: readinessState,db
+
 matriz:
   # Fuso horário fixo da organização (DA24).
   time-zone: Europe/Lisbon

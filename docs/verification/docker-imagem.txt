@@ -1,0 +1,53 @@
+WARNING: This output is designed for human readability. For machine-readable output, please use --format.
+IMAGE          ID             DISK USAGE   CONTENT SIZE   EXTRA
+matriz:local   1672b1dc0e4b        411MB          133MB   U    
+Utilizador: 10001:10001  Env: [PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin JAVA_HOME=/opt/java/openjdk LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 JAVA_VERSION=jdk-21.0.13+9 JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError]
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+{"status":"UP"}
+{"status":"UP"}
+CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS                             PORTS                                         NAMES
+e0c18cf188a9   matriz:local   "java -jar /app/matr…"   15 seconds ago   Up 14 seconds (health: starting)   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp   matriz-app
+HTTP/1.1 200 
+actuator/env: 200 text/html
+2026-11-16T16:04:45.254Z  INFO 1 --- [matriz] [           main] liquibase.util                           : Filtered out:                 0
+2026-11-16T16:04:45.254Z  INFO 1 --- [matriz] [           main] liquibase.util                           : -------------------------------
+2026-11-16T16:04:45.255Z  INFO 1 --- [matriz] [           main] liquibase.util                           : Total change sets:           15
+2026-11-16T16:04:45.255Z  INFO 1 --- [matriz] [           main] liquibase.util                           : Update summary generated
+2026-11-16T16:04:45.258Z  INFO 1 --- [matriz] [           main] liquibase.command                        : Update command completed successfully.
+2026-11-16T16:04:45.258Z  INFO 1 --- [matriz] [           main] liquibase.ui                             : Liquibase: Update has been successful. Rows affected: 54
+2026-11-16T16:04:45.267Z  INFO 1 --- [matriz] [           main] liquibase.lockservice                    : Successfully released change log lock
+2026-11-16T16:04:45.272Z  INFO 1 --- [matriz] [           main] liquibase.command                        : Command execution complete
+2026-11-16T16:04:45.384Z  INFO 1 --- [matriz] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-16T16:04:45.451Z  INFO 1 --- [matriz] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.13.Final
+2026-11-16T16:04:45.988Z  INFO 1 --- [matriz] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-16T16:04:46.115Z  INFO 1 --- [matriz] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://host.docker.internal:5432/matriz]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 18.6
+	Default catalog/schema: matriz/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-16T16:04:47.313Z  INFO 1 --- [matriz] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-16T16:04:47.362Z  INFO 1 --- [matriz] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-16T16:04:47.475Z  INFO 1 --- [matriz] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-16T16:04:48.228Z  WARN 1 --- [matriz] [           main] .s.a.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: [omitida: gerada no arranque, ver F14]
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-11-16T16:04:48.239Z  INFO 1 --- [matriz] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-11-16T16:04:48.539Z  INFO 1 --- [matriz] [           main] o.s.b.w.a.WelcomePageHandlerMapping      : Adding welcome page: class path resource [static/index.html]
+2026-11-16T16:04:48.963Z  INFO 1 --- [matriz] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-11-16T16:04:49.094Z  INFO 1 --- [matriz] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-11-16T16:04:49.113Z  INFO 1 --- [matriz] [           main] pt.matriz.MatrizApplication              : Started MatrizApplication in 10.734 seconds (process running for 11.812)
+2026-11-16T16:04:50.533Z  INFO 1 --- [matriz] [nio-8080-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-16T16:04:50.534Z  INFO 1 --- [matriz] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-16T16:04:50.535Z  INFO 1 --- [matriz] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms

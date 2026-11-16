@@ -1,0 +1,314 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.08kB 0.0s done
+#1 DONE 0.1s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 1.6s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+#3 resolve docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e 0.0s done
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 0B / 14.28MB 0.2s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 2.10MB / 14.28MB 0.3s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 5.24MB / 14.28MB 0.5s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 9.44MB / 14.28MB 0.6s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 12.58MB / 14.28MB 0.8s
+#3 sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 14.28MB / 14.28MB 0.8s done
+#3 extracting sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62
+#3 extracting sha256:9d2b4f57f9e20f33279375ce25c6ff14f30f64270ed5c7b613b2b30256754f62 0.2s done
+#3 DONE 1.1s
+
+#4 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre-alpine
+#4 DONE 1.3s
+
+#5 [internal] load metadata for docker.io/library/node:24-alpine
+#5 DONE 1.3s
+
+#6 [internal] load metadata for docker.io/library/eclipse-temurin:21-jdk-noble
+#6 DONE 1.3s
+
+#7 [internal] load .dockerignore
+#7 transferring context: 758B done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 DONE 0.0s
+
+#9 [stage-2 1/4] FROM docker.io/library/eclipse-temurin:21-jre-alpine@sha256:ac05c3c42b7c2f1a52c9bd52f01041fa1958231b15ebeae7420429cbc5baf474
+#9 resolve docker.io/library/eclipse-temurin:21-jre-alpine@sha256:ac05c3c42b7c2f1a52c9bd52f01041fa1958231b15ebeae7420429cbc5baf474
+#9 resolve docker.io/library/eclipse-temurin:21-jre-alpine@sha256:ac05c3c42b7c2f1a52c9bd52f01041fa1958231b15ebeae7420429cbc5baf474 0.0s done
+#9 DONE 0.3s
+
+#8 [internal] load build context
+#8 transferring context: 608.94kB 0.1s done
+#8 DONE 0.2s
+
+#10 [frontend 1/6] FROM docker.io/library/node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5
+#10 resolve docker.io/library/node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 0.0s done
+#10 sha256:7bb632bc9bd793a348866a7dd7920cf89dfc87205c6d38cda182ea6d8065b8e5 442B / 442B 0.1s done
+#10 sha256:7eb569707982863466c2b0bcfddda86fb4842fccfaec088d1354f6a29e2856bb 0B / 1.26MB 0.2s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 0B / 57.42MB 0.2s
+#10 sha256:881fc932939efef04ca120ad44bbd2c0917851eb247aa4995428afb1e80ede17 0B / 3.85MB 0.2s
+#10 sha256:7eb569707982863466c2b0bcfddda86fb4842fccfaec088d1354f6a29e2856bb 1.26MB / 1.26MB 0.3s done
+#10 sha256:881fc932939efef04ca120ad44bbd2c0917851eb247aa4995428afb1e80ede17 1.05MB / 3.85MB 0.6s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 4.19MB / 57.42MB 0.8s
+#10 sha256:881fc932939efef04ca120ad44bbd2c0917851eb247aa4995428afb1e80ede17 3.15MB / 3.85MB 0.8s
+#10 sha256:881fc932939efef04ca120ad44bbd2c0917851eb247aa4995428afb1e80ede17 3.85MB / 3.85MB 0.9s done
+#10 extracting sha256:881fc932939efef04ca120ad44bbd2c0917851eb247aa4995428afb1e80ede17
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 8.71MB / 57.42MB 1.2s
+#10 extracting sha256:881fc932939efef04ca120ad44bbd2c0917851eb247aa4995428afb1e80ede17 0.4s done
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 12.58MB / 57.42MB 1.5s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 15.73MB / 57.42MB 2.0s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 18.87MB / 57.42MB 1.5s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 22.02MB / 57.42MB 1.8s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 25.17MB / 57.42MB 2.1s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 28.31MB / 57.42MB 2.4s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 32.51MB / 57.42MB 3.0s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 35.65MB / 57.42MB 3.3s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 38.80MB / 57.42MB 3.6s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 41.94MB / 57.42MB 4.0s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 46.14MB / 57.42MB 4.5s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 49.28MB / 57.42MB 4.9s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 52.43MB / 57.42MB 5.2s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 56.62MB / 57.42MB 5.7s
+#10 sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 57.42MB / 57.42MB 5.8s done
+#10 extracting sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db
+#10 ...
+
+#9 [stage-2 1/4] FROM docker.io/library/eclipse-temurin:21-jre-alpine@sha256:ac05c3c42b7c2f1a52c9bd52f01041fa1958231b15ebeae7420429cbc5baf474
+#9 sha256:e84ee4d88719efe0c0f5723556c11c87be2c0094c89dce0bb75f768f6dd74605 2.46kB / 2.46kB 0.1s done
+#9 sha256:c85a6771097082b2df91a6477c3314ec25a91b894210dd741baae08d3e41b4b3 127B / 127B 0.1s done
+#9 sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f 29.36MB / 53.38MB 5.8s
+#9 sha256:2d99ac440d39bbade5ae9f2dd56b69d8234c4e540282df61003829295761e4fe 16.97MB / 16.97MB 3.1s done
+#9 extracting sha256:2d99ac440d39bbade5ae9f2dd56b69d8234c4e540282df61003829295761e4fe 1.2s done
+#9 sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f 32.51MB / 53.38MB 6.7s
+#9 sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f 35.65MB / 53.38MB 7.6s
+#9 ...
+
+#11 [backend 1/8] FROM docker.io/library/eclipse-temurin:21-jdk-noble@sha256:06c1f157dacf6b68198bd9a4186dd4c34ef24e65d7bbbe2a0cf8e62571ad38c9
+#11 resolve docker.io/library/eclipse-temurin:21-jdk-noble@sha256:06c1f157dacf6b68198bd9a4186dd4c34ef24e65d7bbbe2a0cf8e62571ad38c9 0.0s done
+#11 sha256:9c5ce926342e071ca535336de23071b008aaa605d482645bae5c6fc69438cc14 2.46kB / 2.46kB 0.2s done
+#11 sha256:434838bce9699a284575898e53a7f4a9d91d1b4231ef849e18f1f48fcca6a555 156B / 156B 0.1s done
+#11 sha256:a9c23a815aca30918a3a75634adfe592b3e195a18be43414471d6a1917a955ec 66.06MB / 158.42MB 7.2s
+#11 sha256:869bc9612dbb81db3b3831d2e4992a242c2231d03c9935e9ac3197a266c4c6f8 20.97MB / 22.95MB 5.0s
+#11 sha256:26538842dfbfed820e62531e047bc6cfd3359a7e0a52f59c1a951ccc6ca787fe 16.78MB / 29.79MB 2.7s
+#11 sha256:869bc9612dbb81db3b3831d2e4992a242c2231d03c9935e9ac3197a266c4c6f8 22.95MB / 22.95MB 5.2s done
+#11 ...
+
+#9 [stage-2 1/4] FROM docker.io/library/eclipse-temurin:21-jre-alpine@sha256:ac05c3c42b7c2f1a52c9bd52f01041fa1958231b15ebeae7420429cbc5baf474
+#9 sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f 38.80MB / 53.38MB 8.4s
+#9 sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f 41.94MB / 53.38MB 8.8s
+#9 sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f 45.09MB / 53.38MB 9.1s
+#9 ...
+
+#10 [frontend 1/6] FROM docker.io/library/node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5
+#10 extracting sha256:86781d25d3989ead8f09c45716da0159c1dd0be2c753a51f15b6c60f4b9a97db 4.1s done
+#10 DONE 10.2s
+
+#9 [stage-2 1/4] FROM docker.io/library/eclipse-temurin:21-jre-alpine@sha256:ac05c3c42b7c2f1a52c9bd52f01041fa1958231b15ebeae7420429cbc5baf474
+#9 sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f 48.23MB / 53.38MB 9.6s
+#9 ...
+
+#10 [frontend 1/6] FROM docker.io/library/node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5
+#10 extracting sha256:7eb569707982863466c2b0bcfddda86fb4842fccfaec088d1354f6a29e2856bb 0.1s done
+#10 extracting sha256:7bb632bc9bd793a348866a7dd7920cf89dfc87205c6d38cda182ea6d8065b8e5 0.1s done
+#10 DONE 10.4s
+
+#9 [stage-2 1/4] FROM docker.io/library/eclipse-temurin:21-jre-alpine@sha256:ac05c3c42b7c2f1a52c9bd52f01041fa1958231b15ebeae7420429cbc5baf474
+#9 sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f 51.38MB / 53.38MB 9.9s
+#9 sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f 53.38MB / 53.38MB 10.0s done
+#9 extracting sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f
+#9 ...
+
+#12 [frontend 2/6] WORKDIR /src/frontend
+#12 DONE 0.8s
+
+#13 [frontend 3/6] COPY frontend/package.json frontend/package-lock.json ./
+#13 DONE 0.2s
+
+#14 [frontend 4/6] RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+#14 ...
+
+#9 [stage-2 1/4] FROM docker.io/library/eclipse-temurin:21-jre-alpine@sha256:ac05c3c42b7c2f1a52c9bd52f01041fa1958231b15ebeae7420429cbc5baf474
+#9 extracting sha256:6ac8bacad3044dd68d9bbbc26ed22c6674c4149fc01ef8d074f009f484341d4f 1.9s done
+#9 extracting sha256:c85a6771097082b2df91a6477c3314ec25a91b894210dd741baae08d3e41b4b3 0.0s done
+#9 extracting sha256:e84ee4d88719efe0c0f5723556c11c87be2c0094c89dce0bb75f768f6dd74605 0.0s done
+#9 DONE 12.6s
+
+#11 [backend 1/8] FROM docker.io/library/eclipse-temurin:21-jdk-noble@sha256:06c1f157dacf6b68198bd9a4186dd4c34ef24e65d7bbbe2a0cf8e62571ad38c9
+#11 sha256:a9c23a815aca30918a3a75634adfe592b3e195a18be43414471d6a1917a955ec 117.44MB / 158.42MB 11.2s
+#11 sha256:26538842dfbfed820e62531e047bc6cfd3359a7e0a52f59c1a951ccc6ca787fe 29.79MB / 29.79MB 4.3s done
+#11 extracting sha256:26538842dfbfed820e62531e047bc6cfd3359a7e0a52f59c1a951ccc6ca787fe
+#11 sha256:a9c23a815aca30918a3a75634adfe592b3e195a18be43414471d6a1917a955ec 125.67MB / 158.42MB 11.7s
+#11 extracting sha256:26538842dfbfed820e62531e047bc6cfd3359a7e0a52f59c1a951ccc6ca787fe 3.0s done
+#11 extracting sha256:869bc9612dbb81db3b3831d2e4992a242c2231d03c9935e9ac3197a266c4c6f8
+#11 ...
+
+#15 [stage-2 2/4] RUN addgroup -S -g 10001 matriz && adduser -S -D -H -u 10001 -G matriz matriz
+#15 DONE 0.8s
+
+#16 [stage-2 3/4] WORKDIR /app
+#16 DONE 0.1s
+
+#11 [backend 1/8] FROM docker.io/library/eclipse-temurin:21-jdk-noble@sha256:06c1f157dacf6b68198bd9a4186dd4c34ef24e65d7bbbe2a0cf8e62571ad38c9
+#11 sha256:a9c23a815aca30918a3a75634adfe592b3e195a18be43414471d6a1917a955ec 136.31MB / 158.42MB 12.3s
+#11 sha256:a9c23a815aca30918a3a75634adfe592b3e195a18be43414471d6a1917a955ec 144.70MB / 158.42MB 12.7s
+#11 sha256:a9c23a815aca30918a3a75634adfe592b3e195a18be43414471d6a1917a955ec 153.09MB / 158.42MB 13.2s
+#11 sha256:a9c23a815aca30918a3a75634adfe592b3e195a18be43414471d6a1917a955ec 158.42MB / 158.42MB 13.5s done
+#11 extracting sha256:869bc9612dbb81db3b3831d2e4992a242c2231d03c9935e9ac3197a266c4c6f8 1.8s done
+#11 DONE 15.2s
+
+#14 [frontend 4/6] RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+#14 ...
+
+#11 [backend 1/8] FROM docker.io/library/eclipse-temurin:21-jdk-noble@sha256:06c1f157dacf6b68198bd9a4186dd4c34ef24e65d7bbbe2a0cf8e62571ad38c9
+#11 extracting sha256:a9c23a815aca30918a3a75634adfe592b3e195a18be43414471d6a1917a955ec
+#11 extracting sha256:a9c23a815aca30918a3a75634adfe592b3e195a18be43414471d6a1917a955ec 4.5s done
+#11 extracting sha256:434838bce9699a284575898e53a7f4a9d91d1b4231ef849e18f1f48fcca6a555
+#11 extracting sha256:434838bce9699a284575898e53a7f4a9d91d1b4231ef849e18f1f48fcca6a555 0.0s done
+#11 extracting sha256:9c5ce926342e071ca535336de23071b008aaa605d482645bae5c6fc69438cc14 0.0s done
+#11 DONE 19.8s
+
+#17 [backend 2/8] WORKDIR /src/backend
+#17 DONE 0.1s
+
+#14 [frontend 4/6] RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+#14 ...
+
+#18 [backend 3/8] COPY backend/.mvn/ .mvn/
+#18 DONE 0.1s
+
+#19 [backend 4/8] COPY backend/mvnw backend/pom.xml ./
+#19 DONE 0.1s
+
+#20 [backend 5/8] RUN --mount=type=cache,target=/root/.m2 sh ./mvnw -B -q dependency:go-offline
+#20 ...
+
+#14 [frontend 4/6] RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+#14 16.23 
+#14 16.23 added 277 packages in 15s
+#14 16.23 npm notice
+#14 16.23 npm notice New major version of npm available! 11.19.1 -> 12.2.2
+#14 16.23 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+#14 16.23 npm notice To update run: npm install -g npm@12.2.2
+#14 16.23 npm notice
+#14 DONE 16.7s
+
+#20 [backend 5/8] RUN --mount=type=cache,target=/root/.m2 sh ./mvnw -B -q dependency:go-offline
+#20 ...
+
+#21 [frontend 5/6] COPY frontend/ ./
+#21 DONE 0.2s
+
+#20 [backend 5/8] RUN --mount=type=cache,target=/root/.m2 sh ./mvnw -B -q dependency:go-offline
+#20 ...
+
+#22 [frontend 6/6] RUN npm run build
+#22 0.836 
+#22 0.836 > matriz-frontend@0.0.0 build
+#22 0.836 > run-p type-check "build-only {@}" --
+#22 0.836 
+#22 1.351 
+#22 1.351 > matriz-frontend@0.0.0 type-check
+#22 1.351 > vue-tsc --build
+#22 1.351 
+#22 1.352 
+#22 1.352 > matriz-frontend@0.0.0 build-only
+#22 1.352 > vite build
+#22 1.352 
+#22 2.643 vite v8.3.6 building client environment for production...
+#22 2.687 transforming...
+#22 4.506 ✓ 137 modules transformed.
+#22 4.695 rendering chunks...
+#22 4.907 computing gzip size...
+#22 4.923 ../backend/src/main/resources/static/index.html                                              0.43 kB │ gzip:  0.29 kB
+#22 4.923 ../backend/src/main/resources/static/assets/ibm-plex-mono-latin-400-normal-CvHOgSBP.woff    13.14 kB
+#22 4.923 ../backend/src/main/resources/static/assets/ibm-plex-mono-latin-500-normal-CB9ihrfo.woff    13.15 kB
+#22 4.923 ../backend/src/main/resources/static/assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2   14.70 kB
+#22 4.923 ../backend/src/main/resources/static/assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2   14.88 kB
+#22 4.923 ../backend/src/main/resources/static/assets/ibm-plex-sans-latin-400-normal-CYLoc0-x.woff    22.10 kB
+#22 4.923 ../backend/src/main/resources/static/assets/ibm-plex-sans-latin-400-normal-CDDApCn2.woff2   22.58 kB
+#22 4.923 ../backend/src/main/resources/static/assets/ibm-plex-sans-latin-600-normal-Cu4Hd6ag.woff    23.87 kB
+#22 4.923 ../backend/src/main/resources/static/assets/ibm-plex-sans-latin-500-normal-BgVn5rGT.woff    23.91 kB
+#22 4.923 ../backend/src/main/resources/static/assets/ibm-plex-sans-latin-500-normal-6ng42L7E.woff2   24.18 kB
+#22 4.923 ../backend/src/main/resources/static/assets/ibm-plex-sans-latin-600-normal-CuJfVYMP.woff2   24.25 kB
+#22 4.923 ../backend/src/main/resources/static/assets/index-ClO2RB36.css                              28.39 kB │ gzip:  5.59 kB
+#22 4.923 ../backend/src/main/resources/static/assets/index-DhEPYXPU.js                              182.10 kB │ gzip: 59.52 kB
+#22 4.923 
+#22 4.927 ✓ built in 2.28s
+#22 10.91 npm notice
+#22 10.91 npm notice New major version of npm available! 11.19.1 -> 12.2.2
+#22 10.91 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+#22 10.91 npm notice To update run: npm install -g npm@12.2.2
+#22 10.91 npm notice
+#22 DONE 11.0s
+
+#20 [backend 5/8] RUN --mount=type=cache,target=/root/.m2 sh ./mvnw -B -q dependency:go-offline
+#20 DONE 28.6s
+
+#23 [backend 6/8] COPY backend/src/main/ src/main/
+#23 DONE 0.1s
+
+#24 [backend 7/8] COPY --from=frontend /src/backend/src/main/resources/static/ src/main/resources/static/
+#24 DONE 0.0s
+
+#25 [backend 8/8] RUN --mount=type=cache,target=/root/.m2 sh ./mvnw -B -Dmaven.test.skip=true package     && cp target/matriz-*.jar /tmp/matriz.jar
+#25 2.043 [INFO] Scanning for projects...
+#25 2.211 [INFO] Loaded 24511 auto-discovered prefixes for remote repository central (prefixes-central.txt)
+#25 2.660 [INFO] 
+#25 2.661 [INFO] --------------------------< pt.matriz:matriz >--------------------------
+#25 2.661 [INFO] Building Matriz 0.0.1-SNAPSHOT
+#25 2.661 [INFO]   from pom.xml
+#25 2.662 [INFO] --------------------------------[ jar ]---------------------------------
+#25 3.149 [INFO] Loaded 64 auto-discovered prefixes for remote repository apache.snapshots (prefixes-apache.snapshots.txt)
+#25 4.045 [INFO] 
+#25 4.046 [INFO] --- jacoco:0.8.15:prepare-agent (prepare-agent) @ matriz ---
+#25 4.170 [INFO] argLine set to -javaagent:/root/.m2/repository/org/jacoco/org.jacoco.agent/0.8.15/org.jacoco.agent-0.8.15-runtime.jar=destfile=/src/backend/target/jacoco.exec
+#25 4.170 [INFO] 
+#25 4.170 [INFO] --- resources:3.5.0:resources (default-resources) @ matriz ---
+#25 4.258 [INFO] Copying 2 resources from src/main/resources to target/classes
+#25 4.276 [INFO] Copying 20 resources from src/main/resources to target/classes
+#25 4.290 [INFO] 
+#25 4.290 [INFO] --- compiler:3.15.0:compile (default-compile) @ matriz ---
+#25 4.458 [INFO] Recompiling the module because of changed source code.
+#25 4.467 [INFO] Compiling 106 source files with javac [debug parameters release 21] to target/classes
+#25 6.788 [INFO] 
+#25 6.789 [INFO] --- resources:3.5.0:testResources (default-testResources) @ matriz ---
+#25 6.797 [INFO] Not copying test resources
+#25 6.797 [INFO] 
+#25 6.797 [INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ matriz ---
+#25 6.807 [INFO] Not compiling test sources
+#25 6.807 [INFO] 
+#25 6.807 [INFO] --- surefire:3.5.6:test (default-test) @ matriz ---
+#25 6.960 [INFO] Tests are skipped.
+#25 6.960 [INFO] 
+#25 6.961 [INFO] --- jar:3.5.1:jar (default-jar) @ matriz ---
+#25 7.283 [INFO] Building jar: /src/backend/target/matriz-0.0.1-SNAPSHOT.jar
+#25 7.403 [INFO] 
+#25 7.403 [INFO] --- spring-boot:4.1.2:repackage (repackage) @ matriz ---
+#25 7.440 [INFO] Loaded 50 auto-discovered prefixes for remote repository ow2-snapshot (prefixes-ow2-snapshot.txt)
+#25 7.959 [INFO] Replacing main artifact /src/backend/target/matriz-0.0.1-SNAPSHOT.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+#25 7.960 [INFO] The original artifact has been renamed to /src/backend/target/matriz-0.0.1-SNAPSHOT.jar.original
+#25 7.960 [INFO] ------------------------------------------------------------------------
+#25 7.960 [INFO] BUILD SUCCESS
+#25 7.960 [INFO] ------------------------------------------------------------------------
+#25 7.960 [INFO] Total time:  5.967 s
+#25 7.961 [INFO] Finished at: 2026-11-16T16:04:29Z
+#25 7.961 [INFO] ------------------------------------------------------------------------
+#25 DONE 8.4s
+
+#26 [stage-2 4/4] COPY --from=backend /tmp/matriz.jar /app/matriz.jar
+#26 DONE 0.2s
+
+#27 exporting to image
+#27 exporting layers
+#27 exporting layers 2.1s done
+#27 exporting manifest sha256:e79c44476eaa9711357cd5c7b4f3256efcfd55d6ce9e5b7add208680eaa4f121 0.0s done
+#27 exporting config sha256:a4406aa7ba92034e1397e51502df29bb2a2870c37ce53a6c59b994308a73d7c1 0.0s done
+#27 exporting attestation manifest sha256:e1709e83aea2e86d6b5bcaf66ff5b33ef031bbb418a1df16c93013963ede1213 0.0s done
+#27 exporting manifest list sha256:1672b1dc0e4b8985e9c4f040e907938595a9bd5f3147f4eaecae429a61d46875 0.0s done
+#27 naming to docker.io/library/matriz:local done
+#27 unpacking to docker.io/library/matriz:local
+#27 unpacking to docker.io/library/matriz:local 0.5s done
+#27 DONE 2.7s

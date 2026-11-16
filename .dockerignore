@@ -1,0 +1,34 @@
+# Contexto do build da imagem (DA38): só entra o que o Dockerfile precisa.
+# Nunca entram na imagem segredos, builds locais, dependências instaladas nem relatórios.
+
+# Segredos e configuração local (IA01)
+.env
+.env.*
+**/*.pem
+**/*.key
+
+# Git, IDE e documentação
+.git
+.github
+.idea
+.vscode
+docs
+**/*.md
+**/*.log
+
+# Ficheiros de execução, não de build
+compose.yaml
+render.yaml
+Dockerfile
+.dockerignore
+
+# Backend: build local, build do frontend copiado e testes (não correm na imagem)
+backend/target
+backend/src/main/resources/static
+backend/src/test
+
+# Frontend: dependências instaladas, builds e relatórios dos testes
+frontend/node_modules
+frontend/dist
+frontend/playwright-report
+frontend/test-results
