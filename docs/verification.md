@@ -1,13 +1,14 @@
 # Verificação da Matriz
 
-> **Versão:** 0.1 (Ficha PL 03, exercícios 8 e 9, incremento I6)
-> **Estado:** concluído para a Ficha PL 03.
+> **Versão:** 0.2 (Ficha PL 04: resultados dos testes na secção 13)
+> **Estado:** concluído para a Ficha PL 03. Ficha PL 04 em curso.
 
 Documentos relacionados:
 
 - [implementation-plan.md](implementation-plan.md): incrementos e verificação prevista em cada um.
 - [user-stories.md](user-stories.md): critérios de aceitação.
-- [architecture.md](architecture.md): decisão de testes (DA31) e estado dos endpoints (secção 13.2).
+- [architecture.md](architecture.md): decisão de testes (DA31, DA37) e estado dos endpoints (secção 13.2).
+- [test-plan.md](test-plan.md): cenários de teste (CT) e resultados esperados (Ficha PL 04).
 
 ---
 
@@ -236,3 +237,20 @@ Não faz parte da entrega da Ficha PL 03 (tag `ficha-pl03`). Completa as 22 hist
 | M10 | Ana: criar uma equipa, adicionar e remover uma pessoa; remover o Rui da Logística Norte deixa o Novo armazém "Sem gestor". | Passa (16/11/2026) |
 | M11 | Ana: criar uma conta e entrar com ela (pede palavra-passe nova); desativar o Pedro (não entra e as tarefas abertas ficam "Sem responsável"); reativar; tentar desativar a própria conta (recusado). | Passa (16/11/2026) |
 
+---
+
+## 13. Ficha PL 04
+
+Resultados das execuções dos testes da Ficha PL 04. Os cenários e os resultados esperados estão em [test-plan.md](test-plan.md); a estratégia em DA37.
+
+### 13.1 Testes unitários (exercício 2)
+
+| Item | Registo |
+|------|---------|
+| Teste | `TaskTitleRulesTests` (`backend/src/test/java/pt/matriz/tasks/application`) |
+| Regra | RN11: título obrigatório, 1 a 200 caracteres depois de retirar os espaços nas pontas e de normalizar em NFC (DA11), cada código Unicode conta um (LIM13). |
+| Cenários | CT04 a CT08: 7 títulos válidos (incluindo os valores-limite de 1 e 200 caracteres, acentos combinados, emojis e espaços nas pontas), 7 inválidos (em falta, vazio, só espaços, 201 caracteres, 202 códigos Unicode) e 1 edição com título só com espaços. |
+| Como | `TaskService` real; repositório, consultas e outros módulos com mocks do Mockito; Relógio da organização fixo em 10/11/2026. Sem base de dados nem Spring. Padrão Arrange, Act, Assert. |
+| Revisão das asserções | Cada caso verifica o valor da RN11 e não o que o código faz: o título gravado, o estado "Por fazer" e a prioridade Média nos válidos; 400 `VALIDATION_ERROR` com o erro no campo `title` e nenhuma gravação nos inválidos. A mensagem é a mesma do teste de integração `TaskApiTests.invalidTitlesAreRefused`. Nenhum teste precisou de correção e a regra não mudou. |
+| Comando | `./mvnw test -Dtest=TaskTitleRulesTests` em `backend/` (não precisa do Docker) |
+| Resultado | 15 testes, 0 falhas, 0 erros, 3,5 s (16/11/2026, Windows com Git Bash; relatório em `backend/target/surefire-reports`). |
