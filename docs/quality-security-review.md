@@ -100,8 +100,8 @@ Seguem a orientação da ficha: distinguir defeito da aplicação, problema do t
 |-------------|--------|
 | Dependências do backend (Maven) | Resolvido na Ficha PL 05: o Trivy analisa os JAR dentro da imagem em cada execução da pipeline (secção 2). Antes: não havia ferramenta configurada. O OWASP Dependency-Check precisa da base de dados do NVD; fica para a pipeline da Ficha PL 05. |
 | F5 (concorrência no último Administrador) | Resolvido na Ficha PL 05: teste com pedidos em paralelo (secção 6.1). |
-| Cabeçalhos de segurança no ambiente publicado (CSP, HSTS) e F6 | Só fazem sentido com HTTPS (Ficha PL 05). |
-| F13 (endereço de quem entra atrás do proxy) | Só se reproduz no ambiente publicado (Ficha PL 05). |
+| Cabeçalhos de segurança no ambiente publicado (CSP, HSTS) e F6 | Verificados na Ficha PL 05 (verification.md, secção 15.6). |
+| F13 (endereço de quem entra atrás do proxy) | Configuração verificada no ambiente publicado (HSTS e cookie CSRF com `Secure`). O limite de tentativas em si não foi exercitado lá, porque exigia escrever palavras-passe no site publicado; fica coberto pelo CT40. |
 | Componentes `.vue` no Semgrep | O Semgrep não analisa ficheiros `.vue`; o ESLint cobre esses ficheiros. |
 
 ---
@@ -135,8 +135,8 @@ Aprovadas pela utilizadora em 16/11/2026, no plano do incremento I9 (decisão Q8
 | Finding | Correção aplicada | Verificação |
 |---------|-------------------|-------------|
 | F5 | `UserAccountRepository.lockByRoleAndStatus` bloqueia as contas de Administrador ativas (`SELECT ... FOR UPDATE`, sempre pela mesma ordem) antes da contagem em `AccountAdministration.isLastActiveAdministrator`. Um segundo pedido simultâneo espera pelo primeiro e a contagem seguinte já vê a alteração gravada. | `LastAdministratorConcurrencyTests` (CT38): 10 rondas com dois pedidos em paralelo; em todas, um passa, o outro é recusado e fica um Administrador ativo. |
-| F6 | `server.servlet.session.cookie.secure` lido de `MATRIZ_COOKIE_SECURE` (`false` por omissão; `true` no ambiente publicado). | `ProxyConfigurationTests` (CT39). |
-| F13 | `server.forward-headers-strategy` lido de `MATRIZ_FORWARD_HEADERS` (`none` por omissão; `native` no ambiente publicado). O Tomcat só aceita os cabeçalhos vindos de proxies internos. Com o HTTPS conhecido, o cookie CSRF também sai com `Secure` e o Spring Security envia o HSTS. | `ProxyConfigurationTests` (CT39, CT40). |
+| F6 | `server.servlet.session.cookie.secure` lido de `MATRIZ_COOKIE_SECURE` (`false` por omissão; `true` no ambiente publicado). | `ProxyConfigurationTests` (CT39). No ambiente publicado, `JSESSIONID` com `Secure`, `HttpOnly` e `SameSite=Lax` (verification.md, secção 15.6). |
+| F13 | `server.forward-headers-strategy` lido de `MATRIZ_FORWARD_HEADERS` (`none` por omissão; `native` no ambiente publicado). O Tomcat só aceita os cabeçalhos vindos de proxies internos. Com o HTTPS conhecido, o cookie CSRF também sai com `Secure` e o Spring Security envia o HSTS. | `ProxyConfigurationTests` (CT39, CT40). No ambiente publicado, HSTS e cookie CSRF com `Secure`: o proxy do Render é aceite (verification.md, secção 15.6). |
 | F14 | `UserDetailsServiceAutoConfiguration` excluída em `application.yaml`. | `SecurityConfigurationTests` (CT42). |
 | Cabeçalhos (secção 5) | Content Security Policy no Spring Security: só recursos da própria origem, sem plugins, sem formulários para fora e sem a aplicação dentro de frames de outros sites. Os outros cabeçalhos por omissão mantêm-se. Os cabeçalhos são escritos no início de cada pedido: na primeira versão, a página inicial (`/`), servida por reencaminhamento para o `index.html`, saía sem nenhum deles (encontrado na validação com o Compose; o teste com MockMvc não o via). | `SecurityConfigurationTests` (CT41), com pedidos HTTP reais, e os 8 E2E contra a imagem. |
 

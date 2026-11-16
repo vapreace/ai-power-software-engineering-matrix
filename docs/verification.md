@@ -424,4 +424,22 @@ Segue a orientação da Ficha PL 04: distinguir defeito da aplicação, problema
 | O `git push` foi recusado com `Internal Server Error` | Limitação externa (GitHub) | Erro do servidor; o push repetido passou. |
 | O Trivy parou com `429 Too Many Requests` do Maven Central | Limitação do ambiente | Ao encontrar o `pom.xml`, o Trivy tentava resolver dependências no Maven Central, que limita os endereços partilhados dos runners. `--offline-scan` nas análises da imagem e do repositório: o Trivy não faz pedidos ao Maven Central e identifica os JAR pelos metadados que trazem. |
 | `unknown flag: --offline-scan` no `trivy config` | Erro do agente | A opção só existe para `image` e `fs`. Retirada do `trivy config`. |
+| A página da execução no GitHub mostrava jobs e passos ainda a correr depois de terminarem | Limitação da ferramenta (interface do GitHub) | Os contadores continuavam a andar no browser. Recarregar a página mostrou o estado real. Os `needs` do `ci.yml` estavam certos: os testes só começaram depois dos builds. |
+| O assistente do Neon criou um projeto em Londres e propôs prompts para um agente escrever as credenciais no `.env` e mudar o código | Decisão de configuração | Não se usaram os prompts: as credenciais vão só para o Render e a ligação à base de dados já existia (DA30). O projeto foi substituído por outro em Frankfurt, como em DA40 (docs/deployment.md, secção 3). |
+
+### 15.6 Ambiente publicado (passo 6)
+
+Ambiente em https://matriz-3lgd.onrender.com, configuração e operação em [deployment.md](deployment.md). Criado em 16/11/2026 a partir do commit `f7cb00a`.
+
+| Verificação | Como | Resultado |
+|-------------|------|-----------|
+| Deploy | Blueprint `matriz` no Render | Build e deploy em 2 min 49 s. |
+| Saúde e base de dados | `GET /actuator/health/liveness` e `/readiness` | `{"status":"UP"}` nos dois. A readiness inclui a base de dados: a ligação ao Neon por TLS funciona e o Liquibase criou o esquema, incluindo o `unaccent` e a collation ICU (DA14, DA32). |
+| Página inicial e API sem sessão | Browser integrado | `/` 200 e reencaminhamento para `/entrar`; `/api/projects` e `/api/session` 401; `/actuator/env` devolve o frontend, sem dados do Actuator. |
+| Cabeçalhos de segurança | `fetch` na página, em todos os endereços acima | `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff` e `Strict-Transport-Security: max-age=31536000 ; includeSubDomains`. O HSTS confirma que a aplicação aceitou os cabeçalhos `X-Forwarded-*` do proxy do Render (F13). |
+| Entrada e sessão | A utilizadora entrou como Rui | `POST /api/session` 200; pedidos seguintes com sessão 200. O `JSESSIONID` não é visível ao JavaScript da página. |
+| Cookies (F6) | Chrome, ferramentas de programador, separador Application | `JSESSIONID` com `HttpOnly`, `Secure` e `SameSite=Lax`; `XSRF-TOKEN` com `Secure` ([render-cookies.png](verification/render-cookies.png), valores tapados). |
+| Validação a pedido | Workflow **Validate published** #1 | Aprovado em 7 s: readiness, página inicial, API sem sessão, CSP, HSTS e cookie CSRF com `Secure` ([validate-published.png](verification/validate-published.png)). |
+
+Não verificado no ambiente publicado: o limite de tentativas por endereço (F13) com entradas falhadas. A verificação exigia escrever palavras-passe no site publicado. Fica coberta pelo CT40, com a mesma configuração (`MATRIZ_FORWARD_HEADERS=native`), e o HSTS confirma que o proxy do Render é aceite pelo mesmo mecanismo.
 
