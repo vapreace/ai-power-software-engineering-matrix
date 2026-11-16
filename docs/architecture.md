@@ -1,6 +1,6 @@
 # Arquitetura da Matriz
 
-> **Versão:** 0.8 (Ficha PL 03, incremento I6: estado dos endpoints e DA31)
+> **Versão:** 0.9 (incremento I7: todos os endpoints implementados e evento "Acesso reposto")
 > **Estado:** proposta. Todas as decisões deste documento têm origem **D** (decisão da equipa) e têm de ser validadas pelo Product Owner.
 
 Documentos relacionados:
@@ -195,6 +195,7 @@ Os eventos são publicados e tratados dentro da aplicação, de forma síncrona 
 | Pessoa removida da equipa | Equipas | Tarefas | A pessoa deixa de ser responsável pelas tarefas abertas nos projetos dessa equipa. | RN17 |
 | | | Projetos | Os projetos dessa equipa que a pessoa gere ficam "Sem gestor". | RN22 |
 | Projeto eliminado | Projetos | Tarefas | As tarefas não eliminadas do projeto ficam eliminadas, com a mesma data e hora. Os responsáveis e os comentários ficam guardados. | RN31, RN32 |
+| Acesso reposto | Contas | Acesso | As tentativas falhadas desse email são limpas, em todos os endereços. | DA25, SEG09 |
 
 Estas alterações automáticas aplicam-se também a projetos "Concluído" e "Arquivado" (exceção de RN09, casos E22 e E45). Por isso, quem reage usa uma operação interna própria, separada das operações dos utilizadores, que não aplica a verificação de RN09.
 
@@ -384,23 +385,23 @@ Todas as operações estão detalhadas em `openapi.yaml`.
 | DELETE | `/session` | Sair. | US01 | Implementado |
 | GET | `/session` | Utilizador atual: nome, papel e equipas. | US01 | Implementado |
 | PUT | `/session/password` | Definir uma palavra-passe nova (primeira entrada e acesso reposto, DA25). | US01 | Implementado |
-| GET | `/users` | Lista de contas. | US02 | Contrato (I7) |
-| POST | `/users` | Criar conta, com palavra-passe temporária (DA25). | US02 | Contrato (I7) |
-| PATCH | `/users/{userId}` | Editar nome e email. Mudar o papel. | US02, US18 | Contrato (I7) |
-| PUT | `/users/{userId}/status` | Desativar ou reativar. | US14 | Contrato (I7) |
-| PUT | `/users/{userId}/password` | Definir uma palavra-passe temporária: repor o acesso (DA25). | US02 | Contrato (I7) |
+| GET | `/users` | Lista de contas. | US02 | Implementado |
+| POST | `/users` | Criar conta, com palavra-passe temporária (DA25). | US02 | Implementado |
+| PATCH | `/users/{userId}` | Editar nome e email. Mudar o papel. | US02, US18 | Implementado |
+| PUT | `/users/{userId}/status` | Desativar ou reativar. | US14 | Implementado |
+| PUT | `/users/{userId}/password` | Definir uma palavra-passe temporária: repor o acesso (DA25). | US02 | Implementado |
 | GET | `/teams` | Lista de equipas. | US03 | Implementado |
-| POST | `/teams` | Criar equipa. | US03 | Contrato (I7) |
-| PATCH | `/teams/{teamId}` | Mudar o nome. | US03 | Contrato (I7) |
+| POST | `/teams` | Criar equipa. | US03 | Implementado |
+| PATCH | `/teams/{teamId}` | Mudar o nome. | US03 | Implementado |
 | GET | `/teams/{teamId}/members` | Quem pertence à equipa, com o papel e o estado da conta. Serve também para escolher os responsáveis e o gestor elegíveis. | US03, US06, US17 | Implementado |
-| PUT | `/teams/{teamId}/members/{userId}` | Adicionar uma pessoa. | US03 | Contrato (I7) |
-| DELETE | `/teams/{teamId}/members/{userId}` | Remover uma pessoa. | US03 | Contrato (I7) |
+| PUT | `/teams/{teamId}/members/{userId}` | Adicionar uma pessoa. | US03 | Implementado |
+| DELETE | `/teams/{teamId}/members/{userId}` | Remover uma pessoa. | US03 | Implementado |
 | GET | `/projects` | Lista de projetos visíveis, com progresso e atrasos. Filtro por estado e pesquisa pelo nome (`q`, RN34). | US09, US10, US12, US15, US22 | Implementado |
 | POST | `/projects` | Criar projeto. | US04 | Implementado |
 | GET | `/projects/{projectId}` | Detalhe do projeto, com progresso e atrasos. | US09, US10 | Implementado |
 | PATCH | `/projects/{projectId}` | Editar nome, descrição e datas. | US17 | Implementado |
-| PUT | `/projects/{projectId}/manager` | Mudar o gestor. Só o Administrador; aceite também em projetos fechados (RN09, RN21). | US17 | Contrato (I7) |
-| PUT | `/projects/{projectId}/status` | Mudar o estado e arquivar. | US13 | Contrato (I7) |
+| PUT | `/projects/{projectId}/manager` | Mudar o gestor. Só o Administrador; aceite também em projetos fechados (RN09, RN21). | US17 | Implementado |
+| PUT | `/projects/{projectId}/status` | Mudar o estado e arquivar. | US13 | Implementado |
 | DELETE | `/projects/{projectId}` | Eliminar o projeto (eliminação lógica, RN31, DA29). | US20 | Implementado |
 | GET | `/dashboard` | Painel inicial: projetos visíveis com as contagens por estado e os totais (RN33). | US21 | Implementado |
 | GET | `/projects/{projectId}/tasks` | Tarefas do projeto, com filtros por responsável, estado, prioridade e atraso. | US10, US11 | Implementado |
@@ -413,8 +414,8 @@ Todas as operações estão detalhadas em `openapi.yaml`.
 | GET | `/tasks/{taskId}/comments` | Comentários da tarefa, do mais antigo para o mais recente. | US19 | Implementado |
 | POST | `/tasks/{taskId}/comments` | Comentar a tarefa. O autor e a data e hora vêm do backend (RN30). | US19 | Implementado |
 | PUT | `/tasks/{taskId}/status` | Mudar o estado. | US07, US17 | Implementado |
-| GET | `/me/tasks` | "As minhas tarefas", com o filtro "Incluir concluídas". | US08 | Contrato (I7) |
+| GET | `/me/tasks` | "As minhas tarefas", com o filtro "Incluir concluídas". | US08 | Implementado |
 
-Todas as histórias US01 a US22 têm pelo menos um endpoint (34 operações). Na Ficha PL 03 estão implementadas 22; as 12 restantes ficam para o I7 (implementation-plan.md) e mantêm-se no contrato.
+Todas as histórias US01 a US22 têm pelo menos um endpoint (34 operações). As 34 estão implementadas (22 na Ficha PL 03 e 12 no I7).
 
 A confirmação de RN10 (concluir um projeto com tarefas abertas) é feita no frontend, com o número de tarefas abertas calculado a partir do progresso (total menos concluídas). A confirmação de RN31 (eliminar um projeto) usa o total de tarefas, que vem no mesmo resumo.

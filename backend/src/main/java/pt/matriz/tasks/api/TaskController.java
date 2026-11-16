@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pt.matriz.common.CurrentUserProvider;
 import pt.matriz.common.Items;
 import pt.matriz.tasks.CommentView;
+import pt.matriz.tasks.MyTaskView;
 import pt.matriz.tasks.TaskPriority;
 import pt.matriz.tasks.TaskStatus;
 import pt.matriz.tasks.TaskView;
@@ -53,6 +54,12 @@ class TaskController {
             @RequestParam(name = "assigneeId", required = false) Long assigneeId,
             @RequestParam(name = "unassigned", required = false, defaultValue = "false") boolean unassigned) {
         return new Items<>(tasks.list(currentUser.get(), projectId, status, priority, overdue, assigneeId, unassigned));
+    }
+
+    @GetMapping("/api/me/tasks")
+    Items<MyTaskView> myTasks(
+            @RequestParam(name = "includeCompleted", required = false, defaultValue = "false") boolean includeCompleted) {
+        return new Items<>(tasks.myTasks(currentUser.get(), includeCompleted));
     }
 
     @PostMapping("/api/projects/{projectId}/tasks")

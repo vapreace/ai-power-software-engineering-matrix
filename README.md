@@ -2,7 +2,7 @@
 
 Aplicação de gestão de projetos e tarefas para equipas, desenvolvida no curso **AI-Powered Software Engineering: From Mindset to Delivery**.
 
-> Fase atual: **Ficha PL 03**, entrega. Incrementos I0 a I6 prontos para revisão; o I7 (resto do MVP) fica para depois. Verificação em [docs/verification.md](docs/verification.md).
+> Fase atual: **Ficha PL 03** entregue (tag `ficha-pl03`) e MVP completo com o incremento I7, pronto para revisão. Verificação em [docs/verification.md](docs/verification.md).
 
 ---
 
@@ -42,15 +42,19 @@ Só a descrição do cliente está confirmada. Os objetivos e os papéis de util
 | Tarefas | Criar, editar e apagar. Um ou vários responsáveis. Prazo e prioridade. Mudar estado. Comentários. Lista com filtros. "As minhas tarefas". |
 | Progresso | Painel inicial com as contagens de tarefas por estado. Percentagem de tarefas concluídas por projeto. Destaque e contagem de tarefas atrasadas. |
 
-### O que já funciona (Ficha PL 03)
+### O que já funciona
 
-| Área | Funciona | Fica para o I7 |
-|------|----------|----------------|
-| Acesso | Entrar, sair, palavra-passe nova na primeira entrada, sessão terminada. Permissões por papel em cada pedido. | Gestão de contas pelo Administrador. |
-| Projetos | Criar, editar, eliminar com confirmação, lista com pesquisa e filtro por estado, progresso e atrasos. | Mudar o estado, arquivar e mudar o gestor. |
-| Tarefas | Criar, editar, apagar, mudar o estado, vários responsáveis, comentários, filtros por responsável, estado, prioridade e atraso. | "As minhas tarefas". |
-| Progresso | Painel inicial com as contagens por estado, por projeto e no total. | |
-| Equipas | Consultar as equipas e as pessoas (para os formulários). | Criar e editar equipas, adicionar e remover pessoas. |
+| Área | Funciona | Incremento |
+|------|----------|------------|
+| Acesso | Entrar, sair, palavra-passe nova na primeira entrada, sessão terminada. Permissões por papel em cada pedido. | I1 |
+| Contas | O Administrador cria, edita, muda o papel, desativa, reativa e repõe o acesso. | I7 |
+| Equipas | O Administrador cria, muda o nome, adiciona e remove pessoas. Cada pessoa vê as suas equipas. | I7 |
+| Projetos | Criar, editar, eliminar com confirmação, lista com pesquisa e filtro por estado, progresso e atrasos. | I2 |
+| Estado e gestor | Concluir (com confirmação), reabrir, arquivar e desarquivar. O Administrador muda o gestor. | I7 |
+| Tarefas | Criar, editar, apagar, mudar o estado, vários responsáveis, comentários, filtros por responsável, estado, prioridade e atraso. | I3, I4 |
+| As minhas tarefas | As tarefas de cada pessoa nos projetos ativos, por prazo, com "Incluir concluídas". | I7 |
+| Progresso | Painel inicial com as contagens por estado, por projeto e no total. | I5 |
+| Regras automáticas | Quem é desativado, sai de uma equipa ou muda de papel deixa as tarefas abertas "Sem responsável" e os projetos que gere "Sem gestor". | I7 |
 
 Fora do MVP: quadro, histórico, registo das ações do Administrador, pesquisa por texto nas tarefas, avisos, anexos, subtarefas, relatórios, integrações. A lista completa está em [requirements.md, secção 9](docs/requirements.md#9-fora-do-âmbito-inicial).
 
@@ -195,12 +199,12 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Instruções para agentes (AGENTS.md) | Atualizado na Ficha PL 02: fase, stack, documentos e convenções |
 | Revisão crítica da documentação | Concluída: revisão 1 e revisão independente (2 agentes) aplicadas |
 | Revisão crítica do Architecture Pack | Concluída: revisão 1, revisão independente e revisão final aplicadas (Ficha PL 02) |
-| Arquitetura | Proposta (architecture.md 0.8) |
+| Arquitetura | Proposta (architecture.md 0.9) |
 | Modelo de dados | Proposta (database.md 0.2) |
 | API | Contrato completo, 34 operações (openapi.yaml 0.3.1) |
-| Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.6). Designs dos ecrãs em `docs/ui/design/` e estilo visual DA36 |
+| Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.7). Designs dos ecrãs em `docs/ui/design/` e estilo visual DA36 |
 | Plano de implementação | 8 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
-| Implementação | I0 a I6 prontos para revisão (Ficha PL 03). I7 por fazer |
+| Implementação | I0 a I6 entregues na Ficha PL 03 (tag `ficha-pl03`). I7 (resto do MVP) pronto para revisão |
 | Verificação | Casos 01 a 09 da ficha, testes e bugs em [verification.md](docs/verification.md) |
 
 As decisões técnicas estão em [architecture.md, secção 9](docs/architecture.md#9-decisões-técnicas). As que faltam estão em [constraints.md, secção 4](docs/constraints.md#4-decisões-técnicas-pendentes).

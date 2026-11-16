@@ -1,5 +1,6 @@
 package pt.matriz.teams.persistence;
 
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -78,5 +79,50 @@ public class TeamQueries {
                 .query(Integer.class)
                 .single();
         return count != null && count > 0;
+    }
+    public long insertTeam(String name) {
+        return jdbc.sql("INSERT INTO teams (name) VALUES (:name) RETURNING id")
+                .param("name", name)
+                .query(Long.class)
+                .single();
+    }
+
+    public void renameTeam(long teamId, String name) {
+        jdbc.sql("UPDATE teams SET name = :name WHERE id = :teamId")
+                .param("name", name)
+                .param("teamId", teamId)
+                .update();
+    }
+
+    /** Nome repetido sem distinguir maiúsculas (RN03, DA10), sem contar a própria equipa. */
+    public boolean nameExists(String name, Long exceptTeamId) {
+        Integer count = jdbc.sql("""
+                        SELECT count(*) FROM teams
+                        WHERE lower(name) = lower(:name) AND id <> :exceptId
+                        """)
+                .param("name", name)
+                .param("exceptId", exceptTeamId == null ? -1L : exceptTeamId)
+                .query(Integer.class)
+                .single();
+        return count != null && count > 0;
+    }
+
+    public void addMember(long teamId, long userId) {
+        jdbc.sql("INSERT INTO team_members (team_id, user_id) VALUES (:teamId, :userId)")
+                .param("teamId", teamId)
+                .param("userId", userId)
+                .update();
+    }
+
+    /** Marca a pertença como removida (RN32, DA29). */
+    public int removeMember(long teamId, long userId, OffsetDateTime removedAt) {
+        return jdbc.sql("""
+                        UPDATE team_members SET removed_at = :removedAt
+                        WHERE team_id = :teamId AND user_id = :userId AND removed_at IS NULL
+                        """)
+                .param("removedAt", removedAt)
+                .param("teamId", teamId)
+                .param("userId", userId)
+                .update();
     }
 }

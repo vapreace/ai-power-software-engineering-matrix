@@ -2,14 +2,15 @@
 // Ecrã Detalhe do projeto (docs/ui/README.md, secção 9): dados, progresso e atrasos no cartão
 // Resumo (US09, US10). Editar e Eliminar só para o Administrador e o gestor do projeto
 // (RN05, RN22, RN31). Eliminar pede confirmação com o número de tarefas (US20).
-// As tarefas ficam no cartão Tarefas (I3); a mudança de estado e de gestor chega no I7.
+// As tarefas ficam no cartão Tarefas (I3). No Resumo: mudar o estado (US13, quem gere o projeto)
+// e mudar o gestor (US17, só o Administrador).
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ApiError } from '@/api/http'
 import { deleteProject, getProject } from '@/api/projects'
 import type { Project } from '@/api/types'
 import { currentUser } from '@/session'
-import { canManageProject } from '@/permissions'
+import { canManageProject, isAdministrator } from '@/permissions'
 import { deleteProjectMessage, formatDate } from '@/labels'
 import { useNarrowScreen } from '@/composables/useNarrowScreen'
 import StatusTag from '@/components/StatusTag.vue'
@@ -19,6 +20,8 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import ProjectTasks from '@/components/ProjectTasks.vue'
+import ProjectStatusForm from '@/components/ProjectStatusForm.vue'
+import ProjectManagerForm from '@/components/ProjectManagerForm.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -34,6 +37,11 @@ const actionError = ref<string | null>(null)
 const canManage = computed(() => project.value !== null && canManageProject(currentUser.value, project.value))
 // Um projeto concluído ou arquivado não se edita (RN09), mas pode ser eliminado (RN31).
 const canEdit = computed(() => canManage.value && project.value?.status === 'ACTIVE')
+const canChangeManager = computed(() => isAdministrator(currentUser.value))
+
+function onUpdated(updated: Project) {
+  project.value = updated
+}
 
 async function load() {
   state.value = 'loading'
@@ -117,6 +125,13 @@ watch(() => route.params.id, load, { immediate: true })
       </div>
 
       <p v-if="actionError" class="alert" role="alert">{{ actionError }}</p>
+      <p v-if="project.status !== 'ACTIVE'" class="alert info">
+        O projeto está {{ project.status === 'COMPLETED' ? 'concluído' : 'arquivado' }}: o projeto e as tarefas só
+        podem ser consultados.
+      </p>
+      <p v-if="!project.manager" class="alert info">
+        Este projeto está sem gestor. Até haver novo gestor, só o Administrador o pode editar.
+      </p>
 
       <div class="layout" :class="{ narrow }">
         <aside class="card summary" aria-labelledby="resumo-titulo">
@@ -132,6 +147,16 @@ watch(() => route.params.id, load, { immediate: true })
             <dd class="mono">{{ project.expectedEndDate ? formatDate(project.expectedEndDate) : 'Sem data' }}</dd>
           </dl>
           <p v-if="project.description" class="description">{{ project.description }}</p>
+          <div v-if="canManage || canChangeManager" class="summary-block separated forms">
+            <ProjectStatusForm v-if="canManage" :project="project" @updated="onUpdated" @reload="load" />
+            <ProjectManagerForm
+              v-if="canChangeManager"
+              :key="project.version"
+              :project="project"
+              @updated="onUpdated"
+              @reload="load"
+            />
+          </div>
           <div class="summary-block separated">
             <span class="block-label">Progresso</span>
             <ProgressBar :progress="project.progress" />
@@ -234,6 +259,10 @@ watch(() => route.params.id, load, { immediate: true })
 .block-label {
   font-size: 13px;
   font-weight: 600;
+}
+
+.forms {
+  gap: 16px;
 }
 
 .mobile-actions {

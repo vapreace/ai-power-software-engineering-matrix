@@ -4,7 +4,9 @@ import { consumeSessionExpired, loadSession } from '@/session'
 import LoginView from '@/views/LoginView.vue'
 import SetPasswordView from '@/views/SetPasswordView.vue'
 import DashboardView from '@/views/DashboardView.vue'
-import ComingSoonView from '@/views/ComingSoonView.vue'
+import MyTasksView from '@/views/MyTasksView.vue'
+import TeamsView from '@/views/TeamsView.vue'
+import AccountsView from '@/views/AccountsView.vue'
 import ProjectsView from '@/views/ProjectsView.vue'
 import ProjectDetailView from '@/views/ProjectDetailView.vue'
 import ProjectFormView from '@/views/ProjectFormView.vue'
@@ -68,14 +70,14 @@ const router = createRouter({
     {
       path: '/minhas-tarefas',
       name: 'my-tasks',
-      component: ComingSoonView,
+      component: MyTasksView,
       meta: { title: 'As minhas tarefas', roles: ['MANAGER', 'MEMBER'] },
     },
-    { path: '/equipas', name: 'teams', component: ComingSoonView, meta: { title: 'Equipas' } },
+    { path: '/equipas', name: 'teams', component: TeamsView, meta: { title: 'Equipas' } },
     {
       path: '/contas',
       name: 'accounts',
-      component: ComingSoonView,
+      component: AccountsView,
       meta: { title: 'Contas', roles: ['ADMINISTRATOR'] },
     },
     { path: '/:pathMatch(.*)*', redirect: { name: 'home' } },

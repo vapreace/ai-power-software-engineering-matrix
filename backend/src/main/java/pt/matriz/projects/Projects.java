@@ -2,6 +2,7 @@ package pt.matriz.projects;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,8 @@ public class Projects {
     static final String INVALID_MANAGER = "O gestor tem de ter conta ativa, pertencer à equipa do projeto e ter papel Gestor.";
     static final String PROJECT_CLOSED = "O projeto está concluído ou arquivado e não pode ser alterado.";
     static final String VERSION_CONFLICT = "Este projeto foi alterado por outra pessoa. Abra-o de novo e repita a alteração.";
+    static final String STATUS_REQUIRED = "O estado é obrigatório.";
+    static final String INVALID_TRANSITION = "Esta mudança de estado não é permitida.";
 
     static final int NAME_MAX = 100;
     static final int DESCRIPTION_MAX = 1000;
@@ -221,6 +224,74 @@ public class Projects {
      * Elimina o projeto (US20, RN31): eliminação lógica, em qualquer estado (exceção a RN09).
      * Publica "Projeto eliminado" para as tarefas ficarem eliminadas na mesma transação (RN32).
      */
+    /** Mudar o estado e arquivar (US13). A confirmação de RN10 é feita no frontend. */
+    @Transactional
+    public ProjectView changeStatus(CurrentUser user, long projectId, ProjectStatus status, Long version) {
+        Project project = findProject(projectId);
+        requireCanManage(user, project);
+        ValidationErrors errors = new ValidationErrors();
+        if (status == null) {
+            errors.add("status", STATUS_REQUIRED);
+        }
+        if (version == null) {
+            errors.add("version", VERSION_REQUIRED);
+        }
+        errors.throwIfAny();
+        if (version != project.getVersion()) {
+            throw conflict(ProblemCode.VERSION_CONFLICT, VERSION_CONFLICT);
+        }
+        if (!project.getStatus().canChangeTo(status)) {
+            throw conflict(ProblemCode.INVALID_TRANSITION, INVALID_TRANSITION);
+        }
+        project.changeStatus(status);
+        flush(project);
+        return toView(project.toRow());
+    }
+
+    /** Mudar o gestor (US17). Só o Administrador, também em projetos fechados (RN21, exceção de RN09). */
+    @Transactional
+    public ProjectView changeManager(CurrentUser user, long projectId, Long managerId, Long version) {
+        Project project = findProject(projectId);
+        if (user.role() != Role.ADMINISTRATOR) {
+            throw forbidden(FORBIDDEN);
+        }
+        ValidationErrors errors = new ValidationErrors();
+        if (managerId == null) {
+            errors.add("managerId", MANAGER_REQUIRED);
+        }
+        if (version == null) {
+            errors.add("version", VERSION_REQUIRED);
+        }
+        errors.throwIfAny();
+        if (version != project.getVersion()) {
+            throw conflict(ProblemCode.VERSION_CONFLICT, VERSION_CONFLICT);
+        }
+        if (!isValidManager(managerId, project.getTeamId())) {
+            throw conflict(ProblemCode.INVALID_MANAGER, INVALID_MANAGER);
+        }
+        project.changeManager(managerId);
+        flush(project);
+        return toView(project.toRow());
+    }
+
+    /** Alteração automática (RN22): usada por quem reage aos eventos de Contas e Equipas. */
+    @Transactional
+    public void clearManager(long managerId, Long teamId) {
+        queries.clearManager(managerId, teamId);
+    }
+
+    /** Projetos não eliminados de uma equipa, em qualquer estado (para RN17). */
+    @Transactional(readOnly = true)
+    public List<Long> projectIdsOfTeam(long teamId) {
+        return queries.idsOfTeam(teamId);
+    }
+
+    /** Nomes dos projetos "Ativo" entre os indicados (para "As minhas tarefas", RN25). */
+    @Transactional(readOnly = true)
+    public Map<Long, String> activeProjectNames(Collection<Long> projectIds) {
+        return queries.activeNames(projectIds);
+    }
+
     @Transactional
     public void delete(CurrentUser user, long projectId) {
         Project project = findProject(projectId);
@@ -229,6 +300,14 @@ public class Projects {
         project.markDeleted(now);
         repository.saveAndFlush(project);
         events.publishEvent(new ProjectDeleted(project.getId(), now));
+    }
+
+    private void flush(Project project) {
+        try {
+            repository.saveAndFlush(project);
+        } catch (OptimisticLockingFailureException e) {
+            throw conflict(ProblemCode.VERSION_CONFLICT, VERSION_CONFLICT);
+        }
     }
 
     private Project findProject(long projectId) {

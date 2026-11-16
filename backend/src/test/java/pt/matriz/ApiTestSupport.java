@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -108,17 +109,22 @@ public abstract class ApiTestSupport {
 
     /** Entra pela API com a pessoa {@code key} e devolve a sessão. */
     protected MockHttpSession login(String key) throws Exception {
-        MvcResult result = mvc.perform(post("/api/session")
-                        .with(csrf())
-                        .with(request -> {
-                            request.setRemoteAddr(address);
-                            return request;
-                        })
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\": \"%s@empresa.example\", \"password\": \"%s\"}".formatted(key, PASSWORD)))
+        MvcResult result = attemptLogin(key + "@empresa.example", PASSWORD)
                 .andExpect(status().isOk())
                 .andReturn();
         return (MockHttpSession) result.getRequest().getSession(false);
+    }
+
+    /** Tentativa de entrada com qualquer email e palavra-passe, a partir do endereço da classe. */
+    protected ResultActions attemptLogin(String email, String password) throws Exception {
+        return mvc.perform(post("/api/session")
+                .with(csrf())
+                .with(request -> {
+                    request.setRemoteAddr(address);
+                    return request;
+                })
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\": \"%s\", \"password\": \"%s\"}".formatted(email, password)));
     }
 
     protected RequestBuilder changeStatus(MockHttpSession session, String task, String status, long version) {

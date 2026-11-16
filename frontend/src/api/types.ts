@@ -142,3 +142,32 @@ export interface Dashboard {
   projects: DashboardProject[]
   totals: TaskCounts
 }
+
+/** Conta (User no contrato; US02, US14, US18). */
+export interface User {
+  id: number
+  name: string
+  email: string
+  role: Role
+  status: AccountStatus
+  mustChangePassword: boolean
+}
+
+export interface CreateUserRequest {
+  name: string
+  email: string
+  role: Role | null
+  temporaryPassword: string
+}
+
+/** Só os campos enviados mudam. */
+export interface UpdateUserRequest {
+  name?: string
+  email?: string
+  role?: Role
+}
+
+/** Tarefa de "As minhas tarefas" (US08): a tarefa e o projeto a que pertence. */
+export interface MyTask extends Task {
+  project: Reference
+}

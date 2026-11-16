@@ -64,4 +64,44 @@ public class ProjectQueries {
     static String escapeLike(String text) {
         return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
+    /**
+     * O projeto fica "Sem gestor" (RN22). Aplica-se também a projetos fechados (exceção de RN09).
+     * Com {@code teamId}, só os projetos dessa equipa.
+     */
+    public int clearManager(long managerId, Long teamId) {
+        String sql = """
+                UPDATE projects SET manager_id = NULL, version = version + 1
+                WHERE manager_id = :managerId AND deleted_at IS NULL
+                """ + (teamId == null ? "" : " AND team_id = :teamId");
+        var statement = jdbc.sql(sql).param("managerId", managerId);
+        if (teamId != null) {
+            statement = statement.param("teamId", teamId);
+        }
+        return statement.update();
+    }
+
+    /** Projetos não eliminados de uma equipa, em qualquer estado. */
+    public List<Long> idsOfTeam(long teamId) {
+        return jdbc.sql("SELECT id FROM projects WHERE team_id = :teamId AND deleted_at IS NULL")
+                .param("teamId", teamId)
+                .query(Long.class)
+                .list();
+    }
+
+    /** Nomes dos projetos "Ativo" não eliminados, entre os indicados. */
+    public Map<Long, String> activeNames(Collection<Long> projectIds) {
+        Map<Long, String> names = new HashMap<>();
+        if (projectIds.isEmpty()) {
+            return names;
+        }
+        jdbc.sql("""
+                        SELECT id, name FROM projects
+                        WHERE id IN (:projectIds) AND status = 'ACTIVE' AND deleted_at IS NULL
+                        """)
+                .param("projectIds", projectIds)
+                .query(rs -> {
+                    names.put(rs.getLong("id"), rs.getString("name"));
+                });
+        return names;
+    }
 }

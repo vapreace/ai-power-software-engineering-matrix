@@ -2,14 +2,14 @@
 // Tarefas de um projeto: tabela no computador e cartões no telemóvel (DA22, 720 px), pela ordem
 // que a API devolve (DA33). "Atrasada" fica junto ao prazo (US10). O título abre o detalhe.
 import { RouterLink } from 'vue-router'
-import type { Task } from '@/api/types'
+import type { Reference, Task } from '@/api/types'
 import { formatDate } from '@/labels'
 import { useNarrowScreen } from '@/composables/useNarrowScreen'
 import StatusTag from './StatusTag.vue'
 import PriorityTag from './PriorityTag.vue'
 import OverdueBadge from './OverdueBadge.vue'
 
-defineProps<{ tasks: Task[]; caption: string }>()
+defineProps<{ tasks: (Task & { project?: Reference })[]; caption: string; withProject?: boolean }>()
 const narrow = useNarrowScreen()
 
 function assigneesText(task: Task): string {
@@ -27,7 +27,8 @@ function assigneesText(task: Task): string {
         <OverdueBadge v-if="task.overdue" task />
       </div>
       <div class="meta">
-        <span>{{ assigneesText(task) }}</span>
+        <span v-if="withProject && task.project">{{ task.project.name }}</span>
+        <span v-else>{{ assigneesText(task) }}</span>
         <span class="mono">{{ task.dueDate ? formatDate(task.dueDate) : 'Sem prazo' }}</span>
       </div>
     </li>
@@ -37,7 +38,7 @@ function assigneesText(task: Task): string {
     <thead>
       <tr>
         <th scope="col">Título</th>
-        <th scope="col">Responsáveis</th>
+        <th scope="col">{{ withProject ? 'Projeto' : 'Responsáveis' }}</th>
         <th scope="col" class="w-status">Estado</th>
         <th scope="col" class="w-priority">Prioridade</th>
         <th scope="col" class="w-due">Prazo</th>
@@ -50,7 +51,12 @@ function assigneesText(task: Task): string {
             {{ task.title }}
           </RouterLink>
         </td>
-        <td class="assignees">{{ assigneesText(task) }}</td>
+        <td v-if="withProject && task.project" class="assignees">
+          <RouterLink :to="{ name: 'project', params: { id: task.project.id } }" class="item-link">
+            {{ task.project.name }}
+          </RouterLink>
+        </td>
+        <td v-else class="assignees">{{ assigneesText(task) }}</td>
         <td><StatusTag :status="task.status" /></td>
         <td><PriorityTag :priority="task.priority" /></td>
         <td>

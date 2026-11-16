@@ -78,6 +78,14 @@ public class Project {
     }
 
     /** Eliminação lógica (RN31, RN32, DA29): a linha fica guardada. */
+    public void changeStatus(ProjectStatus status) {
+        this.status = status;
+    }
+
+    public void changeManager(long managerId) {
+        this.managerId = managerId;
+    }
+
     public void markDeleted(OffsetDateTime at) {
         this.deletedAt = at;
     }

@@ -207,4 +207,64 @@ public class TaskQueries {
                         rs.getLong("version")))
                 .single();
     }
+    /**
+     * A pessoa deixa de ser responsável pelas tarefas abertas (RN16, RN17), também em projetos
+     * fechados (exceção de RN09). As tarefas concluídas mantêm o nome. Com {@code projectIds},
+     * só nesses projetos. A versão das tarefas alteradas sobe (DA05).
+     */
+    public int removeFromOpenTasks(long userId, Collection<Long> projectIds, OffsetDateTime removedAt) {
+        if (projectIds != null && projectIds.isEmpty()) {
+            return 0;
+        }
+        String projectFilter = projectIds == null ? "" : " AND t.project_id IN (:projectIds)";
+        Map<String, Object> params = new HashMap<>();
+        params.put("userId", userId);
+        params.put("removedAt", removedAt);
+        if (projectIds != null) {
+            params.put("projectIds", projectIds);
+        }
+        List<Long> taskIds = jdbc.sql("""
+                        UPDATE task_assignees a SET removed_at = :removedAt
+                        FROM tasks t
+                        WHERE a.task_id = t.id AND a.user_id = :userId AND a.removed_at IS NULL
+                          AND t.deleted_at IS NULL AND t.status <> 'DONE'
+                        """ + projectFilter + " RETURNING a.task_id")
+                .params(params)
+                .query(Long.class)
+                .list();
+        if (!taskIds.isEmpty()) {
+            jdbc.sql("UPDATE tasks SET version = version + 1 WHERE id IN (:taskIds)")
+                    .param("taskIds", taskIds)
+                    .update();
+        }
+        return taskIds.size();
+    }
+
+    /** Tarefas não eliminadas de que a pessoa é responsável, pela ordem de RN24 (igual a DA33). */
+    public List<TaskRow> listByAssignee(long userId, boolean includeCompleted) {
+        String statusFilter = includeCompleted ? "" : " AND status <> 'DONE'";
+        return jdbc.sql("""
+                        SELECT id, project_id, title, description, due_date, priority, status, version
+                        FROM tasks
+                        WHERE deleted_at IS NULL
+                          AND EXISTS (SELECT 1 FROM task_assignees a WHERE a.task_id = tasks.id
+                                      AND a.user_id = :userId AND a.removed_at IS NULL)
+                        """ + statusFilter + """
+                         ORDER BY due_date ASC NULLS LAST,
+                                  CASE priority WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END,
+                                  title COLLATE matriz_ci_ai,
+                                  id
+                        """)
+                .param("userId", userId)
+                .query((rs, rowNum) -> new TaskRow(
+                        rs.getLong("id"),
+                        rs.getLong("project_id"),
+                        rs.getString("title"),
+                        rs.getString("description"),
+                        rs.getObject("due_date", LocalDate.class),
+                        TaskPriority.valueOf(rs.getString("priority")),
+                        TaskStatus.valueOf(rs.getString("status")),
+                        rs.getLong("version")))
+                .list();
+    }
 }

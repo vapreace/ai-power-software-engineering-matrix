@@ -1,6 +1,6 @@
 # Interface da Matriz
 
-> **Versão:** 0.6 (Ficha PL 03, incremento I6: estado dos ecrãs)
+> **Versão:** 0.7 (incremento I7: ecrãs As minhas tarefas, Equipas e Contas)
 > **Estado:** proposta. As decisões deste documento têm origem **D** e têm de ser validadas pelo Product Owner.
 
 | Ficheiro | O que é |
@@ -166,7 +166,7 @@ Os requisitos formais ficam para DP12. O wireframe e os ecrãs seguem estas regr
 
 A Ficha PL 03 (exercício 7) pede estes ecrãs. Os ecrãs de gestão (Equipas e Contas) completam o MVP no fim.
 
-Estado na Ficha PL 03 (incremento I6): estão implementados a Entrada, Definir palavra-passe nova, o Painel inicial, Projetos, o detalhe do projeto (sem mudar o estado nem o gestor) e o detalhe da tarefa. As minhas tarefas, Equipas e Contas aparecem no menu com a página "Esta página chega num próximo incremento." e ficam para o I7.
+Estado: todos os ecrãs estão implementados. Na Ficha PL 03 (incremento I6) ficaram a Entrada, Definir palavra-passe nova, o Painel inicial, Projetos, o detalhe do projeto e o detalhe da tarefa. O I7 acrescentou As minhas tarefas, Equipas, Contas e, no detalhe do projeto, "Mudar estado para" e "Mudar gestor". Estes ecrãs não têm design em `design/`: seguem o estilo DA36 e os componentes da secção 5. Remover uma pessoa de uma equipa e desativar uma conta pedem confirmação, porque mexem nas tarefas e nos projetos de outras pessoas (RN16, RN17, RN22).
 
 | Ecrã | Conteúdo e ações | API | Histórias |
 |------|------------------|-----|-----------|

@@ -44,3 +44,7 @@ export function canComment(user: CurrentUser | null, project: Project): boolean 
     (user.role === 'MANAGER' || user.role === 'MEMBER') && user.teams.some((team) => team.id === project.team.id)
   )
 }
+
+export function isAdministrator(user: CurrentUser | null): boolean {
+  return user?.role === 'ADMINISTRATOR'
+}

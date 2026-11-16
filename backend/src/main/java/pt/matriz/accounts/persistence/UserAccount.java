@@ -56,6 +56,22 @@ public class UserAccount {
         return account;
     }
 
+    public void rename(String name) {
+        this.name = name;
+    }
+
+    public void changeEmail(String email) {
+        this.email = email;
+    }
+
+    public void changeRole(Role role) {
+        this.role = role;
+    }
+
+    public void changeStatus(AccountStatus status) {
+        this.status = status;
+    }
+
     public void changePassword(String passwordHash, boolean temporary) {
         this.passwordHash = passwordHash;
         this.mustChangePassword = temporary;

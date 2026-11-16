@@ -58,6 +58,13 @@ class LoginAttempts {
         }
     }
 
+    /** Limpa as tentativas e as pausas de um email, em todos os endereços (DA25, SEG09 c). */
+    synchronized void clearEmail(String normalizedEmail) {
+        String prefix = normalizedEmail + "|";
+        failures.keySet().removeIf(key -> key.startsWith(prefix));
+        blockedUntil.keySet().removeIf(key -> key.startsWith(prefix));
+    }
+
     synchronized void reset(String key) {
         failures.remove(key);
     }

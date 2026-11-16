@@ -118,7 +118,7 @@ Percursos automáticos com Playwright (Chromium) contra uma simulação da API c
 | Testes de componentes e de ponta a ponta do frontend no repositório | Idem. Só há o teste de regressão do bug B1 (DA31). |
 | Verificação formal de acessibilidade (DP12) | Idem. Foi feita só a revisão da secção 7 de ui/README.md. |
 | Browsers além do Chromium | Os percursos da IA usaram só o Chromium; a utilizadora usou o seu browser habitual. |
-| Histórias do I7 (US02, US03, US08, US13, US14, US17 mudar gestor, US18) | Ainda não implementadas. As 12 operações respetivas estão no contrato com o estado "Contrato (I7)" (architecture.md, secção 13.2). |
+| Histórias do I7 (US02, US03, US08, US13, US14, US17 mudar gestor, US18) | Na entrega da Ficha PL 03 ainda não estavam implementadas. Foram feitas depois, no I7: ver a secção 12. |
 
 ---
 
@@ -203,3 +203,36 @@ Revisão do diff desde o início da implementação (`bd2a9e0..0a6687f`, 140 fic
 | 1 | Rever os ecrãs desenhados contra as histórias, a ui/README.md e o contrato. | A IA encontrou o gestor e o progresso nos cartões do painel sem suporte no contrato. Decidiu-se acrescentar `manager` e `progress` a `DashboardProject` primeiro no `openapi.yaml` (0.3.1) e só depois implementar. | `DashboardApiTests` e percurso M5. |
 | 2 | Implementar a criação de tarefas seguindo os slides do Módulo 3. **Sugestão rejeitada.** | O exemplo dos slides põe o Membro a criar tarefas. Rejeitado: na Matriz só o Gestor do projeto e o Administrador criam tarefas (requirements.md, secção 3.1). | `TaskApiTests.onlyTheManagerOrTheAdministratorCreateTasksAndOnlyInActiveProjects` (a Marta recebe 403). |
 | 3 | Aplicar o estilo dos ecrãs desenhados ao frontend. **Sugestão corrigida.** | O desenho punha o filtro "Atrasadas" dentro do grupo Prioridade e o texto do progresso num formato próprio. Corrigido para um grupo "Atraso" separado e para o texto da US09 ("60% (6 de 10 concluídas)"). | Percursos V1 e M3. |
+
+---
+
+## 12. Incremento I7 (resto do MVP)
+
+Não faz parte da entrega da Ficha PL 03 (tag `ficha-pl03`). Completa as 22 histórias do MVP.
+
+### 12.1 Testes automáticos
+
+| Classe | Testes | Cobre |
+|--------|--------|-------|
+| `AccountApiTests` | 16 | US02: criar com palavra-passe temporária, email em minúsculas e único, dados inválidos, editar o email e entrar com ele, só o Administrador, filtros da lista, repor o acesso (limpa a pausa de tentativas). US14: desativar (tarefas abertas "Sem responsável", concluídas mantêm o nome, também em projeto arquivado), sessão aberta recusada, projetos "Sem gestor", reativar sem devolver tarefas, último Administrador. US18: Gestor passa a Membro, Membro passa a Observador (sai das equipas e das tarefas abertas), efeito no pedido seguinte. |
+| `TeamApiTests` | 10 | US03: criar, nomes inválidos ou repetidos (sem distinguir maiúsculas), mudar o nome, pessoa em duas equipas, só Gestor e Membro com conta ativa, remover (tarefas abertas da equipa e projetos "Sem gestor"), quem vê as pessoas, efeito no pedido seguinte, só o Administrador. |
+| `ProjectStatusApiTests` | 9 | US13: concluir, reabrir, arquivar e desarquivar, transições recusadas, projeto arquivado só de leitura, permissões, versão antiga. US17: o Administrador muda o gestor (também em projeto arquivado), o Gestor não pode, gestores inválidos, novo gestor de um projeto "Sem gestor". |
+| `MyTasksApiTests` | 6 | US08: tarefas abertas de projetos ativos com o projeto, "Incluir concluídas", projeto concluído fica de fora, ordem de RN24, títulos sem maiúsculas nem acentos, responsáveis removidos e tarefas apagadas de fora, lista vazia. |
+
+Total esperado do backend: 110 testes (69 da Ficha PL 03 e 41 do I7). Resultado do `./mvnw verify`: por confirmar.
+
+### 12.2 Verificações do frontend feitas pela IA
+
+| ID | O que verificou | Resultado |
+|----|-----------------|-----------|
+| V4 | Percursos com Playwright contra a simulação da API: As minhas tarefas (Marta, com e sem concluídas; Rui sem tarefas), concluir com confirmação de RN10 e cancelar, reabrir, mudar o gestor de um projeto arquivado, criar equipa (nome repetido recusado), adicionar e remover pessoa com confirmação, projeto "Sem gestor" depois de remover o gestor, criar conta com validações e email repetido, aviso ao mudar o papel, desativar com confirmação, último Administrador, reativar, repor o acesso, Observador sem ações e sem acesso a Contas. Ecrãs novos a 360 e 1280 px para Ana, Marta e Carlos, sem deslocamento horizontal e sem erros na consola. | 43 verificações, todas passam. Os percursos do I2 ao I5 continuam a passar. |
+
+### 12.3 Verificações manuais
+
+| ID | Percurso | Resultado |
+|----|----------|-----------|
+| M8 | Marta: "As minhas tarefas" mostra as tarefas abertas dos projetos ativos, por prazo; "Incluir concluídas" acrescenta as concluídas. | Por confirmar |
+| M9 | Rui: concluir o Novo armazém (aparece a confirmação com o número de tarefas abertas), reabrir; Ana: mudar o gestor do Armazém Sul para a Sofia. | Por confirmar |
+| M10 | Ana: criar uma equipa, adicionar e remover uma pessoa; remover o Rui da Logística Norte deixa o Novo armazém "Sem gestor". | Por confirmar |
+| M11 | Ana: criar uma conta e entrar com ela (pede palavra-passe nova); desativar o Pedro (não entra e as tarefas abertas ficam "Sem responsável"); reativar; tentar desativar a própria conta (recusado). | Por confirmar |
+

@@ -1,11 +1,16 @@
 // Textos da interface para os valores técnicos da API e formatos de data (DA23, RNF02).
-import type { Progress, ProjectStatus, Role, TaskPriority, TaskStatus } from './api/types'
+import type { AccountStatus, Progress, ProjectStatus, Role, TaskPriority, TaskStatus } from './api/types'
 
 export const roleLabels: Record<Role, string> = {
   ADMINISTRATOR: 'Administrador',
   MANAGER: 'Gestor',
   MEMBER: 'Membro',
   OBSERVER: 'Observador',
+}
+
+export const accountStatusLabels: Record<AccountStatus, string> = {
+  ACTIVE: 'Ativa',
+  DEACTIVATED: 'Desativada',
 }
 
 export const projectStatusLabels: Record<ProjectStatus, string> = {
@@ -108,4 +113,18 @@ const dateTimeFormat = new Intl.DateTimeFormat('pt-PT', {
 export function formatDateTime(iso: string): string {
   const parts = Object.fromEntries(dateTimeFormat.formatToParts(new Date(iso)).map((p) => [p.type, p.value]))
   return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`
+}
+
+/** Transições permitidas do estado do projeto (RN07, requirements.md secção 4.1). */
+export const projectTransitions: Record<ProjectStatus, ProjectStatus[]> = {
+  ACTIVE: ['COMPLETED'],
+  COMPLETED: ['ACTIVE', 'ARCHIVED'],
+  ARCHIVED: ['COMPLETED'],
+}
+
+/** Confirmação de RN10 / US13, no singular ou no plural. */
+export function completeProjectMessage(openTasks: number): string {
+  return openTasks === 1
+    ? 'Este projeto tem 1 tarefa aberta. Concluir mesmo assim?'
+    : `Este projeto tem ${openTasks} tarefas abertas. Concluir mesmo assim?`
 }

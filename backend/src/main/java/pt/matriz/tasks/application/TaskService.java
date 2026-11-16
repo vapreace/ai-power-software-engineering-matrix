@@ -30,6 +30,7 @@ import pt.matriz.common.ValidationErrors;
 import pt.matriz.projects.ProjectAccess;
 import pt.matriz.projects.Projects;
 import pt.matriz.teams.Teams;
+import pt.matriz.tasks.MyTaskView;
 import pt.matriz.tasks.TaskPriority;
 import pt.matriz.tasks.TaskStatus;
 import pt.matriz.tasks.TaskView;
@@ -108,6 +109,28 @@ public class TaskService {
         LocalDate today = clock.today();
         return toViews(queries.list(projectId, withoutNulls(statuses), withoutNulls(priorities), overdueOnly,
                 assigneeId, unassigned, today), today);
+    }
+
+    /**
+     * "As minhas tarefas" (US08): tarefas de que a pessoa é responsável em projetos "Ativo" (RN25),
+     * pela ordem de RN24. Por omissão só as abertas.
+     */
+    @Transactional(readOnly = true)
+    public List<MyTaskView> myTasks(CurrentUser user, boolean includeCompleted) {
+        List<TaskRow> rows = queries.listByAssignee(user.id(), includeCompleted);
+        Map<Long, String> activeProjects = projects.activeProjectNames(
+                rows.stream().map(TaskRow::projectId).distinct().toList());
+        List<TaskRow> visible = rows.stream().filter(row -> activeProjects.containsKey(row.projectId())).toList();
+        return toViews(visible, clock.today()).stream()
+                .map(task -> MyTaskView.of(task, activeProjects.get(task.projectId())))
+                .toList();
+    }
+
+    /** Alteração automática (RN16, RN17): usada por quem reage aos eventos de Contas e Equipas. */
+    @Transactional
+    public void removeFromOpenTasks(long accountId, Long teamId) {
+        List<Long> projectIds = teamId == null ? null : projects.projectIdsOfTeam(teamId);
+        queries.removeFromOpenTasks(accountId, projectIds, clock.now());
     }
 
     /**

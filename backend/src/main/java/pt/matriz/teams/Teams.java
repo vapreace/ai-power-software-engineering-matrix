@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +20,11 @@ import pt.matriz.accounts.AccountView;
 import pt.matriz.accounts.Accounts;
 import pt.matriz.common.ApiException;
 import pt.matriz.common.CurrentUser;
+import pt.matriz.common.OrganizationClock;
 import pt.matriz.common.ProblemCode;
 import pt.matriz.common.Reference;
 import pt.matriz.common.Role;
+import pt.matriz.common.Texts;
 import pt.matriz.teams.persistence.TeamQueries;
 
 /** Interface pública do módulo Equipas (architecture.md, secções 5.1 e 8). */
@@ -29,13 +33,27 @@ public class Teams {
 
     static final String TEAM_NOT_FOUND = "A equipa não existe.";
     static final String NO_ACCESS = "Não tem acesso a esta página.";
+    static final String FORBIDDEN = "Não tem permissão para esta operação.";
+    static final String ACCOUNT_NOT_FOUND = "A conta não existe.";
+    static final String NOT_A_MEMBER = "A pessoa não pertence à equipa.";
+    static final String NAME_INVALID = "O nome é obrigatório e tem no máximo 100 caracteres.";
+    static final String DUPLICATE_TEAM_NAME = "Já existe uma equipa com este nome.";
+    static final String INVALID_TEAM_MEMBER = "Só pessoas com papel Gestor ou Membro e conta ativa pertencem a equipas.";
+    static final String DUPLICATE_TEAM_MEMBER = "Esta pessoa já pertence à equipa.";
+
+    static final int NAME_MAX = 100;
 
     private final TeamQueries queries;
     private final Accounts accounts;
 
-    Teams(TeamQueries queries, Accounts accounts) {
+    private final OrganizationClock clock;
+    private final ApplicationEventPublisher events;
+
+    Teams(TeamQueries queries, Accounts accounts, OrganizationClock clock, ApplicationEventPublisher events) {
         this.queries = queries;
         this.accounts = accounts;
+        this.clock = clock;
+        this.events = events;
     }
 
     /** Equipas a que a pessoa pertence, ordenadas por nome. Ignora as pertenças removidas (RN32). */
@@ -96,6 +114,107 @@ public class Teams {
                 .sorted(Comparator.comparing(AccountView::name, collator).thenComparingLong(AccountView::id))
                 .map(account -> new TeamMember(account.id(), account.name(), account.role(), account.status()))
                 .toList();
+    }
+
+    /** Criar equipa (US03). Nome obrigatório, até 100 caracteres, único sem distinguir maiúsculas. */
+    @Transactional
+    public Reference create(CurrentUser user, String name) {
+        requireAdministrator(user);
+        String validName = validName(name);
+        if (queries.nameExists(validName, null)) {
+            throw conflict(ProblemCode.DUPLICATE_TEAM_NAME, DUPLICATE_TEAM_NAME);
+        }
+        try {
+            return new Reference(queries.insertTeam(validName), validName);
+        } catch (DuplicateKeyException e) {
+            throw conflict(ProblemCode.DUPLICATE_TEAM_NAME, DUPLICATE_TEAM_NAME);
+        }
+    }
+
+    /** Mudar o nome (US03). Os projetos continuam a pertencer à equipa. */
+    @Transactional
+    public Reference rename(CurrentUser user, long teamId, String name) {
+        findOrThrow(teamId);
+        requireAdministrator(user);
+        String validName = validName(name);
+        if (queries.nameExists(validName, teamId)) {
+            throw conflict(ProblemCode.DUPLICATE_TEAM_NAME, DUPLICATE_TEAM_NAME);
+        }
+        try {
+            queries.renameTeam(teamId, validName);
+        } catch (DuplicateKeyException e) {
+            throw conflict(ProblemCode.DUPLICATE_TEAM_NAME, DUPLICATE_TEAM_NAME);
+        }
+        return new Reference(teamId, validName);
+    }
+
+    /** Adicionar uma pessoa (US03): só Gestor ou Membro com conta ativa (RN26). */
+    @Transactional
+    public void addMember(CurrentUser user, long teamId, long accountId) {
+        findOrThrow(teamId);
+        AccountView account = accounts.findById(accountId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, ProblemCode.NOT_FOUND, ACCOUNT_NOT_FOUND));
+        requireAdministrator(user);
+        boolean eligibleRole = account.role() == Role.MANAGER || account.role() == Role.MEMBER;
+        if (!eligibleRole || account.status() != AccountStatus.ACTIVE) {
+            throw conflict(ProblemCode.INVALID_TEAM_MEMBER, INVALID_TEAM_MEMBER);
+        }
+        if (queries.isActiveMember(teamId, accountId)) {
+            throw conflict(ProblemCode.DUPLICATE_TEAM_MEMBER, DUPLICATE_TEAM_MEMBER);
+        }
+        try {
+            queries.addMember(teamId, accountId);
+        } catch (DuplicateKeyException e) {
+            throw conflict(ProblemCode.DUPLICATE_TEAM_MEMBER, DUPLICATE_TEAM_MEMBER);
+        }
+    }
+
+    /** Remover uma pessoa (US03). As consequências (RN17, RN22) vêm do evento {@link TeamMemberRemoved}. */
+    @Transactional
+    public void removeMember(CurrentUser user, long teamId, long accountId) {
+        findOrThrow(teamId);
+        if (!queries.isActiveMember(teamId, accountId)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, ProblemCode.NOT_FOUND, NOT_A_MEMBER);
+        }
+        requireAdministrator(user);
+        leave(teamId, accountId);
+    }
+
+    /** Quem passa a Observador ou Administrador sai de todas as equipas (RN23, RN26). */
+    @Transactional
+    public void removeFromAllTeams(long accountId) {
+        for (Reference team : queries.activeTeamsOf(accountId)) {
+            leave(team.id(), accountId);
+        }
+    }
+
+    private void leave(long teamId, long accountId) {
+        queries.removeMember(teamId, accountId, clock.now());
+        events.publishEvent(new TeamMemberRemoved(teamId, accountId));
+    }
+
+    private void findOrThrow(long teamId) {
+        if (queries.findTeam(teamId).isEmpty()) {
+            throw new ApiException(HttpStatus.NOT_FOUND, ProblemCode.NOT_FOUND, TEAM_NOT_FOUND);
+        }
+    }
+
+    private static void requireAdministrator(CurrentUser user) {
+        if (user.role() != Role.ADMINISTRATOR) {
+            throw new ApiException(HttpStatus.FORBIDDEN, ProblemCode.FORBIDDEN, FORBIDDEN);
+        }
+    }
+
+    private static String validName(String value) {
+        String name = Texts.normalize(value);
+        if (name == null || name.isEmpty() || Texts.length(name) > NAME_MAX) {
+            throw ApiException.invalidField("name", NAME_INVALID);
+        }
+        return name;
+    }
+
+    private static ApiException conflict(ProblemCode code, String message) {
+        return new ApiException(HttpStatus.CONFLICT, code, message);
     }
 
     private static boolean seesAllTeams(CurrentUser user) {

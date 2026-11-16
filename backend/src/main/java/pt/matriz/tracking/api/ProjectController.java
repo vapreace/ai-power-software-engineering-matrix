@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -60,6 +61,16 @@ class ProjectController {
     @PatchMapping("/{projectId}")
     ProjectDetail update(@PathVariable("projectId") long projectId, @RequestBody UpdateProjectRequest body) {
         return tracking.update(currentUser.get(), projectId, body.toCommand());
+    }
+
+    @PutMapping("/{projectId}/status")
+    ProjectDetail changeStatus(@PathVariable("projectId") long projectId, @RequestBody ChangeProjectStatusRequest body) {
+        return tracking.changeStatus(currentUser.get(), projectId, body.status(), body.version());
+    }
+
+    @PutMapping("/{projectId}/manager")
+    ProjectDetail changeManager(@PathVariable("projectId") long projectId, @RequestBody ChangeProjectManagerRequest body) {
+        return tracking.changeManager(currentUser.get(), projectId, body.managerId(), body.version());
     }
 
     @DeleteMapping("/{projectId}")

@@ -86,7 +86,7 @@ O exercício 7 (frontend) não fica só no I5: cada incremento entrega a sua par
 | I4 | Responsáveis e comentários | US06, US07 (responsáveis), US11 (filtro por responsável), US19 | Ex. 6 | Pronto para revisão |
 | I5 | Painel e progresso | US09, US21 | Ex. 7 | Pronto para revisão |
 | I6 | Verificação, revisão e entrega da Ficha 03 | | Ex. 8, Ex. 9 | Pronto para revisão |
-| I7 | Resto do MVP | US02, US03, US08, US13, US14, US17 (gestor), US18 | | Por fazer |
+| I7 | Resto do MVP | US02, US03, US08, US13, US14, US17 (gestor), US18 | | Pronto para revisão |
 
 ### I0 Esqueleto e persistência (exercício 2)
 
@@ -188,9 +188,20 @@ Ficha, casos 02, 04, 08 e 09.
 
 ### I7 Resto do MVP
 
-- Contas (US02, US14, US18), equipas (US03), estados e arquivo do projeto (US13), mudança de gestor (US17), "As minhas tarefas" (US08).
-- Eventos internos da secção 7 da arquitetura (RN16, RN17, RN22, RN23).
-- Os casos de verificação destas histórias entram em `docs/verification.md`.
+Não é pedido pela Ficha PL 03: completa o MVP das Fichas PL 01 e 02. A entrega da Ficha PL 03 fica identificada pela tag `ficha-pl03`. Foi feito de uma só vez, em quatro partes:
+
+| Parte | O quê | Histórias | Componentes |
+|-------|-------|-----------|-------------|
+| I7a | "As minhas tarefas" | US08 | `GET /me/tasks` (Tarefas, com os nomes dos projetos ativos dados pelos Projetos); ecrã As minhas tarefas. |
+| I7b | Estado do projeto e gestor | US13, US17 (gestor) | `PUT /projects/{id}/status` e `PUT /projects/{id}/manager`; formulários "Mudar estado para" (com a confirmação de RN10) e "Mudar gestor" no detalhe do projeto. |
+| I7c | Equipas | US03 | `POST /teams`, `PATCH /teams/{id}`, `PUT` e `DELETE /teams/{id}/members/{userId}`; evento "Pessoa removida da equipa"; ecrã Equipas. |
+| I7d | Contas | US02, US14, US18 | `/users` e as suas operações; eventos "Conta desativada", "Papel mudado" e "Acesso reposto"; ecrã Contas. |
+
+**Regras automáticas (architecture.md, secção 7):** quem reage aos eventos usa operações internas próprias, que se aplicam também a projetos fechados (exceção de RN09): retirar a pessoa das tarefas abertas (RN16, RN17), deixar os projetos "Sem gestor" (RN22) e tirar das equipas quem passa a Observador ou Administrador (RN23, RN26).
+
+**Critérios de aceitação:** cenários de US02, US03, US08, US13, US14, US17 (gestor) e US18, com os casos E5, E6, E9, E10, E14, E19, E22, E25, E28, E29, E33 e E39.
+
+**Verificação:** testes `AccountApiTests`, `TeamApiTests`, `ProjectStatusApiTests` e `MyTasksApiTests`; percursos no browser a 360 e 1280 px; verificações manuais em `docs/verification.md`, secção 12.
 
 ---
 

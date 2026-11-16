@@ -1,6 +1,15 @@
-// Operações de tarefas, responsáveis e comentários (openapi.yaml; US05 a US07, US10, US11, US16, US19).
+// Operações de tarefas, responsáveis e comentários (openapi.yaml; US05 a US08, US10, US11, US16, US19).
 import { request } from './http'
-import type { Comment, CreateTaskRequest, Items, Task, TaskFilters, TaskStatus, UpdateTaskRequest } from './types'
+import type {
+  Comment,
+  CreateTaskRequest,
+  Items,
+  MyTask,
+  Task,
+  TaskFilters,
+  TaskStatus,
+  UpdateTaskRequest,
+} from './types'
 
 export function listTasks(projectId: number, filters: TaskFilters): Promise<Items<Task>> {
   const params = new URLSearchParams()
@@ -52,4 +61,9 @@ export function listComments(taskId: number): Promise<Items<Comment>> {
 
 export function createComment(taskId: number, content: string): Promise<Comment> {
   return request<Comment>('POST', `/tasks/${taskId}/comments`, { content })
+}
+
+/** "As minhas tarefas" (US08): por omissão só as abertas, em projetos ativos (RN25). */
+export function listMyTasks(includeCompleted: boolean): Promise<Items<MyTask>> {
+  return request<Items<MyTask>>('GET', `/me/tasks${includeCompleted ? '?includeCompleted=true' : ''}`)
 }

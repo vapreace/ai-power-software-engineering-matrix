@@ -6,7 +6,7 @@ Instruções para agentes de IA que trabalham neste repositório.
 
 A Matriz é uma aplicação de gestão de projetos e tarefas para equipas.
 
-Fase atual: **Ficha PL 03**, entrega (I0 a I6 prontos para revisão). Falta o I7 (resto do MVP). Segue os incrementos de `docs/implementation-plan.md`, atualiza o estado do incremento no fim e regista as verificações e os bugs em `docs/verification.md`.
+Fase atual: **Ficha PL 03** entregue (tag `ficha-pl03`); o I7 completa o MVP e está pronto para revisão. Segue os incrementos de `docs/implementation-plan.md`, atualiza o estado do incremento no fim e regista as verificações e os bugs em `docs/verification.md`.
 
 Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java com Spring Boot 4 e API REST; frontend em Vue 3 com TypeScript e Vite; base de dados PostgreSQL; autenticação com sessão no servidor.
 

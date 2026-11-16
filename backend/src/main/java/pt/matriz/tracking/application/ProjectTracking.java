@@ -68,6 +68,14 @@ public class ProjectTracking {
         return detail(projects.update(user, projectId, command));
     }
 
+    public ProjectDetail changeStatus(CurrentUser user, long projectId, ProjectStatus status, Long version) {
+        return detail(projects.changeStatus(user, projectId, status, version));
+    }
+
+    public ProjectDetail changeManager(CurrentUser user, long projectId, Long managerId, Long version) {
+        return detail(projects.changeManager(user, projectId, managerId, version));
+    }
+
     public void delete(CurrentUser user, long projectId) {
         projects.delete(user, projectId);
     }
