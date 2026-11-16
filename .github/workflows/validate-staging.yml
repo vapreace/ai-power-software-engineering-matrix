@@ -1,0 +1,39 @@
+# Validação do ambiente publicado no Render (DA40), a pedido (Actions > Validate published > Run workflow).
+# Não faz deploy: só verifica um endereço que já está no ar. O endereço vem da variável do
+# repositório MATRIZ_PUBLIC_URL (Settings > Secrets and variables > Actions > Variables).
+# O plano gratuito adormece após 15 minutos sem pedidos e demora cerca de um minuto a acordar.
+name: Validate published
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Smoke tests do ambiente publicado
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      URL: ${{ vars.MATRIZ_PUBLIC_URL }}
+    steps:
+      - name: Verificar a configuração
+        run: test -n "$URL" || { echo "Falta a variável MATRIZ_PUBLIC_URL do repositório."; exit 1; }
+      - name: Acordar a aplicação e esperar pela readiness (inclui a base de dados)
+        run: |
+          curl -fsS --retry 20 --retry-delay 10 --retry-all-errors --max-time 30 "${URL%/}/actuator/health/readiness"
+          echo
+      - name: Página inicial e API sem sessão
+        run: |
+          curl -fsS "${URL%/}/" | grep -q '<div id="app">'
+          test "$(curl -s -o /dev/null -w '%{http_code}' "${URL%/}/api/projects")" = 401
+      - name: Cabeçalhos de segurança e cookies por HTTPS (F6, F13, CSP)
+        run: |
+          curl -sS -D headers.txt -o /dev/null "${URL%/}/api/session"
+          cat headers.txt
+          grep -qi "^content-security-policy: default-src 'self'" headers.txt
+          grep -qi '^strict-transport-security:' headers.txt
+          grep -i '^set-cookie: XSRF-TOKEN=' headers.txt | grep -qi 'secure'
+      - name: Resultado
+        run: echo "Ambiente publicado aprovado em ${URL}."

@@ -1,0 +1,46 @@
+# Ambiente publicado da Matriz no Render (DA40): a imagem do Dockerfile (DA38), plano gratuito,
+# região de Frankfurt. A base de dados é um PostgreSQL 18 no Neon, também em Frankfurt.
+# Os valores com sync: false são pedidos ao criar o serviço e ficam só no painel do Render,
+# nunca no Git. Instruções e limites em docs/deployment.md.
+services:
+  - type: web
+    name: matriz
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # O Render só encaminha pedidos para uma versão nova quando ela está pronta (inclui a base de dados).
+    healthCheckPath: /actuator/health/readiness
+    # Entrega contínua: deploy de main só depois de todos os checks da pipeline passarem (DA39).
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: PORT
+        value: "8080"
+      # Contas e projetos de demonstração (DA30); a palavra-passe é a do README (risco aceite, DA40).
+      - key: SPRING_PROFILES_ACTIVE
+        value: demo
+      - key: MATRIZ_DB_HOST
+        sync: false
+      - key: MATRIZ_DB_PORT
+        value: "5432"
+      - key: MATRIZ_DB_NAME
+        sync: false
+      - key: MATRIZ_DB_USER
+        sync: false
+      - key: MATRIZ_DB_PASSWORD
+        sync: false
+      - key: MATRIZ_DB_SSLMODE
+        value: require
+      # Atrás do proxy do Render, com HTTPS: cookie de sessão Secure (F6) e endereço de quem faz o
+      # pedido lido dos cabeçalhos X-Forwarded-* (F13).
+      - key: MATRIZ_COOKIE_SECURE
+        value: "true"
+      - key: MATRIZ_FORWARD_HEADERS
+        value: native
+      - key: LOGGING_STRUCTURED_FORMAT_CONSOLE
+        value: ecs
+      # 512 MB e uma fração de CPU: GC simples e compilação mais leve para arrancar mais depressa.
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -XX:+UseSerialGC -XX:TieredStopAtLevel=1"

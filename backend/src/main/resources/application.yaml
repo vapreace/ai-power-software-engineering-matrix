@@ -13,7 +13,9 @@ spring:
       - optional:file:.env[.properties]
       - optional:file:../.env[.properties]
   datasource:
-    url: jdbc:postgresql://${MATRIZ_DB_HOST:localhost}:${MATRIZ_DB_PORT:5432}/${MATRIZ_DB_NAME:matriz}
+    # sslmode: prefer (o valor por omissão do driver) usa TLS se o servidor o tiver; no ambiente
+    # publicado, o Neon exige TLS: MATRIZ_DB_SSLMODE=require (DA40).
+    url: jdbc:postgresql://${MATRIZ_DB_HOST:localhost}:${MATRIZ_DB_PORT:5432}/${MATRIZ_DB_NAME:matriz}?sslmode=${MATRIZ_DB_SSLMODE:prefer}
     username: ${MATRIZ_DB_USER:matriz}
     password: ${MATRIZ_DB_PASSWORD:}
   jpa:
