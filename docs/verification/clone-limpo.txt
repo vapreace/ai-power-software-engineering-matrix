@@ -1,0 +1,35 @@
+== Clone limpo (16/11/2026 20:46)
+ff7ef7f Versão 1.0.0-rc.1: README, AGENTS, CHANGELOG, notas da versão e troubleshooting com o incidente simulado (Ficha PL 05, ex. 5)
+== Ficheiros .env no Git (esperado: nenhum)
+nenhum
+Compose válido
+ Container matriz-postgres-1 Waiting 
+ Container matriz-postgres-1 Healthy 
+ Container matriz-app-1 Starting 
+ Container matriz-app-1 Started 
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+{"status":"UP"}
+NAME                IMAGE          COMMAND                  SERVICE    CREATED          STATUS                             PORTS
+matriz-app-1        matriz:local   "java -jar /app/matr…"   app        30 seconds ago   Up 24 seconds (health: starting)   127.0.0.1:8080->8080/tcp
+matriz-postgres-1   postgres:18    "docker-entrypoint.s…"   postgres   31 seconds ago   Up 30 seconds (healthy)            127.0.0.1:5432->5432/tcp
+HTTP/1.1 200 
+  ok 1 [chromium] › e2e\create-task.spec.ts:16:1 › o gestor cria uma tarefa e vê-a na lista do projeto, sem recarregar (2.8s)
+  ok 2 [chromium] › e2e\direct-access.spec.ts:9:1 › um membro não abre pelo endereço um projeto de outra equipa (2.2s)
+  ok 3 [chromium] › e2e\member-flow.spec.ts:9:1 › a responsável encontra a tarefa em "As minhas tarefas" e muda o estado (2.6s)
+  ok 4 [chromium] › e2e\project-flow.spec.ts:18:1 › o gestor cria um projeto e uma tarefa, muda o estado e vê o painel atualizado (2.1s)
+  ok 5 [chromium-360px] › e2e\create-task.spec.ts:16:1 › o gestor cria uma tarefa e vê-a na lista do projeto, sem recarregar (1.6s)
+  ok 6 [chromium-360px] › e2e\direct-access.spec.ts:9:1 › um membro não abre pelo endereço um projeto de outra equipa (2.3s)
+  ok 7 [chromium-360px] › e2e\member-flow.spec.ts:9:1 › a responsável encontra a tarefa em "As minhas tarefas" e muda o estado (2.5s)
+  ok 8 [chromium-360px] › e2e\project-flow.spec.ts:18:1 › o gestor cria um projeto e uma tarefa, muda o estado e vê o painel atualizado (2.0s)
+
+  8 passed (22.0s)
+
+To open last HTML report run:
+
+  npx playwright show-report
+

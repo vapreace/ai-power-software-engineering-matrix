@@ -81,7 +81,7 @@ Decisões em [docs/architecture.md](docs/architecture.md), secção 9 (DA01 a DA
 
 ## Ambiente publicado
 
-A versão de `main` está em **https://matriz-3lgd.onrender.com**, com as [contas de demonstração](#contas-de-demonstração). O Render só publica uma versão depois de a pipeline de integração contínua passar (DA40). O plano gratuito adormece após 15 minutos sem pedidos: o primeiro pedido seguinte demora cerca de um minuto. Configuração, limites e operação em [docs/deployment.md](docs/deployment.md).
+A versão de `main` está em **https://matriz-3lgd.onrender.com**, com as [contas de demonstração](#contas-de-demonstração), exceto a de Administrador, que lá tem uma palavra-passe só da equipa (F16). O Render só publica uma versão depois de a pipeline de integração contínua passar (DA40). O plano gratuito adormece após 15 minutos sem pedidos: o primeiro pedido seguinte demora cerca de um minuto. Configuração, limites e operação em [docs/deployment.md](docs/deployment.md).
 
 ## Como executar
 
@@ -300,13 +300,13 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Revisão crítica da documentação | Concluída: revisão 1 e revisão independente (2 agentes) aplicadas |
 | Revisão crítica do Architecture Pack | Concluída: revisão 1, revisão independente e revisão final aplicadas (Ficha PL 02) |
 | Arquitetura | Proposta (architecture.md 0.12), com a implantação (secção 4.1) |
-| Modelo de dados | Proposta (database.md 0.2) |
+| Modelo de dados | Proposta (database.md 0.3) |
 | API | Contrato completo, 34 operações (openapi.yaml 0.3.2) |
 | Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.7). Designs dos ecrãs em `docs/ui/design/` e estilo visual DA36 |
 | Plano de implementação | 10 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
 | Implementação | I0 a I6 entregues na Ficha PL 03 (tag `ficha-pl03`). I7 (resto do MVP) pronto para revisão. I8 (testes e revisão, Ficha PL 04) entregue (tag `ficha-pl04`). I9 (entrega, Ficha PL 05) na versão `1.0.0-rc.1` |
 | Testes | Estratégia em três níveis (DA37) e plano de testes ([test-plan.md](docs/test-plan.md) 0.4, CT01 a CT42): 423 testes no backend (291 unitários, que cobrem todas as branches das regras de negócio), 4 de regressão no frontend e 4 percursos E2E no computador e a 360 px, todos na pipeline. Na entrega da Ficha PL 04 (tag `ficha-pl04`) eram 140, 4 e 3 |
-| Qualidade e segurança | Code Review do I7 e Security Review: 15 findings, 10 correções ([quality-security-review.md](docs/quality-security-review.md) 0.3). Trivy na pipeline, sem vulnerabilidades altas ou críticas |
+| Qualidade e segurança | Code Review do I7 e Security Review: 17 findings, 12 correções ([quality-security-review.md](docs/quality-security-review.md) 0.3). Trivy na pipeline, sem vulnerabilidades altas ou críticas |
 | Containerização | Imagem Docker e Docker Compose com a aplicação e o PostgreSQL (DA38) |
 | Integração e entrega contínuas | Pipeline em quatro blocos no GitHub Actions (DA39); deploy no Render só com a pipeline aprovada (DA40) |
 | Ambiente publicado | https://matriz-3lgd.onrender.com, Render e Neon em Frankfurt ([deployment.md](docs/deployment.md)) |

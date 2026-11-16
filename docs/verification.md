@@ -14,6 +14,8 @@ Documentos relacionados:
 
 ## 1. Versão verificada e ambiente
 
+As secções 1 a 11 referem-se à Ficha PL 03. As versões e os ambientes das fichas seguintes estão nas secções 12 a 15.
+
 | Item | Valor |
 |------|-------|
 | Versão | Tag `ficha-pl03` no Git. Testes no commit `ac4cc3c`; cópia limpa (M6, M7) no commit `eb9ca31` |
@@ -408,9 +410,9 @@ Pipeline em `.github/workflows/ci.yml` (DA39): blocos Build, Testes, Cobertura e
 |---------------------|-----------|
 | `npm audit --omit=dev --audit-level=high` | Aprovado: nenhuma vulnerabilidade alta ou crítica nas dependências de produção. |
 | Quality gate da cobertura | Aprovado: todas as branches das regras de negócio cobertas pelos testes unitários. |
-| Trivy 0.76.2, vulnerabilidades altas e críticas da imagem | 0 no sistema base (Alpine 3.24.4) e 0 no `matriz.jar` ([trivy-image.txt](verification/trivy-image.txt)). |
+| Trivy 0.76.2, vulnerabilidades altas e críticas da imagem | 0 no sistema base (Alpine 3.24.4) e 0 no `matriz.jar` ([trivy-image.txt](verification/trivy-image.txt), artefacto `trivy-reports` da terceira execução no `main`, commit `71f4598`). |
 | Trivy, segredos no repositório | 0. |
-| Trivy, configuração do `Dockerfile` | 0 problemas ([trivy-config.txt](verification/trivy-config.txt)). |
+| Trivy, configuração do `Dockerfile` | 0 problemas ([trivy-config.txt](verification/trivy-config.txt), mesma execução). |
 
 ### 15.5 Problemas encontrados e soluções
 

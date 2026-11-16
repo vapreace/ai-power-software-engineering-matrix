@@ -25,6 +25,8 @@ Documentos relacionados:
 
 As contas de demonstração e a palavra-passe são públicas (README). Qualquer pessoa com o endereço pode entrar e alterar dados: é um risco aceite, porque os dados são fictícios (DA40). A secção 5.3 diz como repor a base de dados.
 
+**Exceção: a conta de Administrador (Ana).** No ambiente publicado tem uma palavra-passe só da equipa (F16): com a palavra-passe pública, qualquer pessoa podia repor o acesso das outras contas ou desativá-las e bloquear uma demonstração. Mudou-se pela própria aplicação: a Ana entrou, usou **Repor acesso** na sua conta com uma palavra-passe temporária e definiu uma nova na entrada seguinte (DA25). A palavra-passe não fica escrita em nenhum documento; quem avalia o projeto e precisar do Administrador recebe-a em privado. Depois de repor a base de dados (5.3), a Ana volta à palavra-passe de demonstração e o passo repete-se.
+
 ---
 
 ## 2. Configuração
@@ -69,7 +71,7 @@ push para main  ->  pipeline (DA39)  ->  todos os checks aprovados?  -> sim ->  
 ```
 
 - O Render constrói a imagem a partir do `Dockerfile` e só passa os pedidos para a versão nova quando a readiness responde `UP` (health check `/actuator/health/readiness`, que inclui a base de dados).
-- **Validação a pedido:** em **Actions**, **Validate published**, **Run workflow** (`.github/workflows/validate-staging.yml`). Acorda a aplicação e verifica a readiness, a página inicial, a API sem sessão (401), a CSP, o HSTS e o cookie CSRF com `Secure`. Não faz deploy.
+- **Validação a pedido:** em **Actions**, **Validate published**, **Run workflow** (`.github/workflows/validate-published.yml`). Acorda a aplicação e verifica a readiness, a página inicial, a API sem sessão (401), a CSP, o HSTS e o cookie CSRF com `Secure`. Não faz deploy.
 - **Deploy manual:** no Render, no serviço `matriz`, **Manual Deploy**, **Deploy latest commit**.
 
 ---
@@ -95,7 +97,8 @@ Procedimento previsto, ainda não executado:
 
 1. No Neon, no projeto `matriz`, abrir o **SQL Editor** e correr `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`. Apaga todos os dados do ambiente publicado.
 2. No Render, no serviço `matriz`, **Manual Deploy**, **Restart service**. No arranque, o Liquibase cria de novo o esquema e os dados de demonstração.
-3. Correr o workflow **Validate published**.
+3. Repetir a mudança da palavra-passe da Ana (secção 1).
+4. Correr o workflow **Validate published**.
 
 ### 5.4 Voltar a uma versão anterior
 
@@ -108,6 +111,7 @@ No Render, em **Events** ou **Deploys**, escolher um deploy anterior e usar **Ro
 | Medida | Onde |
 |--------|------|
 | Segredos só no painel do Render, introduzidos pela pessoa; nunca no Git, na pipeline ou no chat | Secção 2 |
+| Conta de Administrador com palavra-passe só da equipa | Secção 1, F16 |
 | HTTPS do Render, com HSTS | F13, DA40 |
 | Cookie de sessão `Secure`, `HttpOnly` e `SameSite=Lax` | F6 ([verification/render-cookies.png](verification/render-cookies.png)) |
 | TLS entre a aplicação e o Neon | `MATRIZ_DB_SSLMODE=require` |

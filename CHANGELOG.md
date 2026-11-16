@@ -17,7 +17,7 @@ Primeira versão candidata: o MVP completo, pronto para ser construído, testado
 - Endereços de saúde com o Spring Boot Actuator: `/actuator/health/liveness` e `/actuator/health/readiness`, sem pormenores (CT37).
 - Logs em JSON (formato ECS) nos containers.
 - Pipeline de integração contínua no GitHub Actions, em quatro blocos: build, testes (unitários, integração, frontend e E2E), cobertura com quality gate e entrega (imagem, smoke tests, Trivy e publicação no GitHub Container Registry numa release) (DA39).
-- Dependabot para Maven, npm, GitHub Actions e Docker.
+- Dependabot para Maven, npm, GitHub Actions, Docker e Docker Compose.
 - Ambiente publicado no Render, com a base de dados no Neon, em Frankfurt, e deploy automático só com a pipeline aprovada: https://matriz-3lgd.onrender.com (DA40).
 - Workflow **Validate published**, que verifica o ambiente publicado.
 - Documentação: `docs/deployment.md`, `docs/troubleshooting.md`, este `CHANGELOG.md` e `RELEASE_NOTES.md`; implantação em `docs/architecture.md` (secção 4.1); README com o Docker Compose, a pipeline e o ambiente publicado.
@@ -42,6 +42,8 @@ Primeira versão candidata: o MVP completo, pronto para ser construído, testado
 - O Spring Boot deixa de criar um utilizador em memória e de escrever a sua palavra-passe nos logs (F14).
 - Content Security Policy em todas as respostas.
 - Análise das dependências e da imagem com o Trivy em cada execução da pipeline: as dependências do backend passam a ser analisadas.
+- No ambiente publicado, a conta de Administrador deixa de usar a palavra-passe pública de demonstração (F16).
+- A imagem publicada no GitHub Container Registry é a mesma que passou nos smoke tests e no Trivy (F17).
 
 ## [0.2.0] - 2026-11-16
 

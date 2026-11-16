@@ -6,7 +6,8 @@
 #   Testes     unitários, integração, frontend, E2E           (os níveis de DA37)
 #   Cobertura  JaCoCo, com quality gate nas regras de negócio
 #   Entrega    imagem (Compose, smoke tests, Trivy); publicar no GHCR, só numa release
-# A imagem só se constrói depois de todos os testes e da cobertura.
+# A imagem só se constrói depois de todos os testes e da cobertura, e a que se publica é a mesma
+# que passou nos smoke tests e no Trivy (não se volta a construir).
 #
 # Sem segredos: ci-temporary-password serve só as bases de dados temporárias desta pipeline.
 # Actions de terceiros fixadas por SHA e o Trivy por SHA-256: uma tag pode ser reescrita por quem
@@ -134,7 +135,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
       - name: Testes de integração e de arquitetura (PostgreSQL 18 em Testcontainers)
-        run: ./mvnw -B -ntp verify -Dtest='!*RulesTests'
+        run: ./mvnw -B -ntp verify -Dtest='!*RulesTests*'
       - name: Guardar os resultados
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -342,6 +343,16 @@ jobs:
         run: trivy fs --offline-scan --scanners secret --skip-files .env --exit-code 1 .
       - name: "Trivy: configuração do Dockerfile (relatório)"
         run: trivy config --format table --output trivy-config.txt . && cat trivy-config.txt
+      - name: Guardar a imagem testada para a publicação (só numa release)
+        if: ${{ github.event_name == 'release' }}
+        run: docker save matriz:local | gzip > matriz-image.tar.gz
+      - name: Enviar a imagem testada para o job de publicação (só numa release)
+        if: ${{ github.event_name == 'release' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: matriz-image
+          path: matriz-image.tar.gz
+          retention-days: 1
       - name: Logs da aplicação em caso de falha
         if: ${{ failure() }}
         run: docker compose logs --tail=200
@@ -365,34 +376,35 @@ jobs:
     if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Só este job escreve pacotes, com o GITHUB_TOKEN da execução.
+    # Só este job escreve pacotes, com o GITHUB_TOKEN da execução. Publica a imagem que o job
+    # "Entrega: imagem" testou, sem a construir de novo.
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+      - name: Obter a imagem testada
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Nome e versão da imagem
-        id: image
+          name: matriz-image
+          path: ${{ runner.temp }}
+      - name: Carregar a imagem
+        run: gunzip -c "$RUNNER_TEMP/matriz-image.tar.gz" | docker load
+      - name: Autenticar no GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+      - name: Publicar com a versão da release e o commit
         env:
           TAG: ${{ github.event.release.tag_name }}
         run: |
-          echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/matriz" >> "$GITHUB_OUTPUT"
-          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
-      - name: Construir e publicar
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ steps.image.outputs.name }}:${{ steps.image.outputs.version }}
-            ${{ steps.image.outputs.name }}:sha-${{ github.sha }}
-          labels: |
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.version=${{ steps.image.outputs.version }}
-            org.opencontainers.image.revision=${{ github.sha }}
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/matriz"
+          VERSION="${TAG#v}"
+          for tag in "$VERSION" "sha-${GITHUB_SHA}"; do
+            docker tag matriz:local "$IMAGE:$tag"
+            docker push "$IMAGE:$tag"
+          done
+          echo "Imagem publicada: \`$IMAGE:$VERSION\` ($(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE:$VERSION"))" >> "$GITHUB_STEP_SUMMARY"
+      - name: Terminar a sessão no registo
+        if: ${{ always() }}
+        run: docker logout ghcr.io

@@ -1,6 +1,6 @@
 # Code Review e Security Review da Matriz
 
-> **Versão:** 0.3 (Ficha PL 05: F5, F6, F13 e F14 corrigidos; Content Security Policy; F15 registado)
+> **Versão:** 0.3 (Ficha PL 05: F5, F6, F13, F14, F16 e F17 corrigidos; Content Security Policy; F15 pendente)
 > **Estado:** concluído. Correções aprovadas pela equipa e aplicadas em 16/11/2026 (secção 6).
 
 Documentos relacionados:
@@ -66,6 +66,8 @@ Severidade: **Alta**, **Média**, **Baixa** ou **Informativo**. Estado: **Confir
 | F6 | Baixa | A05 Security Misconfiguration | `backend/src/main/resources/application.yaml` | O cookie de sessão é `HttpOnly` e `SameSite=Lax`, mas não tem `Secure`. | Em localhost não tem efeito. Num deploy com HTTPS (Ficha PL 05, DP10), o cookie poderia seguir num pedido HTTP. | Confirmado (configuração). Corrigido (Ficha PL 05) | Ativar `server.servlet.session.cookie.secure` por variável de ambiente no ambiente publicado. | `ProxyConfigurationTests.behindTheHttpsProxyTheCookiesAreSecureAndHstsIsSent` (CT39); cabeçalho `Set-Cookie` no ambiente publicado. |
 | F7 | Baixa | A06 Vulnerable and Outdated Components | `frontend/package-lock.json` | `npm audit`: 7 moderadas (9 em Linux), todas por causa de `minimatch` 10 (GHSA-g3hv-75wg-m249, negação de serviço com padrões glob), puxado pelo `typescript-eslint` do ESLint. `npm audit --omit=dev`: 0. | Só nas ferramentas de desenvolvimento; não entra no build entregue. Os padrões que o `minimatch` processa vêm da configuração do projeto, não de utilizadores. | Confirmado | Aceitar e rever quando o `typescript-eslint` passar a usar o `minimatch` corrigido (11.0.1 ou mais recente). O `npm audit fix` sugerido não resolve: a versão atual exige `minimatch` ^10.2.2. | Nova execução de `npm audit` na Ficha PL 05 (pipeline). |
 | F13 | Média (no ambiente publicado) | A04 Insecure Design (configuração para proxy) | `access/api/SessionController.java`, `login` | Leitura do código, na análise da Ficha PL 05: o limite de tentativas (DA26) usa `request.getRemoteAddr()`. Atrás do proxy do Render (DA40), esse endereço é o do proxy, igual para todas as pessoas. | No ambiente publicado, cinco falhas de qualquer pessoa num email bloqueiam esse email a todos durante 15 minutos: qualquer pessoa pode impedir outra de entrar. Em localhost e no Compose não tem efeito. | Suspeita (só se reproduz no ambiente publicado). Corrigido (Ficha PL 05) | Ler o endereço dos cabeçalhos do proxy (`server.forward-headers-strategy=native`), ativado por variável de ambiente só no ambiente publicado, onde o proxy é de confiança. | `ProxyConfigurationTests.loginAttemptsAreCountedPerClientAddressAndNotPerProxy` (CT40); verificação no ambiente publicado. |
+| F16 | Média (no ambiente publicado) | A07 Identification and Authentication Failures | `render.yaml` (perfil `demo`) e README | Revisão final independente (Ficha PL 05): no ambiente publicado, a conta de Administrador (Ana) tinha a palavra-passe de demonstração, pública no README. Confirmado no ecrã Contas: o Administrador pode repor o acesso e desativar qualquer conta. | Qualquer pessoa com o endereço podia entrar como Administrador, repor o acesso ou desativar as outras contas e bloquear uma demonstração. Os dados são fictícios (PRIV03). | Confirmado (configuração). Corrigido (Ficha PL 05) | Palavra-passe da Ana só da equipa no ambiente publicado, mudada pela própria aplicação (DA25); as outras contas mantêm a palavra-passe pública. | Entrar como Ana com a palavra-passe de demonstração no ambiente publicado é recusado (verification.md, secção 15.8). |
+| F17 | Baixa | A08 Software and Data Integrity Failures | `.github/workflows/ci.yml`, job `publish` | Revisão final independente (Ficha PL 05): o job de publicação construía a imagem de novo, em vez de publicar a que passou nos smoke tests e no Trivy no job `image`. | A imagem publicada no GHCR podia não ser exatamente a imagem verificada (imagens base com tags que mudam). | Confirmado (configuração). Corrigido (Ficha PL 05) | Numa release, o job `image` guarda a imagem testada como artefacto e o `publish` carrega-a e envia-a, sem a construir. Deixaram de ser precisas as actions de terceiros do Docker. | Execução da pipeline na release `v1.0.0-rc.1` (verification.md, secção 15.8). |
 | F14 | Baixa | A05 Security Misconfiguration (exposição de informação) | Spring Boot, `UserDetailsServiceAutoConfiguration` (desde o I1) | Log da imagem (Ficha PL 05, passo 2): `WARN ... Using generated security password: ...`. Sem um `UserDetailsService` próprio, o Spring Boot cria um utilizador em memória e escreve a palavra-passe no log. | O utilizador não serve para entrar (formulário e HTTP Basic desativados; a entrada é do módulo Acesso, DA04), mas a palavra-passe fica nos logs, que no ambiente publicado se veem no painel do Render. | Confirmado. Corrigido (Ficha PL 05) | Excluir a auto-configuração (`spring.autoconfigure.exclude`). | `SecurityConfigurationTests.noInMemoryUserIsCreated` (CT42); nenhum `WARN` no log do Compose. |
 
 ### 3.2 Code Review (diff do I7)
@@ -99,7 +101,7 @@ Seguem a orientação da ficha: distinguir defeito da aplicação, problema do t
 
 | Verificação | Motivo |
 |-------------|--------|
-| Dependências do backend (Maven) | Resolvido na Ficha PL 05: o Trivy analisa os JAR dentro da imagem em cada execução da pipeline (secção 2). Antes: não havia ferramenta configurada. O OWASP Dependency-Check precisa da base de dados do NVD; fica para a pipeline da Ficha PL 05. |
+| Dependências do backend (Maven) | Resolvido na Ficha PL 05: o Trivy analisa os JAR dentro da imagem em cada execução da pipeline (secção 2). |
 | F5 (concorrência no último Administrador) | Resolvido na Ficha PL 05: teste com pedidos em paralelo (secção 6.1). |
 | Cabeçalhos de segurança no ambiente publicado (CSP, HSTS) e F6 | Verificados na Ficha PL 05 (verification.md, secção 15.6). |
 | F13 (endereço de quem entra atrás do proxy) | Configuração verificada no ambiente publicado (HSTS e cookie CSRF com `Secure`). O limite de tentativas em si não foi exercitado lá, porque exigia escrever palavras-passe no site publicado; fica coberto pelo CT40. |
@@ -126,7 +128,6 @@ Os testes que já existiam continuam a passar: o gestor e o Administrador contin
 |---------|----------------------|
 | F3, F7, F11, F12 | Risco aceite ou sem ação, com o motivo indicado na secção 3. |
 | F15 | Pendente: a correção muda o contrato da API e fica para depois da versão candidata. |
-| F5, F6 | Corrigidos na Ficha PL 05 (secção 6.1). |
 
 ---
 
@@ -140,6 +141,8 @@ Aprovadas pela utilizadora em 16/11/2026, no plano do incremento I9 (decisão Q8
 | F6 | `server.servlet.session.cookie.secure` lido de `MATRIZ_COOKIE_SECURE` (`false` por omissão; `true` no ambiente publicado). | `ProxyConfigurationTests` (CT39). No ambiente publicado, `JSESSIONID` com `Secure`, `HttpOnly` e `SameSite=Lax` (verification.md, secção 15.6). |
 | F13 | `server.forward-headers-strategy` lido de `MATRIZ_FORWARD_HEADERS` (`none` por omissão; `native` no ambiente publicado). O Tomcat só aceita os cabeçalhos vindos de proxies internos. Com o HTTPS conhecido, o cookie CSRF também sai com `Secure` e o Spring Security envia o HSTS. | `ProxyConfigurationTests` (CT39, CT40). No ambiente publicado, HSTS e cookie CSRF com `Secure`: o proxy do Render é aceite (verification.md, secção 15.6). |
 | F14 | `UserDetailsServiceAutoConfiguration` excluída em `application.yaml`. | `SecurityConfigurationTests` (CT42). |
+| F16 | Palavra-passe da Ana mudada no ambiente publicado, pela própria aplicação (deployment.md, secção 1). | Verificação no ambiente publicado (verification.md, secção 15.8). |
+| F17 | `ci.yml`: o job `image` guarda a imagem testada numa release (`docker save`) e o `publish` publica-a (`docker load`, `docker push`), com o `GITHUB_TOKEN` e `docker login`. | Release `v1.0.0-rc.1` (verification.md, secção 15.8). |
 | Cabeçalhos (secção 5) | Content Security Policy no Spring Security: só recursos da própria origem, sem plugins, sem formulários para fora e sem a aplicação dentro de frames de outros sites. Os outros cabeçalhos por omissão mantêm-se. Os cabeçalhos são escritos no início de cada pedido: na primeira versão, a página inicial (`/`), servida por reencaminhamento para o `index.html`, saía sem nenhum deles (encontrado na validação com o Compose; o teste com MockMvc não o via). | `SecurityConfigurationTests` (CT41), com pedidos HTTP reais, e os 8 E2E contra a imagem. |
 
 ## 7. Segurança do trabalho com agentes de IA

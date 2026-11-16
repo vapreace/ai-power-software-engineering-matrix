@@ -23,7 +23,7 @@ Primeira versão candidata da Matriz, a aplicação de gestão de projetos e tar
 - Imagem Docker e Docker Compose com a aplicação e o PostgreSQL 18 (DA38).
 - Pipeline no GitHub Actions: build, os quatro níveis de testes, cobertura com quality gate, imagem com smoke tests e análise de segurança com o Trivy (DA39).
 - Ambiente publicado em **https://matriz-3lgd.onrender.com**, com deploy automático só depois de a pipeline passar (DA40).
-- Correções de segurança: concorrência no último Administrador (F5), cookie de sessão com `Secure` (F6), endereço de quem entra atrás do proxy (F13), palavra-passe gerada nos logs (F14) e Content Security Policy.
+- Correções de segurança: concorrência no último Administrador (F5), cookie de sessão com `Secure` (F6), endereço de quem entra atrás do proxy (F13), palavra-passe gerada nos logs (F14), Content Security Policy, Administrador com palavra-passe própria no ambiente publicado (F16) e publicação da imagem testada (F17).
 
 A lista completa está no [CHANGELOG.md](CHANGELOG.md).
 
@@ -61,7 +61,7 @@ Pormenores em [docs/verification.md](docs/verification.md), secção 15.
 | Limitação | Consequência |
 |-----------|--------------|
 | O ambiente publicado usa planos gratuitos e adormece após 15 minutos sem pedidos (LIM17) | O primeiro pedido seguinte demora cerca de um minuto e as sessões perdem-se |
-| As contas de demonstração e a palavra-passe são públicas no ambiente publicado | Qualquer pessoa pode alterar os dados de demonstração (fictícios). A reposição está em `docs/deployment.md`, secção 5.3, ainda por executar |
+| As contas de demonstração e a palavra-passe são públicas no ambiente publicado, exceto a de Administrador (F16) | Qualquer pessoa pode alterar os dados de demonstração (fictícios), mas não administrar as contas. A reposição está em `docs/deployment.md`, secção 5.3, ainda por executar |
 | Não há staging nem produção, nem proteção do ramo `main` (repositório privado com conta gratuita) | O que impede um deploy de uma versão com falhas é o Render só publicar com a pipeline aprovada |
 | Riscos aceites F3 (enumeração de identificadores) e F7 (`minimatch` nas ferramentas de desenvolvimento) | Ver `docs/quality-security-review.md` |
 | F15: com a base de dados indisponível, a API responde 500 com o corpo genérico do Spring, e não com o Problem Details em português | Só nessa situação; não revela pormenores internos. A correção muda o contrato da API e fica para depois desta versão |

@@ -1,7 +1,7 @@
 # Plano de testes da Matriz
 
 > **Versão:** 0.4 (Ficha PL 05: cenários de entrega e configuração, secção 4.4)
-> **Estado:** concluído para a Ficha PL 04. Todos os testes marcados "Novo" estão no repositório e passam. Os resultados das execuções ficam em [verification.md](verification.md), secção 13.
+> **Estado:** concluído para as Fichas PL 04 e PL 05. Todos os testes marcados "Novo" estão no repositório e passam. Os resultados das execuções ficam em [verification.md](verification.md), secções 13 a 15.
 
 Documentos relacionados:
 

@@ -236,7 +236,7 @@ Não acrescenta funcionalidades. Prepara a Matriz para ser construída, testada,
 | 3 | 3 | Compose com a aplicação e a base de dados; validações da ficha, persistência e E2E contra o container | `compose.yaml`, `.env.example`, evidências em `docs/verification/` |
 | 4 | | Correções F5, F6 e F13 e Content Security Policy, com testes de regressão | quality-security-review.md, [test-plan.md](test-plan.md) |
 | 5 | 4 | Pipeline com testes, build, imagem, E2E e análise de segurança; falha controlada num pull request | `.github/workflows/ci.yml`, `.github/dependabot.yml` |
-| 6 | | Ambiente publicado no Render, com a base de dados no Neon; entrega contínua depois da CI | `render.yaml`, `.github/workflows/validate-staging.yml`, `docs/deployment.md` |
+| 6 | | Ambiente publicado no Render, com a base de dados no Neon; entrega contínua depois da CI | `render.yaml`, `.github/workflows/validate-published.yml`, `docs/deployment.md` |
 | 7 | 5 | README, AGENTS, arquitetura, troubleshooting, CHANGELOG, notas da versão e versão `1.0.0-rc.1` | `CHANGELOG.md`, `RELEASE_NOTES.md`, `docs/troubleshooting.md` |
 | 8 | 6 | Validação a partir de um clone limpo, revisão final por um agente independente, relatório, tags e release | [verification.md](verification.md), secção 15 |
 

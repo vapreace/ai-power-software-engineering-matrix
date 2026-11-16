@@ -26,12 +26,17 @@ RUN --mount=type=cache,target=/root/.m2 sh ./mvnw -B -Dmaven.test.skip=true pack
 
 # 3. Execução: só o JRE, com um utilizador sem privilégios.
 FROM eclipse-temurin:21-jre-alpine
+LABEL org.opencontainers.image.title="Matriz" \
+      org.opencontainers.image.description="Gestão de projetos e tarefas para equipas" \
+      org.opencontainers.image.source="https://github.com/vapreace/ai-power-software-engineering-matrix"
 RUN addgroup -S -g 10001 matriz && adduser -S -D -H -u 10001 -G matriz matriz
 WORKDIR /app
 COPY --from=backend /tmp/matriz.jar /app/matriz.jar
 USER 10001:10001
 # Memória da JVM proporcional à do container; termina em vez de continuar sem memória.
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"
+# Logs em JSON, no formato ECS do Spring Boot (DA38).
+ENV LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs
 EXPOSE 8080
 # Pronta quando aceita pedidos e chega à base de dados (readiness, DA38).
 HEALTHCHECK --interval=10s --timeout=3s --start-period=120s --retries=5 \
