@@ -1,0 +1,396 @@
+# Pipeline de integração contínua da Matriz (DA39; Ficha PL 05, exercício 4).
+#
+# Quatro blocos, como os stages do GitLab: cada bloco só começa quando todos os jobs do bloco
+# anterior passam (needs). Um job que falha trava os blocos seguintes.
+#   Build      frontend, backend
+#   Testes     unitários, integração, frontend, E2E           (os níveis de DA37)
+#   Cobertura  JaCoCo, com quality gate nas regras de negócio
+#   Entrega    imagem (Compose, smoke tests, Trivy); publicar no GHCR, só numa release
+# A imagem só se constrói depois de todos os testes e da cobertura.
+#
+# Sem segredos: ci-temporary-password serve só as bases de dados temporárias desta pipeline.
+# Actions de terceiros fixadas por SHA e o Trivy por SHA-256: uma tag pode ser reescrita por quem
+# compromete o repositório de origem (caso do trivy-action em março de 2026); o SHA não.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: "21"
+  NODE_VERSION: "24"
+
+jobs:
+  # ───── Bloco 1: Build ─────
+
+  build-frontend:
+    name: "Build: frontend"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar as dependências
+        run: npm ci
+      - name: Verificar os tipos
+        run: npm run type-check
+      - name: Análise estática (ESLint)
+        run: npm run lint
+      - name: Vulnerabilidades das dependências de produção (npm audit)
+        run: npm audit --omit=dev --audit-level=high
+      - name: Build do frontend (para backend/src/main/resources/static)
+        run: npm run build-only
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: frontend-build
+          path: backend/src/main/resources/static
+          retention-days: 7
+
+  build-backend:
+    name: "Build: backend"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Compilar o código e os testes
+        run: ./mvnw -B -ntp test-compile
+
+  # ───── Bloco 2: Testes (DA37) ─────
+
+  test-unit:
+    name: "Testes: unitários"
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Testes unitários das regras de negócio (sem Docker)
+        run: ./mvnw -B -ntp test -Dtest='*RulesTests'
+      - name: Guardar os resultados
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: unit-test-reports
+          path: backend/target/surefire-reports
+          retention-days: 14
+      - name: Guardar os dados da cobertura
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: jacoco-unit
+          path: |
+            backend/target/jacoco.exec
+            backend/target/classes
+          retention-days: 7
+
+  test-integration:
+    name: "Testes: integração"
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Testes de integração e de arquitetura (PostgreSQL 18 em Testcontainers)
+        run: ./mvnw -B -ntp verify -Dtest='!*RulesTests'
+      - name: Guardar os resultados
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: integration-test-reports
+          path: backend/target/surefire-reports
+          retention-days: 14
+      - name: Guardar os dados da cobertura
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: jacoco-integration
+          path: backend/target/jacoco.exec
+          retention-days: 7
+
+  test-frontend:
+    name: "Testes: frontend"
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar as dependências
+        run: npm ci
+      - name: Testes de regressão (Vitest)
+        run: npm run test:unit
+
+  test-e2e:
+    name: "Testes: E2E"
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # PostgreSQL temporário, só para esta execução. Os valores não são segredos.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: matriz
+          POSTGRES_USER: matriz
+          POSTGRES_PASSWORD: ci-temporary-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U matriz -d matriz"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      MATRIZ_DB_HOST: localhost
+      MATRIZ_DB_PORT: "5432"
+      MATRIZ_DB_NAME: matriz
+      MATRIZ_DB_USER: matriz
+      MATRIZ_DB_PASSWORD: ci-temporary-password
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Obter o build do frontend (bloco Build)
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: frontend-build
+          path: backend/src/main/resources/static
+      - name: Construir o .jar de entrega (backend com o frontend)
+        working-directory: backend
+        run: ./mvnw -B -ntp -Dmaven.test.skip=true package
+      - name: Arrancar a aplicação com o perfil demo
+        run: |
+          nohup java -jar backend/target/matriz-*.jar --spring.profiles.active=demo > app.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            curl -fsS http://localhost:8080/actuator/health/readiness && exit 0
+            sleep 3
+          done
+          echo "A aplicação não ficou pronta." && tail -n 100 app.log && exit 1
+      - name: Instalar as dependências e o Chromium do Playwright
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Testes E2E (computador e 360 px)
+        working-directory: frontend
+        env:
+          MATRIZ_E2E_BASE_URL: http://localhost:8080
+        run: npm run test:e2e
+      - name: Guardar o relatório do Playwright e o log da aplicação
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+            app.log
+          retention-days: 14
+
+  # ───── Bloco 3: Cobertura ─────
+
+  coverage:
+    name: "Cobertura: JaCoCo"
+    needs: [test-unit, test-integration, test-frontend, test-e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      - name: Obter os dados dos testes unitários
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: jacoco-unit
+          path: backend/target/unit
+      - name: Obter os dados dos testes de integração
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: jacoco-integration
+          path: backend/target/integration
+      - name: Relatórios só dos unitários e total
+        run: |
+          ./mvnw -B -ntp -q dependency:copy -Dartifact=org.jacoco:org.jacoco.cli:0.8.15:jar:nodeps -DoutputDirectory=target/jacoco-cli
+          JACOCO="java -jar target/jacoco-cli/org.jacoco.cli-0.8.15-nodeps.jar"
+          $JACOCO merge target/unit/jacoco.exec target/integration/jacoco.exec --destfile target/jacoco-total.exec
+          $JACOCO report target/unit/jacoco.exec --classfiles target/unit/classes --sourcefiles src/main/java \
+            --csv target/coverage-unit.csv --html target/coverage-unit
+          $JACOCO report target/jacoco-total.exec --classfiles target/unit/classes --sourcefiles src/main/java \
+            --csv target/coverage-total.csv --html target/coverage-total
+      - name: Quality gate (todas as branches das regras de negócio com testes unitários)
+        run: python3 ../.github/scripts/coverage_gate.py target/coverage-unit.csv target/coverage-total.csv >> "$GITHUB_STEP_SUMMARY"
+      - name: Guardar os relatórios
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-reports
+          path: |
+            backend/target/coverage-unit
+            backend/target/coverage-total
+          retention-days: 14
+
+  # ───── Bloco 4: Entrega ─────
+
+  image:
+    name: "Entrega: imagem"
+    needs: [coverage]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Configuração da CI (.env a partir do modelo, com uma palavra-passe temporária)
+        run: |
+          cp .env.example .env
+          sed -i 's/^MATRIZ_DB_PASSWORD=.*/MATRIZ_DB_PASSWORD=ci-temporary-password/' .env
+      - name: Validar o Docker Compose
+        run: docker compose config -q
+      - name: Construir a imagem
+        run: docker compose build
+      - name: Arrancar a aplicação e a base de dados
+        run: |
+          docker compose up -d
+          for attempt in $(seq 1 60); do
+            curl -fsS http://localhost:8080/actuator/health/readiness && exit 0
+            sleep 3
+          done
+          echo "A aplicação não ficou pronta." && exit 1
+      - name: Smoke tests
+        run: |
+          curl -fsS http://localhost:8080/actuator/health/liveness
+          curl -fsS http://localhost:8080/ | grep -q '<div id="app">'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/api/projects)" = 401
+          curl -sI http://localhost:8080/ | grep -qi "^content-security-policy: default-src 'self'"
+          echo "Smoke tests aprovados: liveness, readiness, página inicial, API sem sessão (401) e CSP."
+      - name: Instalar o Trivy (versão fixa, verificada por SHA-256)
+        env:
+          TRIVY_VERSION: 0.76.2
+          TRIVY_SHA256: bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/trivy.tar.gz" \
+            "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          echo "${TRIVY_SHA256}  $RUNNER_TEMP/trivy.tar.gz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/trivy" && tar -xzf "$RUNNER_TEMP/trivy.tar.gz" -C "$RUNNER_TEMP/trivy" trivy
+          echo "$RUNNER_TEMP/trivy" >> "$GITHUB_PATH"
+      - name: "Trivy: relatório das vulnerabilidades altas e críticas da imagem"
+        run: trivy image --scanners vuln --severity HIGH,CRITICAL --format table --output trivy-image.txt matriz:local && cat trivy-image.txt
+      - name: "Trivy: chumba com vulnerabilidades críticas que já têm correção"
+        run: trivy image --scanners vuln --severity CRITICAL --ignore-unfixed --exit-code 1 matriz:local
+      - name: "Trivy: segredos no repositório"
+        run: trivy fs --scanners secret --skip-files .env --exit-code 1 .
+      - name: "Trivy: configuração do Dockerfile (relatório)"
+        run: trivy config --format table --output trivy-config.txt . && cat trivy-config.txt
+      - name: Logs da aplicação em caso de falha
+        if: ${{ failure() }}
+        run: docker compose logs --tail=200
+      - name: Guardar os relatórios do Trivy
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: trivy-reports
+          path: |
+            trivy-image.txt
+            trivy-config.txt
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Parar e apagar a base de dados temporária
+        if: ${{ always() }}
+        run: docker compose down -v
+
+  publish:
+    name: "Entrega: publicar"
+    needs: [image]
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Só este job escreve pacotes, com o GITHUB_TOKEN da execução.
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Nome e versão da imagem
+        id: image
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/matriz" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+      - name: Construir e publicar
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.image.outputs.name }}:${{ steps.image.outputs.version }}
+            ${{ steps.image.outputs.name }}:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.image.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
