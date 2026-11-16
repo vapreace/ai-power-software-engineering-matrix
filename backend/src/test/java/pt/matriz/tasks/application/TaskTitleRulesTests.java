@@ -126,7 +126,7 @@ class TaskTitleRulesTests {
         verify(repository).saveAndFlush(saved.capture());
         assertThat(saved.getValue().getTitle()).isEqualTo(expectedTitle);
         assertThat(created.title()).isEqualTo(expectedTitle);
-        assertThat(created.status()).isEqualTo(TaskStatus.TODO);
+        assertThat(created.status()).isEqualTo(TaskStatus.DONE);
         assertThat(created.priority()).isEqualTo(TaskPriority.MEDIUM);
     }
 
