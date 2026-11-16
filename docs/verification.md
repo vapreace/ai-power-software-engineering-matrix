@@ -463,7 +463,7 @@ Não verificado no ambiente publicado: o limite de tentativas por endereço (F13
 | Executar a aplicação a partir das instruções do README | Clone novo do GitHub (commit `ff7ef7f`) numa pasta vazia; só os comandos de "Com Docker Compose" ([clone-limpo.txt](verification/clone-limpo.txt)) | `docker compose config -q` válido; `docker compose up -d --build` construiu a imagem e arrancou os dois serviços; readiness `UP`; página inicial 200. |
 | Confirmar o estado dos containers | `docker compose ps` no clone | `postgres` healthy; `app` a correr e a ficar healthy, portas só em `127.0.0.1`. |
 | Testar as funcionalidades essenciais | Os 8 E2E a partir do clone, contra o Compose | 8 passam (computador e 360 px), 22 s. |
-| Confirmar os resultados da pipeline | Separador Actions | Execução do commit `299ff47` (o da release) aprovada; falha controlada e correção no pull request #8 (secção 15.4). |
+| Confirmar os resultados da pipeline | Separador Actions | Execuções aprovadas dos commits `299ff47` (correções da revisão) e `653c19c` (o da release, execução #21 com o gatilho `release`, 7 min 3 s, os 9 jobs aprovados); falha controlada e correção no pull request #8 (secção 15.4). |
 | Consultar os logs | `docker compose logs` e incidente simulado | 0 avisos e 0 erros da aplicação no arranque (secção 15.3); com a base de dados parada, os avisos e o erro esperados (incidente 001). |
 | Verificar a ausência de credenciais nos ficheiros versionados | `git ls-files` no clone; Trivy na pipeline | Nenhum `.env` no Git; 0 segredos no Trivy. Ficam intencionalmente: a palavra-passe de demonstração (dados fictícios, README) e `ci-temporary-password` (bases de dados temporárias da pipeline). |
 | Registar os problemas e as correções | Secção 15.5 e 15.8.2 | Todos os problemas com causa e solução. |
@@ -493,7 +493,7 @@ O revisor confirmou ainda, sem problemas: 197 ligações relativas entre documen
 2. **Resultados dos testes e da pipeline.** 423 testes no backend (291 unitários e 132 de integração e arquitetura), 4 de regressão e 8 E2E no frontend, 0 falhas; quality gate da cobertura aprovado (todas as branches das regras de negócio); Trivy sem vulnerabilidades altas ou críticas, sem segredos e sem problemas no `Dockerfile`; pipeline aprovada, com a falha controlada demonstrada; ambiente publicado validado (secções 15.1 a 15.7).
 3. **Problemas encontrados e soluções.** Secção 15.5 (palavra-passe gerada nos logs, cabeçalhos em falta na página inicial, Maven Central com 429, opção inexistente no Trivy, interface do GitHub desatualizada, assistente do Neon) e 15.8.2 (revisão independente). O incidente simulado revelou F15, que fica pendente.
 4. **Utilização dos agentes de IA.** O agente analisou o projeto e propôs o plano, com as decisões e uma recomendação para cada uma, aprovado antes de qualquer alteração. Escreveu o `Dockerfile`, o `compose.yaml`, a pipeline, os testes de regressão e a documentação. Diagnosticou as falhas da pipeline a partir dos logs (429 do Maven Central, opção inexistente) e propôs a correção mínima. Um segundo agente, sem contexto, fez a revisão final. Validação humana em cada passo: os comandos correram na máquina da utilizadora e o agente leu os resultados reais; os commits e o push foram sempre da utilizadora; as palavras-passe nunca passaram pelo agente (as do Neon foram diretamente para o Render; a da Ana foi mudada pela utilizadora); conteúdo externo (logs, páginas, prompts do assistente do Neon) foi tratado como informação e não como instruções. Erros do agente encontrados e corrigidos: a contagem de avisos no formato ECS, a CSP na página inicial (o teste com MockMvc não a via) e a opção `--offline-scan` no `trivy config`.
-5. **Limitações e pendentes.** F15 (erro 500 sem Problem Details com a base de dados em baixo); riscos aceites F3 e F7; imagens base sem digest; sem staging, sem produção e sem proteção do `main` (repositório privado com conta gratuita); o ambiente publicado adormece (LIM17); a reposição da base de dados publicada (deployment.md, 5.3) não foi executada; o limite de tentativas não foi exercitado no ambiente publicado (coberto pelo CT40); por fazer: testes de carga, E2E noutros browsers e verificação formal de acessibilidade; por decidir antes de um piloto: RGPD (DP11) e disponibilidade (DP12).
+5. **Limitações e pendentes.** F15 (erro 500 sem Problem Details com a base de dados em baixo); riscos aceites F3 e F7; imagens base sem digest; sem staging nem produção; sem regras de proteção do `main`, por decisão (trabalho de uma pessoa, com push direto; DA39); o ambiente publicado adormece (LIM17); a reposição da base de dados publicada (deployment.md, 5.3) não foi executada; o limite de tentativas não foi exercitado no ambiente publicado (coberto pelo CT40); por fazer: testes de carga, E2E noutros browsers e verificação formal de acessibilidade; por decidir antes de um piloto: RGPD (DP11) e disponibilidade (DP12).
 
 #### 15.8.4 Desafios adicionais
 
@@ -501,5 +501,17 @@ O revisor confirmou ainda, sem problemas: 197 ligações relativas entre documen
 |---------|-----------|-----------|
 | A: Segurança | Trivy à imagem, aos segredos e ao `Dockerfile`, `npm audit` e Dependabot, na pipeline (DA39) | Secção 15.4; [trivy-image.txt](verification/trivy-image.txt), [trivy-config.txt](verification/trivy-config.txt) |
 | B: Observabilidade | Logs JSON (ECS); liveness e readiness no Compose, no `Dockerfile`, no Render, na pipeline e no workflow **Validate published**; rotação de logs | Secções 15.2, 15.6 e 15.7; incidente 001 em [troubleshooting.md](troubleshooting.md) |
-| C: Releases | Job "Entrega: publicar": numa release, publica no GitHub Container Registry a imagem testada, com escrita de pacotes só nesse job | Release `v1.0.0-rc.1` (registada a seguir à publicação) |
+| C: Releases | Job "Entrega: publicar": numa release, publica no GitHub Container Registry a imagem testada, com escrita de pacotes só nesse job | Release `v1.0.0-rc.1`: execução #21 com "Entrega: publicar" aprovado ([release-ci.png](verification/release-ci.png)); pacote privado `ghcr.io/vapreace/matriz`, ligado ao repositório, com as tags `1.0.0-rc.1` e `sha-653c19c...` ([ghcr-pacote.png](verification/ghcr-pacote.png)) |
+
+#### 15.8.5 Versão entregue
+
+| Item | Valor |
+|------|-------|
+| Commit | `653c19c` |
+| Tags | `v1.0.0-rc.1` (versão, DA41) e `ficha-pl05` (entrega da ficha), anotadas, no mesmo commit |
+| GitHub Release | `Matriz 1.0.0-rc.1`, marcada como *pre-release*, com o texto de `RELEASE_NOTES.md` |
+| Imagem | `ghcr.io/vapreace/matriz:1.0.0-rc.1` (privada), publicada pela pipeline da release |
+| Ambiente publicado | https://matriz-3lgd.onrender.com, com deploy automático de `main` |
+
+Depois das tags, um commit corrigiu na documentação (DA39, 15.8.3 e `RELEASE_NOTES.md`) uma afirmação errada: a conta do GitHub tem o plano Pro, que permite regras de proteção do `main` em repositórios privados. A ausência dessas regras é uma decisão (trabalho de uma pessoa, com push direto), e não um limite do plano. O texto da GitHub Release foi corrigido da mesma forma. O mesmo commit acrescentou as evidências da release.
 

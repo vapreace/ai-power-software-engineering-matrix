@@ -6,6 +6,10 @@ As versões `0.1.0` e `0.2.0` identificam as entregas das Fichas PL 03 e PL 04, 
 
 ## [Unreleased]
 
+### Fixed
+
+- Documentação (DA39, `verification.md` e `RELEASE_NOTES.md`): a falta de regras de proteção do `main` é uma decisão, e não um limite do plano do GitHub.
+
 ## [1.0.0-rc.1] - 2026-11-16
 
 Primeira versão candidata: o MVP completo, pronto para ser construído, testado e publicado de forma reproduzível (Ficha PL 05, incremento I9).

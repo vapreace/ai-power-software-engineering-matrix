@@ -62,7 +62,7 @@ Pormenores em [docs/verification.md](docs/verification.md), secção 15.
 |-----------|--------------|
 | O ambiente publicado usa planos gratuitos e adormece após 15 minutos sem pedidos (LIM17) | O primeiro pedido seguinte demora cerca de um minuto e as sessões perdem-se |
 | As contas de demonstração e a palavra-passe são públicas no ambiente publicado, exceto a de Administrador (F16) | Qualquer pessoa pode alterar os dados de demonstração (fictícios), mas não administrar as contas. A reposição está em `docs/deployment.md`, secção 5.3, ainda por executar |
-| Não há staging nem produção, nem proteção do ramo `main` (repositório privado com conta gratuita) | O que impede um deploy de uma versão com falhas é o Render só publicar com a pipeline aprovada |
+| Não há staging nem produção, e não se configuraram regras de proteção do ramo `main` (trabalho de uma pessoa, com push direto; DA39) | O que impede um deploy de uma versão com falhas é o Render só publicar com a pipeline aprovada |
 | Riscos aceites F3 (enumeração de identificadores) e F7 (`minimatch` nas ferramentas de desenvolvimento) | Ver `docs/quality-security-review.md` |
 | F15: com a base de dados indisponível, a API responde 500 com o corpo genérico do Spring, e não com o Problem Details em português | Só nessa situação; não revela pormenores internos. A correção muda o contrato da API e fica para depois desta versão |
 | Por fazer: testes de carga (RNF03, RNF04), E2E noutros browsers além do Chromium, verificação formal de acessibilidade (DP12) | Ver `docs/verification.md` |
