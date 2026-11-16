@@ -1,6 +1,6 @@
 # Restrições, pressupostos e decisões pendentes
 
-> **Versão:** 1.0 (conciliação com o âmbito da Ficha PL 03, exercício 1)
+> **Versão:** 1.1 (Ficha PL 04: DP09 resolvida)
 > **Estado:** em validação. Os pressupostos deste documento **não são requisitos confirmados**.
 
 Documentos relacionados:
@@ -125,7 +125,7 @@ As decisões tomadas na Aula 2 estão em [architecture.md](architecture.md) (sec
 | DP06 | Mecanismo de autenticação, regras mínimas da palavra-passe, duração da sessão, expiração por inatividade e mecanismo de SEG09 (limites, duração, desbloqueio). | Resolvida: DA04, DA26 | RF01, SEG01, SEG07, SEG08, SEG09, PRIV01 |
 | DP07 | Como se dá o acesso inicial a uma conta nova e como se repõe o acesso (palavra-passe esquecida ou conta bloqueada). Tem de estar decidida antes de implementar US02. | Resolvida: DA25 | RF02, US02, SEG09 |
 | DP08 | Fuso horário fixo ou configurável pelo Administrador. | Resolvida: DA24 | P12, RNF06 |
-| DP09 | Estratégia e ferramentas de testes. | Parcial: ferramentas e testes mínimos exigidos pela Ficha PL 03 em [architecture.md](architecture.md#9-decisões-técnicas) (DA31). Estratégia completa no Módulo 4 | RNF07, R08 |
+| DP09 | Estratégia e ferramentas de testes. | Resolvida: DA31 (Ficha PL 03) e DA37 (Ficha PL 04), em [architecture.md](architecture.md#9-decisões-técnicas) | RNF07, R08 |
 | DP10 | Ambientes, alojamento e pipeline de integração e entrega contínua. | Módulo 5 | |
 | DP11 | Conformidade com o RGPD: prazos de conservação (incluindo o texto das tarefas e dos comentários, os registos eliminados e as associações removidas, RN32), tratamento de contas desativadas, informação aos colaboradores, base legal, e forma de exercer os direitos de acesso e de retificação. | Antes do piloto | PRIV02, RN16, RN28 |
 | DP12 | Requisitos de acessibilidade e disponibilidade (horário, tempo de recuperação). | Antes do piloto | RNF |

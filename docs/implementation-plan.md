@@ -56,7 +56,7 @@ O MVP completo mantém-se: as 22 histórias. O âmbito da ficha (R08) vem primei
 
 ## 3. Decisões
 
-**Confirmadas:** DA01 a DA36. As da Ficha PL 03 são DA28 (Java 21, Maven, pacotes, bibliotecas), DA29 (eliminação lógica), DA30 (Liquibase, seed, configuração, Docker Compose), DA31 (testes), DA32 (pesquisa), DA33 (ordem das tarefas), DA34 (endereço da API no frontend), DA35 (sessões de contas desativadas) e DA36 (estilo visual).
+**Confirmadas:** DA01 a DA37. As da Ficha PL 03 são DA28 (Java 21, Maven, pacotes, bibliotecas), DA29 (eliminação lógica), DA30 (Liquibase, seed, configuração, Docker Compose), DA31 (testes), DA32 (pesquisa), DA33 (ordem das tarefas), DA34 (endereço da API no frontend), DA35 (sessões de contas desativadas) e DA36 (estilo visual). A da Ficha PL 04 é DA37 (estratégia de testes).
 
 **Ficam para a implementação, com aprovação:**
 

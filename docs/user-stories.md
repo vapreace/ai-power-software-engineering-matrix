@@ -1,6 +1,6 @@
 # User Stories do MVP
 
-> **Versão:** 0.6 (conciliação com o âmbito da Ficha PL 03, exercício 1)
+> **Versão:** 0.7 (Ficha PL 04: definição de concluído com os testes)
 > **Estado:** em validação com o Product Owner.
 
 ## Como ler este documento
@@ -1342,7 +1342,7 @@ Cada caso está coberto por pelo menos um cenário da história indicada.
 
 Uma história só está concluída quando:
 
-1. Todos os seus cenários são verificados por testes automáticos que passam (RNF07). Enquanto não houver ferramenta de testes (DP09), a verificação é manual e fica descrita.
+1. Todos os seus cenários são verificados por testes automáticos que passam (RNF07). Os cenários de teste estão em [test-plan.md](test-plan.md). Quando um cenário não puder ser automatizado, a verificação é manual e fica descrita em [verification.md](verification.md).
 2. As regras de negócio indicadas são respeitadas.
 3. O resultado foi revisto por uma pessoa da equipa. Só essa pessoa marca a história como concluída.
 4. Qualquer pressuposto novo ou alteração de âmbito ficou registado em [constraints.md](constraints.md) ou em [requirements.md](requirements.md).

@@ -24,6 +24,7 @@ Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java 
    | Contrato da API: pedidos, respostas, códigos de erro | `openapi.yaml` |
    | Navegação, ecrãs e componentes da interface | `docs/ui/README.md` |
    | Incrementos, critérios de aceitação e verificação de cada um | `docs/implementation-plan.md` |
+   | Cenários de teste, resultados esperados e testes associados | `docs/test-plan.md` |
    | Resultados das verificações, bugs encontrados e uso da IA | `docs/verification.md` |
 
 2. Identifica os IDs relacionados com a tarefa (ex.: US05, RN11) e usa-os no plano e no relatório final.
@@ -95,7 +96,7 @@ Indica sempre:
 
 - Quando terminares uma história, indica que está "pronta para revisão". Só uma pessoa da equipa a marca como concluída (`docs/user-stories.md`, secção 4).
 - Antes de dar uma tarefa como pronta, corre os testes e indica o resultado real. Se não conseguires correr um comando, diz qual e porquê.
-- A estratégia completa de testes fica para o Módulo 4 (DP09). Até lá, seguem-se DA31 e os testes previstos em `docs/implementation-plan.md`.
+- A estratégia de testes está em `docs/architecture.md` (DA31, DA37). Os resultados esperados vêm dos requisitos e dos critérios de aceitação, não do comportamento atual do código. Cada teste novo fica associado a um cenário de `docs/test-plan.md`.
 
 ## Comandos
 
@@ -123,4 +124,4 @@ O esquema da base de dados muda só com um changeset Liquibase novo em `backend/
 
 ## Manutenção deste ficheiro
 
-A stack e as convenções foram acrescentadas na Ficha PL 02. Os comandos e os pacotes foram acrescentados na Ficha PL 03 (incremento I0); os testes de regressão do frontend e `docs/verification.md` no incremento I6. No Módulo 4 entra a estratégia de testes (DP09).
+A stack e as convenções foram acrescentadas na Ficha PL 02. Os comandos e os pacotes foram acrescentados na Ficha PL 03 (incremento I0); os testes de regressão do frontend e `docs/verification.md` no incremento I6. Na Ficha PL 04 entraram a estratégia de testes (DA37) e `docs/test-plan.md`.

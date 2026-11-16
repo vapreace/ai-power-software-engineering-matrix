@@ -134,6 +134,7 @@ Sem o perfil `demo`, a primeira conta de Administrador é criada no arranque com
     ├── architecture.md    Como a Matriz está organizada
     ├── database.md        Que dados a Matriz guarda
     ├── implementation-plan.md  Incrementos da implementação e o seu estado
+    ├── test-plan.md       Cenários de teste, resultados esperados e testes
     ├── verification.md    Verificações, testes, bugs e uso da IA
     ├── verification/      Evidências (prints)
     └── ui/                Navegação, ecrãs, wireframe e designs (ui/design/)
@@ -163,6 +164,7 @@ Cada tipo de informação tem **um único documento de referência**, para evita
 | Contrato da API REST | [openapi.yaml](openapi.yaml) |
 | Navegação, ecrãs, wireframe e decisões de interface | [ui/README.md](docs/ui/README.md) |
 | Incrementos da implementação e o seu estado | [implementation-plan.md](docs/implementation-plan.md) |
+| Cenários de teste (CT), resultados esperados e testes associados | [test-plan.md](docs/test-plan.md) |
 | Resultados das verificações, bugs e uso da IA | [verification.md](docs/verification.md) |
 | Instruções para agentes de IA | [AGENTS.md](AGENTS.md) |
 
@@ -185,6 +187,7 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | SEG | Requisito de segurança | SEG08 |
 | PRIV | Requisito de privacidade | PRIV01 |
 | LIM | Limitação de âmbito | LIM01 |
+| CT | Cenário de teste | CT05 |
 | M | Métrica de sucesso | M1 |
 | IA | Regra de desenvolvimento com IA | IA02 |
 
@@ -195,11 +198,11 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Análise do problema e perguntas de clarificação | Concluída |
 | Âmbito funcional e MVP | Concluído e conciliado com a Ficha PL 03, por validar com o Product Owner |
 | User Stories e critérios de aceitação | Concluídas (22 histórias), por validar |
-| Documentação de contexto | requirements.md 0.7, user-stories.md 0.6, constraints.md 1.0 |
+| Documentação de contexto | requirements.md 0.7, user-stories.md 0.7, constraints.md 1.1 |
 | Instruções para agentes (AGENTS.md) | Atualizado na Ficha PL 02: fase, stack, documentos e convenções |
 | Revisão crítica da documentação | Concluída: revisão 1 e revisão independente (2 agentes) aplicadas |
 | Revisão crítica do Architecture Pack | Concluída: revisão 1, revisão independente e revisão final aplicadas (Ficha PL 02) |
-| Arquitetura | Proposta (architecture.md 0.9) |
+| Arquitetura | Proposta (architecture.md 0.10) |
 | Modelo de dados | Proposta (database.md 0.2) |
 | API | Contrato completo, 34 operações (openapi.yaml 0.3.1) |
 | Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.7). Designs dos ecrãs em `docs/ui/design/` e estilo visual DA36 |
