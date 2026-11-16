@@ -1,6 +1,6 @@
 # Plano de implementação da Matriz
 
-> **Versão:** 0.2 (Ficha PL 04: incremento I8)
+> **Versão:** 0.3 (Ficha PL 05: incremento I9)
 > **Estado:** em curso. O estado de cada incremento atualiza-se no fim do incremento, na mesma alteração.
 
 Documentos relacionados:
@@ -56,7 +56,7 @@ O MVP completo mantém-se: as 22 histórias. O âmbito da ficha (R08) vem primei
 
 ## 3. Decisões
 
-**Confirmadas:** DA01 a DA37. As da Ficha PL 03 são DA28 (Java 21, Maven, pacotes, bibliotecas), DA29 (eliminação lógica), DA30 (Liquibase, seed, configuração, Docker Compose), DA31 (testes), DA32 (pesquisa), DA33 (ordem das tarefas), DA34 (endereço da API no frontend), DA35 (sessões de contas desativadas) e DA36 (estilo visual). A da Ficha PL 04 é DA37 (estratégia de testes).
+**Confirmadas:** DA01 a DA41. As da Ficha PL 03 são DA28 (Java 21, Maven, pacotes, bibliotecas), DA29 (eliminação lógica), DA30 (Liquibase, seed, configuração, Docker Compose), DA31 (testes), DA32 (pesquisa), DA33 (ordem das tarefas), DA34 (endereço da API no frontend), DA35 (sessões de contas desativadas) e DA36 (estilo visual). A da Ficha PL 04 é DA37 (estratégia de testes). As da Ficha PL 05 são DA38 (imagem Docker e Compose), DA39 (pipeline), DA40 (ambientes e alojamento) e DA41 (versões e releases).
 
 **Ficam para a implementação, com aprovação:**
 
@@ -72,7 +72,7 @@ O MVP completo mantém-se: as 22 histórias. O âmbito da ficha (R08) vem primei
 
 ```mermaid
 flowchart LR
-    I0["I0 Esqueleto<br/>Ex. 2"] --> I1["I1 Sessão<br/>Ex. 3"] --> I2["I2 Projetos<br/>Ex. 4"] --> I3["I3 Tarefas<br/>Ex. 5"] --> I4["I4 Responsáveis<br/>e comentários<br/>Ex. 6"] --> I5["I5 Painel<br/>Ex. 7"] --> I6["I6 Verificação<br/>e entrega<br/>Ex. 8 e 9"] --> I7["I7 Resto<br/>do MVP"] --> I8["I8 Testes e revisão<br/>Ficha PL 04"]
+    I0["I0 Esqueleto<br/>Ex. 2"] --> I1["I1 Sessão<br/>Ex. 3"] --> I2["I2 Projetos<br/>Ex. 4"] --> I3["I3 Tarefas<br/>Ex. 5"] --> I4["I4 Responsáveis<br/>e comentários<br/>Ex. 6"] --> I5["I5 Painel<br/>Ex. 7"] --> I6["I6 Verificação<br/>e entrega<br/>Ex. 8 e 9"] --> I7["I7 Resto<br/>do MVP"] --> I8["I8 Testes e revisão<br/>Ficha PL 04"] --> I9["I9 Entrega<br/>Ficha PL 05"]
 ```
 
 O exercício 7 (frontend) não fica só no I5: cada incremento entrega a sua parte da interface, ligada à API real, sem mocks. O I5 fecha o painel e revê a interface toda face ao wireframe.
@@ -88,6 +88,7 @@ O exercício 7 (frontend) não fica só no I5: cada incremento entrega a sua par
 | I6 | Verificação, revisão e entrega da Ficha 03 | | Ex. 8, Ex. 9 | Pronto para revisão |
 | I7 | Resto do MVP | US02, US03, US08, US13, US14, US17 (gestor), US18 | | Pronto para revisão |
 | I8 | Testes, Code Review e Security Review | | Ficha PL 04, ex. 1 a 5 | Pronto para revisão |
+| I9 | Containers, pipeline, ambiente publicado e versão candidata | | Ficha PL 05, ex. 1 a 6 | Em curso |
 
 ### I0 Esqueleto e persistência (exercício 2)
 
@@ -224,10 +225,41 @@ Não acrescenta funcionalidades. Define a estratégia de testes (DA37, resolve D
 
 **Depois da entrega (passo 2b):** testes unitários para todas as branches das regras de negócio, cobertura com JaCoCo e dois testes E2E (o percurso do Membro e o ecrã de 360 px). Sem alterações ao código de produção. Resultados em [verification.md](verification.md), secção 14.
 
+### I9 Entrega: containers, pipeline, ambiente publicado e versão candidata (Ficha PL 05)
+
+Não acrescenta funcionalidades. Prepara a Matriz para ser construída, testada, documentada e entregue de forma reproduzível (DA38 a DA41, resolve DP10) e fecha os pendentes F5 e F6 da Ficha PL 04 e o finding F13. A entrega fica identificada pelas tags `v1.0.0-rc.1` e `ficha-pl05`.
+
+| Passo | Ex. | O quê | Resultado |
+|-------|-----|-------|-----------|
+| 1 | 1 | Análise do projeto e plano; decisões DA38 a DA41; finding F13 | Este incremento, [architecture.md](architecture.md), [quality-security-review.md](quality-security-review.md) 0.3 |
+| 2 | 2 | Imagem Docker da aplicação; saúde com o Actuator; porta e memória configuráveis | `Dockerfile`, `.dockerignore` |
+| 3 | 3 | Compose com a aplicação e a base de dados; validações da ficha, persistência e E2E contra o container | `compose.yaml`, `.env.example`, evidências em `docs/verification/` |
+| 4 | | Correções F5, F6 e F13 e Content Security Policy, com testes de regressão | quality-security-review.md, [test-plan.md](test-plan.md) |
+| 5 | 4 | Pipeline com testes, build, imagem, E2E e análise de segurança; falha controlada num pull request | `.github/workflows/ci.yml`, `.github/dependabot.yml` |
+| 6 | | Ambiente publicado no Render, com a base de dados no Neon; entrega contínua depois da CI | `render.yaml`, `.github/workflows/validate-staging.yml`, `docs/deployment.md` |
+| 7 | 5 | README, AGENTS, arquitetura, troubleshooting, CHANGELOG, notas da versão e versão `1.0.0-rc.1` | `CHANGELOG.md`, `RELEASE_NOTES.md`, `docs/troubleshooting.md` |
+| 8 | 6 | Validação a partir de um clone limpo, revisão final por um agente independente, relatório, tags e release | [verification.md](verification.md), secção 15 |
+
+**Diferenças conscientes face aos exemplos do Módulo 5.** A ficha pede que se respeitem a arquitetura e as tecnologias da Matriz e que não se introduzam componentes desnecessários.
+
+| Exemplo dos slides | Na Matriz | Motivo |
+|--------------------|-----------|--------|
+| Containers separados para o frontend (Vite) e o backend (FastAPI) | Uma imagem com o `.jar`, que serve o frontend | Um deploy e a mesma origem (DA02, DA28, DA38). |
+| Endpoint `/health` | `/actuator/health/liveness` e `/actuator/health/readiness` | Spring Boot; separa liveness de readiness, como nos slides de troubleshooting (DA38). |
+| `docs/openapi.json` gerado a partir do código | `openapi.yaml` na raiz | O contrato é escrito antes do código desde a Ficha PL 02 ([architecture.md](architecture.md), secção 13). |
+| ADR em `docs/decisions/` | Decisões DA em architecture.md | Cada tipo de informação tem um único documento ([README.md](../README.md)). |
+| `docs/incidents/` | `docs/troubleshooting.md` | Diagnóstico e incidentes no mesmo documento. |
+| Pytest e `npm test` | `./mvnw verify`, `npm run test:unit` e `npm run test:e2e` | Estratégia de testes da Matriz (DA37). |
+
+**Critérios de aceitação (da ficha):** os containers arrancam e mantêm o comportamento validado; com o Compose, a aplicação é acessível, os componentes comunicam, os dados persistem depois de recriar os containers e os logs não têm erros críticos por resolver; a pipeline falha quando um teste falha, só constrói a imagem depois das verificações, usa permissões mínimas, não expõe segredos e tem uma execução aprovada no GitHub; a documentação corresponde ao código; a versão está identificada com Semantic Versioning; há um relatório de validação. Nenhuma credencial em ficheiros versionados.
+
+**Verificação:** [verification.md](verification.md), secção 15.
+
 ## 5. Riscos do plano
 
 | Risco | Mitigação |
 |-------|-----------|
 | O tempo até ao Módulo 6 não chega para as 22 histórias (R03). | O âmbito da ficha vem primeiro (I0 a I6). O I7 é o que fica de fora se faltar tempo, registado como limitação. |
 | Os testes com Testcontainers não correm na máquina de desenvolvimento. | O I0 confirma o Docker logo no início. |
+| O tempo até à entrega final (18 ou 19 de novembro, R03) não chega para o I9 todo. | Os exercícios obrigatórios (passos 2 a 5) vêm primeiro. Se faltar tempo, a CSP e a validação do ambiente publicado ficam como limitação. |
 | Uma consulta esquece o filtro de eliminação (RN32). | Filtro num único ponto por módulo (DA29) e cenários de US16 e US20 nos testes. |

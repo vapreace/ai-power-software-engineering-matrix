@@ -1,6 +1,6 @@
 # Restrições, pressupostos e decisões pendentes
 
-> **Versão:** 1.1 (Ficha PL 04: DP09 resolvida)
+> **Versão:** 1.2 (Ficha PL 05: DP10 resolvida)
 > **Estado:** em validação. Os pressupostos deste documento **não são requisitos confirmados**.
 
 Documentos relacionados:
@@ -126,7 +126,7 @@ As decisões tomadas na Aula 2 estão em [architecture.md](architecture.md) (sec
 | DP07 | Como se dá o acesso inicial a uma conta nova e como se repõe o acesso (palavra-passe esquecida ou conta bloqueada). Tem de estar decidida antes de implementar US02. | Resolvida: DA25 | RF02, US02, SEG09 |
 | DP08 | Fuso horário fixo ou configurável pelo Administrador. | Resolvida: DA24 | P12, RNF06 |
 | DP09 | Estratégia e ferramentas de testes. | Resolvida: DA31 (Ficha PL 03) e DA37 (Ficha PL 04), em [architecture.md](architecture.md#9-decisões-técnicas) | RNF07, R08 |
-| DP10 | Ambientes, alojamento e pipeline de integração e entrega contínua. | Módulo 5 | |
+| DP10 | Ambientes, alojamento e pipeline de integração e entrega contínua. | Resolvida: DA38, DA39 e DA40 (Ficha PL 05), em [architecture.md](architecture.md#9-decisões-técnicas) | RNF07, PRIV02, PRIV03 |
 | DP11 | Conformidade com o RGPD: prazos de conservação (incluindo o texto das tarefas e dos comentários, os registos eliminados e as associações removidas, RN32), tratamento de contas desativadas, informação aos colaboradores, base legal, e forma de exercer os direitos de acesso e de retificação. | Antes do piloto | PRIV02, RN16, RN28 |
 | DP12 | Requisitos de acessibilidade e disponibilidade (horário, tempo de recuperação). | Antes do piloto | RNF |
 | DP13 | Tratamento de alterações simultâneas: o que acontece quando alguém grava uma tarefa ou um projeto que outra pessoa alterou ou apagou entretanto. | Resolvida: DA05 | P11, LIM11 |
@@ -155,6 +155,7 @@ As decisões tomadas na Aula 2 estão em [architecture.md](architecture.md) (sec
 | LIM14 | O limite de tentativas de entrada conta por email e endereço IP, só em memória (DA26). | Pessoas que saem pelo mesmo endereço IP partilham o contador de um email. Reiniciar a aplicação limpa os contadores. |
 | LIM15 | Os registos eliminados e as associações removidas ficam guardados sem prazo de conservação (RN32). | A base de dados cresce e guarda dados pessoais que já não aparecem. O prazo fica para DP11. |
 | LIM16 | Os comentários não se editam nem se apagam (RN30). | Um comentário errado corrige-se com outro comentário. |
+| LIM17 | O ambiente publicado (DA40) adormece após 15 minutos sem pedidos. | O primeiro pedido seguinte demora cerca de um minuto. As sessões e os contadores de tentativas perdem-se (DA26): quem volta tem de entrar outra vez. |
 
 ### 5.2 Itens retirados
 

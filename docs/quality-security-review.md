@@ -1,6 +1,6 @@
 # Code Review e Security Review da Matriz
 
-> **Versão:** 0.2 (Ficha PL 04, exercício 5: correções aplicadas)
+> **Versão:** 0.3 (Ficha PL 05: finding F13 e pendentes F5 e F6)
 > **Estado:** concluído. Correções aprovadas pela equipa e aplicadas em 16/11/2026 (secção 6).
 
 Documentos relacionados:
@@ -62,6 +62,7 @@ Severidade: **Alta**, **Média**, **Baixa** ou **Informativo**. Estado: **Confir
 | F5 | Baixa | A04 Insecure Design (concorrência) | `accounts/application/AccountAdministration.java`, `isLastActiveAdministrator` | Leitura do código: a contagem de Administradores ativos e a alteração não estão protegidas contra pedidos simultâneos. | Dois Administradores a desativarem-se um ao outro ao mesmo tempo poderiam deixar a organização sem Administrador ativo (RN18). | Suspeita | Bloquear as contas de Administrador na mesma transação (`SELECT ... FOR UPDATE`) antes de contar. | Teste com dois pedidos em paralelo. Fica por fazer. |
 | F6 | Baixa | A05 Security Misconfiguration | `backend/src/main/resources/application.yaml` | O cookie de sessão é `HttpOnly` e `SameSite=Lax`, mas não tem `Secure`. | Em localhost não tem efeito. Num deploy com HTTPS (Ficha PL 05, DP10), o cookie poderia seguir num pedido HTTP. | Confirmado (configuração) | Ativar `server.servlet.session.cookie.secure` por variável de ambiente no ambiente publicado. | Verificação do cabeçalho `Set-Cookie` no ambiente publicado (Ficha PL 05). |
 | F7 | Baixa | A06 Vulnerable and Outdated Components | `frontend/package-lock.json` | `npm audit`: 7 moderadas (9 em Linux), todas por causa de `minimatch` 10 (GHSA-g3hv-75wg-m249, negação de serviço com padrões glob), puxado pelo `typescript-eslint` do ESLint. `npm audit --omit=dev`: 0. | Só nas ferramentas de desenvolvimento; não entra no build entregue. Os padrões que o `minimatch` processa vêm da configuração do projeto, não de utilizadores. | Confirmado | Aceitar e rever quando o `typescript-eslint` passar a usar o `minimatch` corrigido (11.0.1 ou mais recente). O `npm audit fix` sugerido não resolve: a versão atual exige `minimatch` ^10.2.2. | Nova execução de `npm audit` na Ficha PL 05 (pipeline). |
+| F13 | Média (no ambiente publicado) | A04 Insecure Design (configuração para proxy) | `access/api/SessionController.java`, `login` | Leitura do código, na análise da Ficha PL 05: o limite de tentativas (DA26) usa `request.getRemoteAddr()`. Atrás do proxy do Render (DA40), esse endereço é o do proxy, igual para todas as pessoas. | No ambiente publicado, cinco falhas de qualquer pessoa num email bloqueiam esse email a todos durante 15 minutos: qualquer pessoa pode impedir outra de entrar. Em localhost e no Compose não tem efeito. | Suspeita | Ler o endereço dos cabeçalhos do proxy (`server.forward-headers-strategy=native`), ativado por variável de ambiente só no ambiente publicado, onde o proxy é de confiança. | Teste com `X-Forwarded-For`; verificação no ambiente publicado (Ficha PL 05). |
 
 ### 3.2 Code Review (diff do I7)
 
@@ -96,6 +97,7 @@ Seguem a orientação da ficha: distinguir defeito da aplicação, problema do t
 | Dependências do backend (Maven) | Não há ferramenta configurada. O OWASP Dependency-Check precisa da base de dados do NVD; fica para a pipeline da Ficha PL 05. |
 | F5 (concorrência no último Administrador) | Precisa de um teste com pedidos em paralelo. |
 | Cabeçalhos de segurança no ambiente publicado (CSP, HSTS) e F6 | Só fazem sentido com HTTPS (Ficha PL 05). |
+| F13 (endereço de quem entra atrás do proxy) | Só se reproduz no ambiente publicado (Ficha PL 05). |
 | Componentes `.vue` no Semgrep | O Semgrep não analisa ficheiros `.vue`; o ESLint cobre esses ficheiros. |
 
 ---
