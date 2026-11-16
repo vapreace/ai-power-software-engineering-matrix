@@ -4,6 +4,10 @@
 spring:
   application:
     name: matriz
+  autoconfigure:
+    # A entrada é feita pelo módulo Acesso (DA04). Sem isto, o Spring Boot criava um utilizador em
+    # memória e escrevia a sua palavra-passe nos logs (F14).
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   config:
     import:
       - optional:file:.env[.properties]
@@ -26,6 +30,9 @@ spring:
       enabled: true
 
 server:
+  # Atrás do proxy do ambiente publicado (DA40), o endereço de quem faz o pedido e o HTTPS vêm dos
+  # cabeçalhos X-Forwarded-* (F13). Em desenvolvimento fica desligado: MATRIZ_FORWARD_HEADERS=native.
+  forward-headers-strategy: ${MATRIZ_FORWARD_HEADERS:none}
   servlet:
     session:
       # A sessão termina após 30 minutos sem pedidos (DA26).
@@ -34,6 +41,8 @@ server:
       cookie:
         http-only: true
         same-site: lax
+        # Só por HTTPS no ambiente publicado (F6): MATRIZ_COOKIE_SECURE=true.
+        secure: ${MATRIZ_COOKIE_SECURE:false}
 
 # Saúde da aplicação para o Docker, a pipeline e o alojamento (DA38). Só /actuator/health,
 # com liveness e readiness (a readiness inclui a base de dados), sem pormenores dos componentes.

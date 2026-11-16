@@ -118,11 +118,16 @@ Os cenários CT12 a CT21, CT34 e CT35 são o cenário de autorização entre doi
 
 ### 4.4 Entrega e configuração (Ficha PL 05)
 
-Cenários da imagem Docker, do ambiente publicado e das correções F5, F6 e F13 ([quality-security-review.md](quality-security-review.md)). Decisões em DA38 a DA40.
+Cenários da imagem Docker, do ambiente publicado e das correções F5, F6, F13 e F14 ([quality-security-review.md](quality-security-review.md)). Decisões em DA38 a DA40.
 
 | ID | Cenário | Quem | Entrada | Resultado esperado | Nível | Teste | Origem |
 |----|---------|------|---------|--------------------|-------|-------|--------|
 | CT37 | Saúde da aplicação para o Docker, a pipeline e o alojamento | Sem sessão | `GET /actuator/health`, `/actuator/health/liveness` e `/actuator/health/readiness`; `GET /actuator`, `/actuator/env`, `/actuator/beans`, `/actuator/configprops` e `/actuator/loggers` | Os três primeiros: 200 com `status` "UP" e sem pormenores dos componentes. Os outros não chegam ao Actuator: nenhum devolve configuração, beans, níveis de log nem a lista de endpoints. | Integração | Novo (Ficha PL 05, passo 2): `HealthEndpointTests` | DA38 |
+| CT38 | Dois Administradores desativam-se um ao outro ao mesmo tempo | Ana e Bruno, Administradores ativos | Dois `PUT /api/users/{id}/status` com `DEACTIVATED`, em paralelo, 10 vezes | Em cada vez: um 200, o outro recusado (409 `LAST_ADMINISTRATOR`, ou 401 se a conta de quem pede já estiver desativada, DA35) e um Administrador ativo no fim. | Integração | Novo (Ficha PL 05, passo 4, regressão de F5): `LastAdministratorConcurrencyTests` | RN18, F5 |
+| CT39 | Cookies seguros atrás do proxy com HTTPS | Rui, com `MATRIZ_COOKIE_SECURE=true` e `MATRIZ_FORWARD_HEADERS=native` | Pedidos HTTP reais a `/api/session` com `X-Forwarded-Proto: https` | Resposta com `Strict-Transport-Security`; cookie `XSRF-TOKEN` com `Secure`; ao entrar, `JSESSIONID` com `Secure`, `HttpOnly` e `SameSite=Lax`. | Integração | Novo (Ficha PL 05, passo 4, regressão de F6): `ProxyConfigurationTests.behindTheHttpsProxyTheCookiesAreSecureAndHstsIsSent` | SEG07, F6 |
+| CT40 | Limite de tentativas por pessoa atrás do proxy | Rui, com `MATRIZ_FORWARD_HEADERS=native` | 5 entradas erradas com `X-Forwarded-For: 203.0.113.10`; depois a palavra-passe certa desse endereço e de `203.0.113.20` | 401 nas 5 falhas; 429 no mesmo endereço; 200 no outro endereço. | Integração | Novo (Ficha PL 05, passo 4, regressão de F13): `ProxyConfigurationTests.loginAttemptsAreCountedPerClientAddressAndNotPerProxy` | SEG09, DA26, F13 |
+| CT41 | Content Security Policy | Sem sessão | Pedidos HTTP reais `GET` e `HEAD` a `/`, `/projetos/1` e `/api/session` (a página inicial é servida por reencaminhamento, que o MockMvc não executa) | Cabeçalho `Content-Security-Policy` com a política de `SecurityConfiguration`, mais `X-Content-Type-Options: nosniff` e `X-Frame-Options: DENY`, em todos. Os percursos E2E continuam a passar contra a imagem. | Integração | Novo (Ficha PL 05, passo 4): `SecurityConfigurationTests.frontendAndApiResponsesCarryTheSecurityHeaders` | SEG06 |
+| CT42 | Sem utilizador em memória criado pelo Spring Boot | | Contexto da aplicação | Nenhum `UserDetailsService`; o log de arranque não mostra uma palavra-passe gerada. | Integração | Novo (Ficha PL 05, passo 4, regressão de F14): `SecurityConfigurationTests.noInMemoryUserIsCreated` | F14 |
 
 ---
 

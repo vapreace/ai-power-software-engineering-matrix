@@ -1,0 +1,43 @@
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+{"status":"UP"}
+== Avisos e erros da app
+WARN: 0  ERROR: 0
+== Linhas com palavra-passe gerada
+0
+== Cabeçalhos da página inicial
+Set-Cookie: XSRF-TOKEN=[valor gerado em cada pedido, omitido]; Path=/
+
+== Depois da correção dos cabeçalhos (16/11/2026 18:01)
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+curl: (52) Empty reply from server
+{"status":"UP"}
+WARN: 0  ERROR: 0
+== GET /
+HTTP/1.1 200 
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+== GET /projetos/1
+HTTP/1.1 200 
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+== GET /api/session
+HTTP/1.1 401 
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+== HEAD /
+HTTP/1.1 200 
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'

@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -13,6 +14,7 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
@@ -30,6 +32,9 @@ import pt.matriz.common.ProblemCode;
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 class SecurityConfiguration {
+
+    static final String CONTENT_SECURITY_POLICY = "default-src 'self'; img-src 'self' data:; object-src 'none'; "
+            + "base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 
     @Bean
     SecurityContextRepository securityContextRepository() {
@@ -58,6 +63,20 @@ class SecurityConfiguration {
                                 request, response, null,
                                 new ApiException(HttpStatus.FORBIDDEN, ProblemCode.FORBIDDEN,
                                         "Não tem permissão para esta operação."))))
+                // O frontend só carrega recursos da própria origem (DA02). Os outros cabeçalhos de
+                // segurança do Spring Security mantêm-se; o HSTS só sai em pedidos HTTPS.
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(CONTENT_SECURITY_POLICY))
+                        // Cabeçalhos escritos logo no início do pedido. Sem isto, a página inicial (/),
+                        // que o Spring Boot serve reencaminhando para o index.html, saía sem eles: a
+                        // resposta do reencaminhamento fecha sem passar pelo filtro que os acrescenta.
+                        .addObjectPostProcessor(new ObjectPostProcessor<HeaderWriterFilter>() {
+                            @Override
+                            public <O extends HeaderWriterFilter> O postProcess(O filter) {
+                                filter.setShouldWriteHeadersEagerly(true);
+                                return filter;
+                            }
+                        }))
                 .requestCache(cache -> cache.requestCache(new NullRequestCache()))
                 .addFilterBefore(new CurrentAccountFilter(accounts, currentUsers, exceptionResolver),
                         AuthorizationFilter.class)

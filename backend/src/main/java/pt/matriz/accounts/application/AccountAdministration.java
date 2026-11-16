@@ -179,8 +179,13 @@ public class AccountAdministration {
     }
 
     private boolean isLastActiveAdministrator(UserAccount account) {
-        return account.getStatus() == AccountStatus.ACTIVE
-                && repository.countByRoleAndStatus(Role.ADMINISTRATOR, AccountStatus.ACTIVE) <= 1;
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            return false;
+        }
+        // F5: dois Administradores a desativarem-se um ao outro ao mesmo tempo. O bloqueio faz o segundo
+        // pedido esperar pelo primeiro; a contagem seguinte já vê a alteração gravada (RN18).
+        repository.lockByRoleAndStatus(Role.ADMINISTRATOR, AccountStatus.ACTIVE);
+        return repository.countByRoleAndStatus(Role.ADMINISTRATOR, AccountStatus.ACTIVE) <= 1;
     }
 
     private UserAccount save(UserAccount account) {
