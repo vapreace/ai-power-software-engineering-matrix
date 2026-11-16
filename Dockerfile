@@ -14,7 +14,7 @@ RUN npm run build
 
 # 2. Backend (Java 21 e Maven Wrapper), com o frontend nos recursos estáticos.
 # Os testes não correm aqui: correm na pipeline, antes de construir a imagem (DA39).
-FROM eclipse-temurin:21-jdk-noble AS backend
+FROM eclipse-temurin:25-jdk-noble AS backend
 WORKDIR /src/backend
 COPY backend/.mvn/ .mvn/
 COPY backend/mvnw backend/pom.xml ./
@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/root/.m2 sh ./mvnw -B -Dmaven.test.skip=true pack
     && cp target/matriz-*.jar /tmp/matriz.jar
 
 # 3. Execução: só o JRE, com um utilizador sem privilégios.
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 LABEL org.opencontainers.image.title="Matriz" \
       org.opencontainers.image.description="Gestão de projetos e tarefas para equipas" \
       org.opencontainers.image.source="https://github.com/vapreace/ai-power-software-engineering-matrix"
