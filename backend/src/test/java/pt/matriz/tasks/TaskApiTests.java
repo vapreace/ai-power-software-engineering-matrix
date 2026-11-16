@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -13,6 +14,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.net.URI;
+import java.sql.Date;
+import java.util.Map;
 
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
@@ -154,6 +159,89 @@ class TaskApiTests extends ApiTestSupport {
                 .andExpect(jsonPath("$.code").value("PROJECT_NOT_ACTIVE"));
         mvc.perform(createTask(login("ana"), "novo", "{\"title\": \"Inventário\"}"))
                 .andExpect(status().isCreated());
+    }
+
+    // ───── Ficha PL 04, exercício 3: criar e consultar pela API, com a base de dados (CT01, CT02, CT05, CT22) ─────
+
+    @Test
+    void createdTaskIsStoredAndReturnedByTheApi() throws Exception {
+        // Arrange
+        MockHttpSession rui = login("rui");
+        int tasksBefore = countTasks();
+
+        // Act: criar (CT01)
+        MvcResult created = mvc.perform(createTask(rui, "novo", """
+                        {"title": "  Contar paletes  ", "description": "Armazém 2", "dueDate": "2026-11-20",
+                         "priority": "LOW"}"""))
+                // Assert: código HTTP e campos do schema Task de openapi.yaml
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", matchesPattern(".*/api/tasks/\\d+")))
+                .andExpect(jsonPath("$.projectId").value(ids.get("novo")))
+                .andExpect(jsonPath("$.title").value("Contar paletes"))
+                .andExpect(jsonPath("$.description").value("Armazém 2"))
+                .andExpect(jsonPath("$.dueDate").value("2026-11-20"))
+                .andExpect(jsonPath("$.priority").value("LOW"))
+                .andExpect(jsonPath("$.status").value("TODO"))
+                .andExpect(jsonPath("$.assignees", empty()))
+                .andExpect(jsonPath("$.overdue").value(false))
+                .andExpect(jsonPath("$.version").value(0))
+                .andReturn();
+        long id = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
+        String location = created.getResponse().getHeader("Location");
+
+        // Assert: o que ficou gravado na base de dados (persistência)
+        assertThat(countTasks()).isEqualTo(tasksBefore + 1);
+        Map<String, Object> row = jdbc.queryForMap("""
+                SELECT project_id, title, description, due_date, priority, status, version, deleted_at
+                FROM tasks WHERE id = ?""", id);
+        assertThat(((Number) row.get("project_id")).longValue()).isEqualTo(ids.get("novo"));
+        assertThat(row.get("title")).isEqualTo("Contar paletes");
+        assertThat(row.get("description")).isEqualTo("Armazém 2");
+        assertThat(((Date) row.get("due_date")).toLocalDate()).hasToString("2026-11-20");
+        assertThat(row.get("priority")).isEqualTo("LOW");
+        assertThat(row.get("status")).isEqualTo("TODO");
+        assertThat(((Number) row.get("version")).longValue()).isZero();
+        assertThat(row.get("deleted_at")).isNull();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM task_assignees WHERE task_id = ?", Integer.class, id))
+                .isZero();
+
+        // Act e assert: consultar noutro pedido, pelo endereço do Location, com outra pessoa da equipa (CT02)
+        mvc.perform(get(URI.create(location)).session(login("pedro")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.title").value("Contar paletes"))
+                .andExpect(jsonPath("$.description").value("Armazém 2"))
+                .andExpect(jsonPath("$.dueDate").value("2026-11-20"))
+                .andExpect(jsonPath("$.priority").value("LOW"))
+                .andExpect(jsonPath("$.status").value("TODO"))
+                .andExpect(jsonPath("$.version").value(0));
+        mvc.perform(get("/api/projects/{id}/tasks", ids.get("novo")).session(rui))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].title", hasItem("Contar paletes")));
+    }
+
+    @Test
+    void invalidTitleStoresNothingAndUnknownTaskIsNotFound() throws Exception {
+        // Arrange
+        MockHttpSession rui = login("rui");
+        int tasksBefore = countTasks();
+        long neverExisted = jdbc.queryForObject("SELECT coalesce(max(id), 0) + 1000 FROM tasks", Long.class);
+
+        // Act e assert: título só com espaços (CT05)
+        mvc.perform(createTask(rui, "novo", """
+                        {"title": "   ", "priority": "HIGH"}"""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.errors[0].field").value("title"))
+                .andExpect(jsonPath("$.errors[0].message")
+                        .value("O título é obrigatório e tem no máximo 200 caracteres."));
+        assertThat(countTasks()).isEqualTo(tasksBefore);
+
+        // Act e assert: tarefa que nunca existiu (CT22)
+        mvc.perform(get("/api/tasks/{id}", neverExisted).session(rui))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.detail").value("A tarefa não existe."));
     }
 
     // ───── US07 Mudar estado ─────
@@ -326,6 +414,10 @@ class TaskApiTests extends ApiTestSupport {
     }
 
     // ───── Dados e pedidos ─────
+
+    private int countTasks() {
+        return jdbc.queryForObject("SELECT count(*) FROM tasks", Integer.class);
+    }
 
     private RequestBuilder createTask(MockHttpSession session, String project, String body) {
         return post("/api/projects/{id}/tasks", ids.get(project)).session(session).with(csrf())

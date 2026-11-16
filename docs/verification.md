@@ -254,3 +254,13 @@ Resultados das execuções dos testes da Ficha PL 04. Os cenários e os resultad
 | Revisão das asserções | Cada caso verifica o valor da RN11 e não o que o código faz: o título gravado, o estado "Por fazer" e a prioridade Média nos válidos; 400 `VALIDATION_ERROR` com o erro no campo `title` e nenhuma gravação nos inválidos. A mensagem é a mesma do teste de integração `TaskApiTests.invalidTitlesAreRefused`. Nenhum teste precisou de correção e a regra não mudou. |
 | Comando | `./mvnw test -Dtest=TaskTitleRulesTests` em `backend/` (não precisa do Docker) |
 | Resultado | 15 testes, 0 falhas, 0 erros, 3,5 s (16/11/2026, Windows com Git Bash; relatório em `backend/target/surefire-reports`). |
+
+### 13.2 Testes de integração (exercício 3)
+
+| Item | Registo |
+|------|---------|
+| Testes | `TaskApiTests.createdTaskIsStoredAndReturnedByTheApi` e `TaskApiTests.invalidTitleStoresNothingAndUnknownTaskIsNotFound` |
+| Cenários | CT01 e CT02: o Rui cria uma tarefa pela API; 201 com `Location` e os campos do schema `Task` de openapi.yaml; a linha fica gravada em `tasks` com os mesmos valores, sem responsáveis e não eliminada; o Pedro lê-a noutro pedido pelo endereço do `Location`, e a tarefa aparece na lista do projeto. CT05 e CT22 (negativos): título só com espaços dá 400 `VALIDATION_ERROR` no campo `title` sem gravar nada; uma tarefa que nunca existiu dá 404 `NOT_FOUND`. |
+| Ambiente | API real com MockMvc e Spring Security; PostgreSQL 18 em Testcontainers, com uma base nova em cada execução; tabelas limpas antes de cada teste (`ApiTestSupport`); Relógio da organização fixo em 10/11/2026. |
+| Comando | `./mvnw test -Dtest=TaskApiTests` em `backend/` (com o Docker) |
+| Resultado | 17 testes (15 do I3 e os 2 novos), 0 falhas, 0 erros, 40 s (16/11/2026, Windows com Git Bash e Docker Desktop). |
