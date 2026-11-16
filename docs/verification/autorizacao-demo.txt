@@ -1,0 +1,31 @@
+== Verificação de autorização com contas de demonstração (16/11/2026 13:26)
+Entrar como ana@empresa.example: 200
+Entrar como pedro@empresa.example: 200
+Fornecedores=4, tarefa 'Avaliar fornecedores atuais'=17 (responsável: João), Compras=2
+João=7, Marta=5, Rui=2
+
+== O Pedro tenta ler e alterar recursos da equipa Compras (esperado: 403 em todos)
+GET     /projects/4                                      -> 403 {"detail":"Não tem acesso a esta página.","instance":"/api/projects/4","status":403,"title":"Forbidden","code":"FORBIDDEN"}
+GET     /projects/4/tasks                                -> 403 {"detail":"Não tem acesso a esta página.","instance":"/api/projects/4/tasks","status":403,"title":"Forbidden","code":"FORBIDDEN"}
+GET     /tasks/17                                        -> 403 {"detail":"Não tem acesso a esta página.","instance":"/api/tasks/17","status":403,"title":"Forbidden","code":"FORBIDDEN"}
+PATCH   /tasks/17                                        -> 403 {"detail":"Não tem permissão para esta operação.","instance":"/api/tasks/17","status":403,"title":"Forbidden","code":"FORBIDDEN"}
+PATCH   /tasks/17                                        -> 403 {"detail":"Não tem permissão para esta operação.","instance":"/api/tasks/17","status":403,"title":"Forbidden","code":"FORBIDDEN"}
+PUT     /tasks/17/status                                 -> 403 {"detail":"Não tem permissão para esta operação.","instance":"/api/tasks/17/status","status":403,"title":"Forbidden","code":"FORBIDDEN"}
+DELETE  /tasks/17                                        -> 403 {"detail":"Não tem permissão para esta operação.","instance":"/api/tasks/17","status":403,"title":"Forbidden","code":"FORBIDDEN"}
+GET     /tasks/17/comments                               -> 403 {"detail":"Não tem acesso a esta página.","instance":"/api/tasks/17/comments","status":403,"title":"Forbidden","code":"FORBIDDEN"}
+POST    /tasks/17/comments                               -> 400 {"detail":"O pedido tem um formato inválido.","instance":"/api/tasks/17/comments","status":400,"title":"Bad Request","code":"VALIDATION_ERR
+PUT     /tasks/17/assignees/5                            -> 403 {"detail":"Não tem permissão para esta operação.","instance":"/api/tasks/17/assignees/5","status":403,"title":"Forbidden","code":"FORBID
+POST    /projects/4/tasks                                -> 403 {"detail":"Não tem permissão para esta operação.","instance":"/api/projects/4/tasks","status":403,"title":"Forbidden","code":"FORBIDDEN"
+
+== Respostas que podem revelar informação de recursos não visíveis (comparar os códigos)
+-- Responsáveis de uma tarefa que o Pedro não vê: o João é responsável, a Marta não
+DELETE  /tasks/17/assignees/7                            -> 403 {"detail":"Não tem permissão para esta operação.","instance":"/api/tasks/17/assignees/7","status":403,"title":"Forbidden","code":"FORBID
+DELETE  /tasks/17/assignees/5                            -> 404 {"detail":"Esta pessoa não é responsável pela tarefa.","instance":"/api/tasks/17/assignees/5","status":404,"title":"Not Found","code":"NO
+-- Pessoas de uma equipa a que o Pedro não pertence: o João pertence a Compras, o Rui não
+DELETE  /teams/2/members/7                               -> 403 {"detail":"Não tem permissão para esta operação.","instance":"/api/teams/2/members/7","status":403,"title":"Forbidden","code":"FORBIDDEN
+DELETE  /teams/2/members/2                               -> 404 {"detail":"A pessoa não pertence à equipa.","instance":"/api/teams/2/members/2","status":404,"title":"Not Found","code":"NOT_FOUND"}
+
+== A Ana confirma que a tarefa não mudou
+Tarefa igual antes e depois: sim
+Comentários da tarefa: 0
+Pessoas de Compras: João, Marta, Tiago

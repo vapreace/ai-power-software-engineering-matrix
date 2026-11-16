@@ -275,3 +275,16 @@ Resultados das execuções dos testes da Ficha PL 04. Os cenários e os resultad
 | Ambiente | Base de dados de demonstração recriada antes da execução (`docker compose down -v` e `up -d`), porque as verificações manuais M9 a M11 tinham mudado os dados de partida. Backend com o perfil `demo` e servidor do Vite. |
 | Comando | `npm run test:e2e` em `frontend/`, com o backend a correr (o Vite arranca sozinho se não estiver a correr). Uma vez antes: `npx playwright install chromium`. `npm run type-check` sem erros, já com os testes E2E. |
 | Resultado | 3 testes, 3 passam, 0 falhas e 0 repetições, 14 s (16/11/2026, Windows). Executado duas vezes seguidas com o mesmo resultado, sem limpar a base de dados entre execuções: os testes não dependem de execuções anteriores. Relatório em `frontend/playwright-report/` e `frontend/test-results/results.json` (fora do Git). |
+
+### 13.4 Code Review e Security Review (exercício 5)
+
+Findings, evidências e decisões em [quality-security-review.md](quality-security-review.md). Aqui ficam só as execuções.
+
+| Verificação | Comando | Resultado |
+|-------------|---------|-----------|
+| `AccessControlApiTests` (CT13 a CT19, CT21, CT31, CT32) | `./mvnw test -Dtest=AccessControlApiTests` em `backend/` | Primeira execução: 2 falhas, problema do teste (asserção sobre `$.title`, que também é campo do Problem Details). Depois da correção do teste: 10 testes, 0 falhas, 30 s (16/11/2026). |
+| Autorização com duas contas de demonstração | `bash docs/verification/autorizacao-demo.sh \| tee docs/verification/autorizacao-demo.txt`, com a base de dados de demonstração recriada e o backend com o perfil `demo` | Pedro: 403 em 10 pedidos de leitura e alteração sobre Fornecedores; 400 no comentário (acento mal codificado no Git Bash, corrigido no script). Ana: tarefa, comentários e equipa iguais no fim. Revelou F1 e F2 (16/11/2026, 13:26). |
+| ESLint | `npm run lint` em `frontend/` | 60 ficheiros, 0 erros, 0 avisos (numa cópia em Linux e no Windows, 16/11/2026). |
+| Semgrep 1.185 | Regras abertas do repositório `semgrep-rules` (Java, TypeScript, JavaScript de browser, YAML, segredos), numa cópia do repositório | 0 findings de código; 1 falso positivo de segredos (F12). |
+| `npm audit` | `npm audit` e `npm audit --omit=dev` em `frontend/` | Produção: 0. Desenvolvimento: 7 moderadas no Windows, 9 em Linux, todas da cadeia `minimatch` (F7). |
+| `type-check` e testes de regressão do frontend | `npm run type-check`, `npm run test:unit` | Sem erros; 4 testes, 0 falhas. |
