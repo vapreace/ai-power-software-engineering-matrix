@@ -1,7 +1,7 @@
 # Verificação da Matriz
 
-> **Versão:** 0.4 (Ficha PL 05 na secção 15)
-> **Estado:** concluído para as Fichas PL 03 e PL 04. Ficha PL 05 em curso (secção 15).
+> **Versão:** 0.5 (Ficha PL 05 na secção 15, com a validação final e o relatório da entrega em 15.8)
+> **Estado:** concluído para as Fichas PL 03, PL 04 e PL 05.
 
 Documentos relacionados:
 
@@ -354,7 +354,7 @@ Com todos os testes, as instruções cobertas passaram de 95% para 99% e as linh
 
 ## 15. Ficha PL 05
 
-Resultados do incremento I9 ([implementation-plan.md](implementation-plan.md)): imagem Docker, Docker Compose, correções de segurança e pipeline. Decisões em DA38 a DA41. O ambiente publicado (passo 6) e a validação final (passo 8) entram no fim desta secção.
+Resultados do incremento I9 ([implementation-plan.md](implementation-plan.md)): imagem Docker, Docker Compose, correções de segurança, pipeline, ambiente publicado, documentação, validação final e relatório da entrega (15.8). Decisões em DA38 a DA41.
 
 Ambiente: Windows com Git Bash e Docker Desktop, Java 21, Node 24 e Chromium do Playwright 1.65.1; pipeline nos runners `ubuntu-latest` do GitHub Actions.
 
@@ -453,4 +453,53 @@ Não verificado no ambiente publicado: o limite de tentativas por endereço (F13
 | Versão `1.0.0-rc.1` | `./mvnw verify` em `backend/` | 423 testes, 0 falhas; o build gera `matriz-1.0.0-rc.1.jar`. |
 | Comportamento com a versão nova | `docker compose up -d --build` e os E2E com `MATRIZ_E2E_BASE_URL=http://localhost:8080` | 8 testes, 8 passam. |
 | Base de dados indisponível | `bash docs/verification/incidente-bd.sh` ([incidente-bd.txt](verification/incidente-bd.txt)) | Liveness `UP`; readiness `DOWN` (503) ao fim de 30 s; entrar dá 500; recuperação sem reiniciar a aplicação. Registo em [troubleshooting.md](troubleshooting.md), incidente 001. Revelou F15. |
+
+### 15.8 Validação final e relatório da entrega (exercício 6)
+
+#### 15.8.1 Validação final
+
+| Tarefa do exercício 6 | Como | Resultado |
+|-----------------------|------|-----------|
+| Executar a aplicação a partir das instruções do README | Clone novo do GitHub (commit `ff7ef7f`) numa pasta vazia; só os comandos de "Com Docker Compose" ([clone-limpo.txt](verification/clone-limpo.txt)) | `docker compose config -q` válido; `docker compose up -d --build` construiu a imagem e arrancou os dois serviços; readiness `UP`; página inicial 200. |
+| Confirmar o estado dos containers | `docker compose ps` no clone | `postgres` healthy; `app` a correr e a ficar healthy, portas só em `127.0.0.1`. |
+| Testar as funcionalidades essenciais | Os 8 E2E a partir do clone, contra o Compose | 8 passam (computador e 360 px), 22 s. |
+| Confirmar os resultados da pipeline | Separador Actions | Execução do commit `299ff47` (o da release) aprovada; falha controlada e correção no pull request #8 (secção 15.4). |
+| Consultar os logs | `docker compose logs` e incidente simulado | 0 avisos e 0 erros da aplicação no arranque (secção 15.3); com a base de dados parada, os avisos e o erro esperados (incidente 001). |
+| Verificar a ausência de credenciais nos ficheiros versionados | `git ls-files` no clone; Trivy na pipeline | Nenhum `.env` no Git; 0 segredos no Trivy. Ficam intencionalmente: a palavra-passe de demonstração (dados fictícios, README) e `ci-temporary-password` (bases de dados temporárias da pipeline). |
+| Registar os problemas e as correções | Secção 15.5 e 15.8.2 | Todos os problemas com causa e solução. |
+
+#### 15.8.2 Revisão final independente
+
+Um agente de IA que não participou no trabalho reviu o repositório no commit `ff7ef7f`, só com leitura, com o prompt de auditoria final do Módulo 5 (dimensões, aprovado, reprovado e não verificado). Cada ponto foi confirmado no código antes de ser aceite.
+
+| Ponto do revisor | Avaliação | Decisão |
+|------------------|-----------|---------|
+| Faltava a validação final e não havia evidência da release nem do GHCR | Certo; era o passo em curso | Esta secção e a release `v1.0.0-rc.1`. |
+| A imagem publicada no GHCR era construída de novo, e não a que passou nos testes | Válido | Corrigido: F17. |
+| A conta de Administrador do ambiente publicado tinha a palavra-passe pública | Válido | Corrigido: F16. A palavra-passe de demonstração deixou de servir para a Ana no ambiente publicado. |
+| Com a base de dados parada, a readiness demora 30 s (tempo de espera do pool) | Verdade | Sem mudança: um tempo menor arriscava falhas quando o Neon acorda da suspensão. |
+| Os logs JSON vinham do Compose e do Render, não da imagem | Válido | Corrigido: `LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs` no `Dockerfile`. |
+| Versões e cabeçalhos desatualizados; relatórios do Trivy sem a execução de origem | Válido | Corrigidos no README, no `test-plan.md`, no `quality-security-review.md` e nesta secção. |
+| `validate-staging.yml` contradizia "não é staging" | Válido | Renomeado para `validate-published.yml`. |
+| O job de integração podia repetir os unitários `@Nested` | Suspeita confirmada como possível | `-Dtest='!*RulesTests*'`; verificado: 132 testes em 18 classes, nenhuma `*RulesTests`. |
+| O Dependabot não cobria o `postgres:18` do Compose | Válido | Ecossistema `docker-compose` acrescentado. |
+| As imagens base usam tags e não digests | Válido | Fica como limitação: não foi possível obter os digests a partir do ambiente do agente. |
+
+O revisor confirmou ainda, sem problemas: 197 ligações relativas entre documentos, as contagens de testes face às anotações no código, as permissões da pipeline, as actions fixadas por SHA e o `coverage_gate.py`.
+
+#### 15.8.3 Relatório da entrega
+
+1. **Alterações implementadas.** Imagem Docker e Docker Compose com a aplicação e o PostgreSQL (DA38); saúde com liveness e readiness; logs em JSON; pipeline em quatro blocos com testes, cobertura, imagem, smoke tests e Trivy (DA39); ambiente publicado no Render e no Neon com entrega contínua (DA40); versão `1.0.0-rc.1`, CHANGELOG e notas da versão (DA41); correções F5, F6, F13, F14, F16 e F17 e Content Security Policy; `deployment.md` e `troubleshooting.md`. Lista completa no [CHANGELOG.md](../CHANGELOG.md).
+2. **Resultados dos testes e da pipeline.** 423 testes no backend (291 unitários e 132 de integração e arquitetura), 4 de regressão e 8 E2E no frontend, 0 falhas; quality gate da cobertura aprovado (todas as branches das regras de negócio); Trivy sem vulnerabilidades altas ou críticas, sem segredos e sem problemas no `Dockerfile`; pipeline aprovada, com a falha controlada demonstrada; ambiente publicado validado (secções 15.1 a 15.7).
+3. **Problemas encontrados e soluções.** Secção 15.5 (palavra-passe gerada nos logs, cabeçalhos em falta na página inicial, Maven Central com 429, opção inexistente no Trivy, interface do GitHub desatualizada, assistente do Neon) e 15.8.2 (revisão independente). O incidente simulado revelou F15, que fica pendente.
+4. **Utilização dos agentes de IA.** O agente analisou o projeto e propôs o plano, com as decisões e uma recomendação para cada uma, aprovado antes de qualquer alteração. Escreveu o `Dockerfile`, o `compose.yaml`, a pipeline, os testes de regressão e a documentação. Diagnosticou as falhas da pipeline a partir dos logs (429 do Maven Central, opção inexistente) e propôs a correção mínima. Um segundo agente, sem contexto, fez a revisão final. Validação humana em cada passo: os comandos correram na máquina da utilizadora e o agente leu os resultados reais; os commits e o push foram sempre da utilizadora; as palavras-passe nunca passaram pelo agente (as do Neon foram diretamente para o Render; a da Ana foi mudada pela utilizadora); conteúdo externo (logs, páginas, prompts do assistente do Neon) foi tratado como informação e não como instruções. Erros do agente encontrados e corrigidos: a contagem de avisos no formato ECS, a CSP na página inicial (o teste com MockMvc não a via) e a opção `--offline-scan` no `trivy config`.
+5. **Limitações e pendentes.** F15 (erro 500 sem Problem Details com a base de dados em baixo); riscos aceites F3 e F7; imagens base sem digest; sem staging, sem produção e sem proteção do `main` (repositório privado com conta gratuita); o ambiente publicado adormece (LIM17); a reposição da base de dados publicada (deployment.md, 5.3) não foi executada; o limite de tentativas não foi exercitado no ambiente publicado (coberto pelo CT40); por fazer: testes de carga, E2E noutros browsers e verificação formal de acessibilidade; por decidir antes de um piloto: RGPD (DP11) e disponibilidade (DP12).
+
+#### 15.8.4 Desafios adicionais
+
+| Desafio | Onde está | Evidência |
+|---------|-----------|-----------|
+| A: Segurança | Trivy à imagem, aos segredos e ao `Dockerfile`, `npm audit` e Dependabot, na pipeline (DA39) | Secção 15.4; [trivy-image.txt](verification/trivy-image.txt), [trivy-config.txt](verification/trivy-config.txt) |
+| B: Observabilidade | Logs JSON (ECS); liveness e readiness no Compose, no `Dockerfile`, no Render, na pipeline e no workflow **Validate published**; rotação de logs | Secções 15.2, 15.6 e 15.7; incidente 001 em [troubleshooting.md](troubleshooting.md) |
+| C: Releases | Job "Entrega: publicar": numa release, publica no GitHub Container Registry a imagem testada, com escrita de pacotes só nesse job | Release `v1.0.0-rc.1` (registada a seguir à publicação) |
 

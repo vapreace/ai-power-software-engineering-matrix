@@ -88,7 +88,7 @@ O exercício 7 (frontend) não fica só no I5: cada incremento entrega a sua par
 | I6 | Verificação, revisão e entrega da Ficha 03 | | Ex. 8, Ex. 9 | Pronto para revisão |
 | I7 | Resto do MVP | US02, US03, US08, US13, US14, US17 (gestor), US18 | | Pronto para revisão |
 | I8 | Testes, Code Review e Security Review | | Ficha PL 04, ex. 1 a 5 | Pronto para revisão |
-| I9 | Containers, pipeline, ambiente publicado e versão candidata | | Ficha PL 05, ex. 1 a 6 | Em curso |
+| I9 | Containers, pipeline, ambiente publicado e versão candidata | | Ficha PL 05, ex. 1 a 6 | Pronto para revisão |
 
 ### I0 Esqueleto e persistência (exercício 2)
 
