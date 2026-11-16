@@ -219,7 +219,7 @@ Não faz parte da entrega da Ficha PL 03 (tag `ficha-pl03`). Completa as 22 hist
 | `ProjectStatusApiTests` | 9 | US13: concluir, reabrir, arquivar e desarquivar, transições recusadas, projeto arquivado só de leitura, permissões, versão antiga. US17: o Administrador muda o gestor (também em projeto arquivado), o Gestor não pode, gestores inválidos, novo gestor de um projeto "Sem gestor". |
 | `MyTasksApiTests` | 6 | US08: tarefas abertas de projetos ativos com o projeto, "Incluir concluídas", projeto concluído fica de fora, ordem de RN24, títulos sem maiúsculas nem acentos, responsáveis removidos e tarefas apagadas de fora, lista vazia. |
 
-Total esperado do backend: 110 testes (69 da Ficha PL 03 e 41 do I7). Resultado do `./mvnw verify`: por confirmar.
+`./mvnw verify` verde no commit `42b637d` (16/11/2026): 110 testes (69 da Ficha PL 03 e 41 do I7), 0 falhas.
 
 ### 12.2 Verificações do frontend feitas pela IA
 
@@ -231,8 +231,8 @@ Total esperado do backend: 110 testes (69 da Ficha PL 03 e 41 do I7). Resultado 
 
 | ID | Percurso | Resultado |
 |----|----------|-----------|
-| M8 | Marta: "As minhas tarefas" mostra as tarefas abertas dos projetos ativos, por prazo; "Incluir concluídas" acrescenta as concluídas. | Por confirmar |
-| M9 | Rui: concluir o Novo armazém (aparece a confirmação com o número de tarefas abertas), reabrir; Ana: mudar o gestor do Armazém Sul para a Sofia. | Por confirmar |
-| M10 | Ana: criar uma equipa, adicionar e remover uma pessoa; remover o Rui da Logística Norte deixa o Novo armazém "Sem gestor". | Por confirmar |
-| M11 | Ana: criar uma conta e entrar com ela (pede palavra-passe nova); desativar o Pedro (não entra e as tarefas abertas ficam "Sem responsável"); reativar; tentar desativar a própria conta (recusado). | Por confirmar |
+| M8 | Marta: "As minhas tarefas" mostra as tarefas abertas dos projetos ativos, por prazo; "Incluir concluídas" acrescenta as concluídas. | Passa (16/11/2026) |
+| M9 | Rui: concluir o Novo armazém (aparece a confirmação com o número de tarefas abertas), reabrir; Ana: mudar o gestor do Armazém Sul para a Sofia. | Passa (16/11/2026) |
+| M10 | Ana: criar uma equipa, adicionar e remover uma pessoa; remover o Rui da Logística Norte deixa o Novo armazém "Sem gestor". | Passa (16/11/2026) |
+| M11 | Ana: criar uma conta e entrar com ela (pede palavra-passe nova); desativar o Pedro (não entra e as tarefas abertas ficam "Sem responsável"); reativar; tentar desativar a própria conta (recusado). | Passa (16/11/2026) |
 
