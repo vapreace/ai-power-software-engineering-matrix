@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { apiDelete, createdId, login, openMenu, uniqueName, waitForPost } from './support'
+import { apiDelete, createdId, login, openMenu, taskItem, uniqueName, waitForPost } from './support'
 
 // Ficha PL 04, exercício 4 (CT03 de docs/test-plan.md): autenticar, abrir um projeto, criar uma
 // tarefa e verificar a tarefa na listagem (US05, US11). O Rui gere o Novo armazém (dados demo).
@@ -34,10 +34,7 @@ test('o gestor cria uma tarefa e vê-a na lista do projeto, sem recarregar', asy
 
   // Verificar a tarefa na listagem: "Por fazer" e "Sem responsável" (RN12, RN14)
   await expect(form).toBeHidden()
-  const row = page
-    .getByRole('table', { name: 'Tarefas do projeto Novo armazém' })
-    .getByRole('row')
-    .filter({ hasText: title })
+  const row = taskItem(page, title)
   await expect(row).toHaveCount(1)
   await expect(row).toContainText('Por fazer')
   await expect(row).toContainText('Sem responsável')

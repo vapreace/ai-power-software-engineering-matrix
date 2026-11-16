@@ -1,6 +1,6 @@
 # Verificação da Matriz
 
-> **Versão:** 0.2 (Ficha PL 04: resultados dos testes na secção 13)
+> **Versão:** 0.3 (Ficha PL 04 na secção 13; passo 2b na secção 14)
 > **Estado:** concluído para a Ficha PL 03. Ficha PL 04 em curso.
 
 Documentos relacionados:
@@ -302,7 +302,7 @@ Findings, evidências e decisões em [quality-security-review.md](quality-securi
 |-------|--------|
 | Testes de carga e de tempo de resposta (RNF03, RNF04) | Fora do âmbito da Ficha PL 04. |
 | Testes de componentes do frontend | Não previstos na DA37: os percursos da interface estão cobertos pelos testes E2E. |
-| E2E noutros browsers e em ecrã de telemóvel (360 px, RNF01) | Os E2E correm só no Chromium em ecrã de computador. O ecrã de 360 px fica para o passo seguinte, com o percurso do Membro em "As minhas tarefas". |
+| E2E noutros browsers e em ecrã de telemóvel (360 px, RNF01) | Os E2E correm só no Chromium em ecrã de computador. O ecrã de 360 px e o percurso do Membro foram acrescentados no passo 2b (secção 14). |
 | Análise das dependências do backend (Maven) | Sem ferramenta configurada (quality-security-review.md, secção 5). Fica para a pipeline da Ficha PL 05. |
 | Verificação formal de acessibilidade (DP12) | Como na Ficha PL 03. |
 
@@ -311,4 +311,40 @@ Findings, evidências e decisões em [quality-security-review.md](quality-securi
 | F3 (enumeração de identificadores) e F7 (`minimatch` nas ferramentas de desenvolvimento) | Risco aceite, com o motivo em quality-security-review.md. |
 | F5 (concorrência no último Administrador) e F6 (cookie sem `Secure`) | Ficam para a Ficha PL 05. |
 | Avisos `EBADENGINE` no `npm install` com Node 24.11 | Desaparecem com Node 24.15 ou mais recente (F10). |
-| Mais testes unitários das regras do backend e relatório de cobertura (JaCoCo) | Combinados para depois da entrega desta ficha. |
+| Mais testes unitários das regras do backend e relatório de cobertura (JaCoCo) | Feito no passo 2b (secção 14). |
+
+---
+
+## 14. Passo 2b: testes unitários das regras, cobertura e E2E (depois da Ficha PL 04)
+
+Combinado depois da entrega da Ficha PL 04 (tag `ficha-pl04`): testes unitários para todas as branches das regras de negócio do backend, relatório de cobertura com JaCoCo e dois testes E2E (o percurso do Membro e o ecrã de 360 px). Sem alterações ao código de produção. As classes e as regras de cada uma estão em [test-plan.md](test-plan.md), secção 8.
+
+### 14.1 Execuções
+
+| Verificação | Comando | Resultado |
+|-------------|---------|-----------|
+| Testes unitários | `./mvnw clean test -Dtest='*RulesTests' jacoco:report` em `backend/` | 291 testes em 13 classes, 0 falhas, sem Docker (16/11/2026). |
+| Suite completa do backend | `./mvnw verify` em `backend/` | 416 testes (125 de integração e arquitetura, 291 unitários), 0 falhas. |
+| E2E | `npm run test:e2e` em `frontend/`, com a base de dados e o backend demo | 8 testes (4 percursos no computador e a 360 px), 8 passam, 30 s. |
+| Tipos e análise estática do frontend | `npm run type-check && npm run lint` | Sem erros. |
+
+### 14.2 Cobertura (JaCoCo)
+
+"Regras de negócio" são os serviços, os comandos, os listeners e `common`, menos a infraestrutura. "Infraestrutura" são as consultas SQL (`*Queries`), os filtros, os controllers e a configuração, que só fazem sentido com a base de dados e o Spring (DA37).
+
+| Âmbito | Branches antes do 2b, só unitários | Branches depois do 2b, só unitários | Branches com todos os testes |
+|--------|:-:|:-:|:-:|
+| Regras de negócio | 5% | **100%** (484 de 484) | 100% (484 de 484) |
+| Infraestrutura | 0% | 0% | 78% (76 de 98) |
+| Backend todo | 5% | 83% (484 de 582) | 96% (560 de 582; eram 83% antes do 2b) |
+
+Com todos os testes, as instruções cobertas passaram de 95% para 99% e as linhas para 98%. As 22 branches da infraestrutura por cobrir estão no encaminhamento do frontend dentro do `.jar` (`SpaFallbackConfiguration`, 7), no tratamento de erros (3), no filtro de sessão (3) e em pequenas partes das consultas, dos controllers e da sessão (9). Ficam registadas; não fazem parte da meta do passo 2b.
+
+### 14.3 Problemas encontrados
+
+| Situação | Tipo | Causa e decisão |
+|----------|------|-----------------|
+| Os primeiros números "só com unitários" incluíam a integração | Problema da medição | O agente do JaCoCo acrescenta ao `target/jacoco.exec` anterior; depois de um `./mvnw verify`, as execuções seguintes somavam os dados dos testes de integração. O comando dos unitários passou a começar por `clean`, e os números desta secção vêm dessa execução. |
+| Três branches de regras sem teste unitário | Testes em falta | Filtrar por um responsável sem "Sem responsável", mudar o prazo para uma data futura e editar um projeto mudando só a data de fim. Acrescentados os testes. |
+| O relatório de texto do Surefire mostra "Tests run: 0" para `TaskServiceRulesTests` | Limitação da ferramenta | Acontece com as classes `@Nested`. O relatório XML tem os casos todos, e é dele que vêm os números. |
+

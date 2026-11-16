@@ -1,6 +1,6 @@
 # Plano de testes da Matriz
 
-> **Versão:** 0.2 (Ficha PL 04, exercícios 1 e 5)
+> **Versão:** 0.3 (Ficha PL 04, exercícios 1 e 5; passo 2b depois da entrega)
 > **Estado:** concluído para a Ficha PL 04. Todos os testes marcados "Novo" estão no repositório e passam. Os resultados das execuções ficam em [verification.md](verification.md), secção 13.
 
 Documentos relacionados:
@@ -34,9 +34,10 @@ flowchart TB
 
 | Nível | O que verifica | Ferramentas | Onde | Comando |
 |-------|----------------|-------------|------|---------|
-| Unitário | Uma regra de negócio, com as dependências substituídas por mocks. | JUnit Jupiter, Mockito | `backend/src/test/java` | `./mvnw test -Dtest=<Classe>` (sem Docker) |
+| Unitário | Uma regra de negócio, com as dependências substituídas por mocks. Classes `*RulesTests`. | JUnit Jupiter, Mockito | `backend/src/test/java` | `./mvnw test -Dtest='*RulesTests'` (sem Docker) |
 | Integração | Pedido HTTP real à API, Spring Security e PostgreSQL. Códigos HTTP, corpo, permissões e o que fica gravado. | MockMvc, Testcontainers (DA31) | `backend/src/test/java` | `./mvnw verify` (com Docker) |
-| E2E | Percurso completo pela interface, com o backend e a base de dados reais. | Playwright com TypeScript (Chromium) | `frontend/e2e` | `npm run test:e2e` (com a aplicação a correr) |
+| E2E | Percurso completo pela interface, com o backend e a base de dados reais, no computador e num ecrã de 360 px (RNF01). | Playwright com TypeScript (Chromium) | `frontend/e2e` | `npm run test:e2e` (com a aplicação a correr) |
+| Cobertura | Que partes do código os testes executam. Indicação, não prova de requisitos. | JaCoCo | `backend/target/site/jacoco` | Só unitários: `./mvnw clean test -Dtest='*RulesTests' jacoco:report`. Total: no fim de `./mvnw verify` |
 
 Regras para todos os níveis:
 
@@ -74,6 +75,7 @@ Estado: **Existe** (teste já no repositório), **Novo** (teste a acrescentar na
 | CT10 | Criar tarefa num projeto arquivado | Rui | `POST /api/projects/{sul}/tasks` | 409 `PROJECT_NOT_ACTIVE`. | Integração | Existe: `TaskApiTests.onlyTheManagerOrTheAdministratorCreateTasksAndOnlyInActiveProjects` | RN08 |
 | CT22 | Tarefa apagada ou de projeto eliminado | Rui | `GET` e `PATCH /api/tasks/{apagada}` | 404 `NOT_FOUND`, "A tarefa não existe.". | Integração | Existe: `TaskApiTests.deletedTaskDisappearsButIsKept`, `ProjectApiTests.deletingKeepsTheDataButHidesTheProjectAndItsTasks`. Novo (Ex. 3): tarefa que nunca existiu, no teste de CT05. | RN19, RN31, RN32 |
 | CT33 | Fluxo completo do slide do Módulo 4 | Rui, na interface | Criar projeto, criar tarefa, mudar o estado, abrir o painel | As contagens do painel mostram a tarefa no novo estado. | E2E | Novo (Ex. 4): `frontend/e2e/project-flow.spec.ts` | US04, US05, US07, US21 |
+| CT36 | Percurso do Membro (passos 4 e 5 do percurso principal) | Marta, responsável, na interface | Abrir "As minhas tarefas", abrir a tarefa, mudar o estado para "Em curso" | A tarefa aparece com o projeto; depois de mudar, a lista mostra "Em curso". | E2E | Novo (passo 2b): `frontend/e2e/member-flow.spec.ts` | US08, US07, RN15 |
 
 ### 4.2 Título inválido (RN11)
 
@@ -163,4 +165,27 @@ O título conta-se depois de retirar os espaços nas pontas e de normalizar o te
 |---------|--------|
 | Mudar o estado para o mesmo valor | Comportamento não definido nos requisitos (secção 6, linha 10). |
 | Testes de carga e tempo de resposta (RNF03, RNF04) | Fora do âmbito da Ficha PL 04. |
-| E2E noutros browsers além do Chromium | Um browser chega para o percurso da ficha. Os outros ficam por verificar. |
+| E2E noutros browsers além do Chromium | Um browser chega para o percurso da ficha. Os outros ficam por verificar. O ecrã de 360 px está coberto desde o passo 2b. |
+
+---
+
+## 8. Testes unitários das regras (passo 2b)
+
+Depois da entrega da Ficha PL 04, os testes unitários passaram a cobrir todas as branches das regras de negócio do backend, sem base de dados nem Spring (DA37). Os resultados esperados vêm das regras (RN), das histórias e das decisões indicadas em cada classe. A cobertura medida está em [verification.md](verification.md), secção 14.
+
+| Classe | Testes | Regras |
+|--------|:------:|--------|
+| `TaskTitleRulesTests` | 15 | RN11, DA11, LIM13 (CT04 a CT08) |
+| `TaskServiceRulesTests` | 64 | Tarefas: permissões (3.1, RN15, RN22), validações (RN11, RN13, RN29), estados do projeto (RN08, RN09), versão (DA05), responsáveis (RN14), atrasos, filtros (US11), "As minhas tarefas" (RN25), regras automáticas (RN16, RN17), regressão de F1 |
+| `CommentServiceRulesTests` | 16 | RN30, E43, RN09 |
+| `ProjectsRulesTests` | 75 | Visibilidade e gestão (3.1, RN05, RN22, RN26), pesquisa (RN25, RN34), criar (RN06, RN21, RN27), editar (RN09, DA05), estado (RN07), gestor (RN21), eliminar (RN31, RN32) |
+| `AutomaticManagerRulesTests` | 9 | RN22, RN23 |
+| `ProgressRulesTests` | 6 | Progresso (requirements.md secção 2, US09, E1) |
+| `AccountAdministrationRulesTests` | 41 | RF02, RN04, RN18, RN23, RN28, DA25, DA26, eventos de US14 e US18 |
+| `AccountsRulesTests` | 9 | RN04, DA10, SEG04, SEG05, DA25 |
+| `FirstAdministratorRulesTests` | 8 | DA25, RN18 |
+| `SessionRulesTests` | 11 | US01, SEG04, SEG05, SEG09, DA25, DA26 |
+| `LoginAttemptsRulesTests` | 7 | SEG09, DA26 |
+| `TeamsRulesTests` | 26 | RF05, RF06, RN03, RN26, RN27, RN17, regressão de F2 |
+| `AutomaticTeamRulesTests` | 4 | RN23, RN26 |
+

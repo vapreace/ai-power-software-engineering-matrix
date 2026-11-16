@@ -113,6 +113,30 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<!-- Cobertura de código (DA37): o agente regista o que os testes executam e o relatório
+			     fica em target/site/jacoco (index.html e jacoco.csv) no fim de ./mvnw verify.
+			     Só os testes unitários (com clean, porque o agente acrescenta ao jacoco.exec anterior):
+			     ./mvnw clean test -Dtest='*RulesTests' jacoco:report -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.15</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

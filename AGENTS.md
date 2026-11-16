@@ -97,7 +97,7 @@ Indica sempre:
 
 - Quando terminares uma história, indica que está "pronta para revisão". Só uma pessoa da equipa a marca como concluída (`docs/user-stories.md`, secção 4).
 - Antes de dar uma tarefa como pronta, corre os testes e indica o resultado real. Se não conseguires correr um comando, diz qual e porquê.
-- A estratégia de testes está em `docs/architecture.md` (DA31, DA37). Os resultados esperados vêm dos requisitos e dos critérios de aceitação, não do comportamento atual do código. Cada teste novo fica associado a um cenário de `docs/test-plan.md`.
+- A estratégia de testes está em `docs/architecture.md` (DA31, DA37). Os resultados esperados vêm dos requisitos e dos critérios de aceitação, não do comportamento atual do código. Cada teste novo fica associado a um cenário de `docs/test-plan.md`. Os testes unitários ficam em classes `*RulesTests`, com Mockito e sem Spring, e mantêm todas as branches das regras de negócio cobertas (DA37).
 
 ## Comandos
 
@@ -107,7 +107,8 @@ Stack e versões em `docs/architecture.md` (DA28, DA30, DA31). Os comandos são 
 |----------|---------|------|
 | Arrancar a base de dados | `docker compose up -d` | raiz |
 | Testes do backend, incluindo o de arquitetura (precisam do Docker) | `./mvnw verify` | `backend/` |
-| Só uma classe de testes unitários (sem Docker) | `./mvnw test -Dtest=TaskTitleRulesTests` | `backend/` |
+| Só os testes unitários (sem Docker) | `./mvnw test -Dtest='*RulesTests'` | `backend/` |
+| Cobertura só dos testes unitários (JaCoCo; o total sai no fim de `./mvnw verify`) | `./mvnw clean test -Dtest='*RulesTests' jacoco:report` | `backend/` |
 | Arrancar o backend com os dados de demonstração | `./mvnw spring-boot:run -Dspring-boot.run.profiles=demo` | `backend/` |
 | Verificar os tipos do frontend | `npm run type-check` | `frontend/` |
 | Testes de regressão do frontend | `npm run test:unit` | `frontend/` |

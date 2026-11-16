@@ -90,7 +90,8 @@ npm run dev
 | Tarefa | Comando | Onde |
 |--------|---------|------|
 | Todos os testes do backend: unitários, integração e arquitetura (precisam do Docker) | `./mvnw verify` | `backend/` |
-| Só os testes unitários (não precisam do Docker) | `./mvnw test -Dtest=TaskTitleRulesTests` | `backend/` |
+| Só os testes unitários (não precisam do Docker) | `./mvnw test -Dtest='*RulesTests'` | `backend/` |
+| Cobertura de código (JaCoCo): total no fim de `./mvnw verify`; só unitários com este comando. Relatório em `backend/target/site/jacoco/index.html` | `./mvnw clean test -Dtest='*RulesTests' jacoco:report` | `backend/` |
 | Verificar os tipos do frontend | `npm run type-check` | `frontend/` |
 | Testes de regressão do frontend | `npm run test:unit` | `frontend/` |
 | Testes E2E (com a aplicação a correr, ver abaixo) | `npm run test:e2e` | `frontend/` |
@@ -232,7 +233,7 @@ Este README é só um resumo. Em caso de diferença, prevalece `docs/requirement
 | Protótipo | Wireframe da lista de projetos (Ficha PL 02, atualizado na Ficha PL 03) e descrição de todos os ecrãs (ui/README.md 0.7). Designs dos ecrãs em `docs/ui/design/` e estilo visual DA36 |
 | Plano de implementação | 9 incrementos, por prioridade ([implementation-plan.md](docs/implementation-plan.md)) |
 | Implementação | I0 a I6 entregues na Ficha PL 03 (tag `ficha-pl03`). I7 (resto do MVP) pronto para revisão. I8 (testes e revisão, Ficha PL 04) entregue (tag `ficha-pl04`) |
-| Testes | Estratégia em três níveis (DA37) e plano de testes ([test-plan.md](docs/test-plan.md) 0.2): 140 testes no backend (15 unitários), 4 de regressão no frontend e 3 E2E |
+| Testes | Estratégia em três níveis (DA37) e plano de testes ([test-plan.md](docs/test-plan.md) 0.3): 416 testes no backend (291 unitários, que cobrem todas as branches das regras de negócio), 4 de regressão no frontend e 4 percursos E2E no computador e a 360 px. Na entrega da Ficha PL 04 (tag `ficha-pl04`) eram 140, 4 e 3 |
 | Qualidade e segurança | Code Review do I7 e Security Review, com 12 findings e 6 correções ([quality-security-review.md](docs/quality-security-review.md) 0.2) |
 | Verificação | Casos 01 a 09 da Ficha PL 03, resultados da Ficha PL 04 (secção 13), testes e bugs em [verification.md](docs/verification.md) |
 

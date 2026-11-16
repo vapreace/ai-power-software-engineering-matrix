@@ -12,9 +12,21 @@ export async function login(page: Page, email: string): Promise<void> {
   await expect(page.getByRole('heading', { level: 1, name: 'Painel' })).toBeVisible()
 }
 
-/** Abre um item do menu principal (DA21). */
+/** Abre um item do menu principal (DA21). Em ecrã estreito, abre primeiro o botão "Menu" (DA22). */
 export async function openMenu(page: Page, item: string): Promise<void> {
+  const menuButton = page.getByRole('button', { name: 'Menu', exact: true })
+  if (await menuButton.isVisible()) {
+    await menuButton.click()
+  }
   await page.getByRole('navigation', { name: 'Menu principal' }).getByRole('link', { name: item, exact: true }).click()
+}
+
+/**
+ * Tarefa numa lista de tarefas, em qualquer largura de ecrã: linha da tabela no computador,
+ * cartão no telemóvel (DA22, ponto de mudança de 720 px).
+ */
+export function taskItem(page: Page, title: string): Locator {
+  return page.getByRole('row').or(page.getByRole('listitem')).filter({ hasText: title })
 }
 
 /** Nome único em cada execução, para não depender de dados de execuções anteriores. */
@@ -46,15 +58,27 @@ export async function createdId(response: Response): Promise<number> {
 }
 
 /**
- * Limpeza no fim do teste: apaga pela API, com a sessão e o token CSRF do browser (DA04).
- * A eliminação é lógica (RN32): o registo deixa de aparecer nas listas e contagens.
+ * Pedido à API com a sessão e o token CSRF do browser (DA04), para preparar dados e limpar no fim.
+ * Devolve o corpo em JSON, ou null quando a resposta não tem corpo.
  */
-export async function apiDelete(page: Page, path: string): Promise<void> {
+export async function api(page: Page, method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string,
+  data?: unknown): Promise<unknown> {
   const token = (await page.context().cookies()).find((cookie) => cookie.name === 'XSRF-TOKEN')?.value
-  const response = await page.request.delete(`/api${path}`, {
+  const response = await page.request.fetch(`/api${path}`, {
+    method,
+    data,
     headers: token ? { 'X-XSRF-TOKEN': decodeURIComponent(token) } : {},
   })
-  expect(response.status(), `DELETE /api${path}`).toBe(204)
+  expect(response.ok(), `${method} /api${path}: ${response.status()}`).toBe(true)
+  return response.status() === 204 ? null : response.json()
+}
+
+/**
+ * Limpeza no fim do teste: apaga pela API (204). A eliminação é lógica (RN32): o registo deixa de
+ * aparecer nas listas e contagens.
+ */
+export async function apiDelete(page: Page, path: string): Promise<void> {
+  await api(page, 'DELETE', path)
 }
 
 /** Valor de uma contagem ("Por fazer", "Em curso", "Concluída") de um bloco TaskCounts (US21). */

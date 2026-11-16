@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { apiDelete, count, createdId, login, openMenu, today, uniqueName, waitForPost } from './support'
+import { apiDelete, count, createdId, login, openMenu, taskItem, today, uniqueName, waitForPost } from './support'
 
 // Ficha PL 04, exercício 4 (CT33 de docs/test-plan.md), fluxo do slide e do prompt E2E dos anexos:
 // autenticar, criar um projeto, criar uma tarefa, mudar o estado e verificar o painel
@@ -41,10 +41,7 @@ test('o gestor cria um projeto e uma tarefa, muda o estado e vê o painel atuali
   const taskCreated = waitForPost(page, /\/api\/projects\/\d+\/tasks$/)
   await form.getByRole('button', { name: 'Criar tarefa' }).click()
   await createdId(await taskCreated)
-  const row = page
-    .getByRole('table', { name: `Tarefas do projeto ${projectName}` })
-    .getByRole('row')
-    .filter({ hasText: title })
+  const row = taskItem(page, title)
   await expect(row).toContainText('Por fazer')
 
   // Alterar o estado da tarefa

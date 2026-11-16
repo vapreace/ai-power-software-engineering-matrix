@@ -21,7 +21,12 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // Os mesmos percursos no computador e num ecrã de telemóvel de 360 px (RNF01), onde as listas
+  // passam a cartões e o menu fica atrás do botão "Menu" (DA22).
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'chromium-360px', use: { ...devices['Desktop Chrome'], viewport: { width: 360, height: 740 } } },
+  ],
   webServer: process.env.MATRIZ_E2E_BASE_URL
     ? undefined
     : { command: 'npm run dev', url: baseURL, reuseExistingServer: true },

@@ -222,6 +222,8 @@ Não acrescenta funcionalidades. Define a estratégia de testes (DA37, resolve D
 
 **Verificação:** [verification.md](verification.md), secção 13.
 
+**Depois da entrega (passo 2b):** testes unitários para todas as branches das regras de negócio, cobertura com JaCoCo e dois testes E2E (o percurso do Membro e o ecrã de 360 px). Sem alterações ao código de produção. Resultados em [verification.md](verification.md), secção 14.
+
 ## 5. Riscos do plano
 
 | Risco | Mitigação |
