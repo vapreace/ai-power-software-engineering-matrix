@@ -1,0 +1,39 @@
+== 1. Estado inicial (16/11/2026 20:26:18)
+SERVICE    STATE     STATUS
+app        running   Up 55 seconds (healthy)
+postgres   running   Up About a minute (healthy)
+liveness:  {"status":"UP"} (HTTP 200, 0.221709 s)
+readiness: {"status":"UP"} (HTTP 200, 0.221773 s)
+Entrar como Rui: HTTP 200 {"id":2,"name":"Rui","email":"rui@empresa.example","role":"MANAGER","teams":[{"id":1,"name":"Logística Norte"}],"mustCh
+
+== 2. Falha controlada: parar o PostgreSQL (20:26:21)
+ Container matriz-postgres-1 Stopping 
+ Container matriz-postgres-1 Stopped 
+SERVICE   STATE     STATUS
+app       running   Up About a minute (healthy)
+
+== 3. Investigar (20:26:23)
+liveness:  {"status":"UP"} (HTTP 200, 0.221027 s)
+readiness: {"status":"DOWN"} (HTTP 503, 30.102686 s)
+Entrar como Rui: HTTP 500 {"timestamp":"2026-11-16T20:27:25.735Z","status":500,"error":"Internal Server Error","path":"/api/session"}
+-- A aplicação chega à porta 5432 do serviço postgres?
+nc: bad address 'postgres'
+Não: sem ligação ao postgres:5432
+-- Avisos e erros da aplicação nos últimos 2 minutos (os 5 mais recentes, cortados)
+{"@timestamp":"2026-11-16T20:27:25.703354854Z","log":{"level":"WARN","logger":"org.hibernate.orm.jdbc.error"},"process":{"pid":1,"thread":{"name":"http-nio-8080-exec-10"}},"service":{"name":"matriz","version":"1.0.0-rc.1","node":{}},"message":"HikariPool-1 - C
+{"@timestamp":"2026-11-16T20:27:25.704072974Z","log":{"level":"WARN","logger":"org.hibernate.orm.jdbc.error"},"process":{"pid":1,"thread":{"name":"http-nio-8080-exec-10"}},"service":{"name":"matriz","version":"1.0.0-rc.1","node":{}},"message":"HHH000247: Error
+{"@timestamp":"2026-11-16T20:27:25.704516730Z","log":{"level":"WARN","logger":"org.hibernate.orm.jdbc.error"},"process":{"pid":1,"thread":{"name":"http-nio-8080-exec-10"}},"service":{"name":"matriz","version":"1.0.0-rc.1","node":{}},"message":"HikariPool-1 - C
+{"@timestamp":"2026-11-16T20:27:25.712594150Z","log":{"level":"ERROR","logger":"org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/].[dispatcherServlet]"},"process":{"pid":1,"thread":{"name":"http-nio-8080-exec-10"}},"service":{"name":"matriz","vers
+{"@timestamp":"2026-11-16T20:27:29.598372295Z","log":{"level":"WARN","logger":"com.zaxxer.hikari.pool.PoolBase"},"process":{"pid":1,"thread":{"name":"HikariPool-1:connection-adder"}},"service":{"name":"matriz","version":"1.0.0-rc.1","node":{}},"message":"Hikar
+
+== 4. Recuperar: arrancar o PostgreSQL (20:27:31)
+ Container matriz-postgres-1 Starting 
+ Container matriz-postgres-1 Started 
+SERVICE    STATE     STATUS
+app        running   Up 2 minutes (unhealthy)
+postgres   running   Up 6 seconds (healthy)
+liveness:  {"status":"UP"} (HTTP 200, 0.223736 s)
+readiness: {"status":"UP"} (HTTP 200, 0.218424 s)
+Entrar como Rui: HTTP 200 {"id":2,"name":"Rui","email":"rui@empresa.example","role":"MANAGER","teams":[{"id":1,"name":"Logística Norte"}],"mustCh
+
+== Fim (20:27:41)

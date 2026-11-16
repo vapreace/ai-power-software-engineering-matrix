@@ -178,7 +178,7 @@ O título conta-se depois de retirar os espaços nas pontas e de normalizar o te
 |---------|--------|
 | Mudar o estado para o mesmo valor | Comportamento não definido nos requisitos (secção 6, linha 10). |
 | Testes de carga e tempo de resposta (RNF03, RNF04) | Fora do âmbito da Ficha PL 04. |
-| Readiness com a base de dados parada | Verificação manual no troubleshooting da Ficha PL 05 (exercício 6): parar o PostgreSQL no Compose e confirmar que a readiness passa a 503 e a liveness continua 200. |
+| Readiness com a base de dados parada | Verificação manual com `docs/verification/incidente-bd.sh` (Ficha PL 05): a readiness passa a 503 e a liveness continua 200; feita em 16/11/2026 ([troubleshooting.md](troubleshooting.md), incidente 001). |
 | E2E noutros browsers além do Chromium | Um browser chega para o percurso da ficha. Os outros ficam por verificar. O ecrã de 360 px está coberto desde o passo 2b. |
 
 ---

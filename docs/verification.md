@@ -444,3 +444,11 @@ Ambiente em https://matriz-3lgd.onrender.com, configuração e operação em [de
 
 Não verificado no ambiente publicado: o limite de tentativas por endereço (F13) com entradas falhadas. A verificação exigia escrever palavras-passe no site publicado. Fica coberta pelo CT40, com a mesma configuração (`MATRIZ_FORWARD_HEADERS=native`), e o HSTS confirma que o proxy do Render é aceite pelo mesmo mecanismo.
 
+### 15.7 Documentação, versão e incidente simulado (passo 7)
+
+| Verificação | Comando | Resultado |
+|-------------|---------|-----------|
+| Versão `1.0.0-rc.1` | `./mvnw verify` em `backend/` | 423 testes, 0 falhas; o build gera `matriz-1.0.0-rc.1.jar`. |
+| Comportamento com a versão nova | `docker compose up -d --build` e os E2E com `MATRIZ_E2E_BASE_URL=http://localhost:8080` | 8 testes, 8 passam. |
+| Base de dados indisponível | `bash docs/verification/incidente-bd.sh` ([incidente-bd.txt](verification/incidente-bd.txt)) | Liveness `UP`; readiness `DOWN` (503) ao fim de 30 s; entrar dá 500; recuperação sem reiniciar a aplicação. Registo em [troubleshooting.md](troubleshooting.md), incidente 001. Revelou F15. |
+

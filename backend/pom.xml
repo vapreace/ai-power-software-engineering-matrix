@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>pt.matriz</groupId>
 	<artifactId>matriz</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-rc.1</version>
 	<name>Matriz</name>
 	<description>Matriz: gestão de projetos e tarefas para equipas (backend)</description>
 	<properties>

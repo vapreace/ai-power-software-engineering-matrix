@@ -1,6 +1,6 @@
 # Code Review e Security Review da Matriz
 
-> **Versão:** 0.3 (Ficha PL 05: F5, F6, F13 e F14 corrigidos; Content Security Policy)
+> **Versão:** 0.3 (Ficha PL 05: F5, F6, F13 e F14 corrigidos; Content Security Policy; F15 registado)
 > **Estado:** concluído. Correções aprovadas pela equipa e aplicadas em 16/11/2026 (secção 6).
 
 Documentos relacionados:
@@ -76,6 +76,7 @@ Severidade: **Alta**, **Média**, **Baixa** ou **Informativo**. Estado: **Confir
 | F9 | Baixa | Testes em falta | `teams/TeamApiTests.java` | Não há teste para voltar a adicionar a uma equipa uma pessoa que já tinha sido removida. Pela leitura, funciona: o índice único só conta pertenças ativas (`ux_team_members_active`). | Uma alteração futura ao índice ou à consulta podia partir US03 sem nenhum teste falhar. | Teste acrescentado; passa | Acrescentar o teste. | `TeamApiTests.personRemovedFromATeamCanBeAddedAgain`. |
 | F10 | Informativo | Documentação | `README.md`, secção "Como executar" | O README pede "Node 22.12 ou mais recente", mas o `npm install` avisa (`EBADENGINE`) que dependências que já existiam antes da Ficha PL 04 (`jsdom`, `npm-run-all2`) pedem Node `^22.22.2 \|\| ^24.15.0 \|\| >=26`. | Funciona com avisos; um Node mais antigo pode falhar no futuro. | Confirmado. Corrigido | Atualizar o requisito no README e no `package.json` (`engines`). | `npm install` sem avisos `EBADENGINE`. |
 | F11 | Informativo | Tratamento de erros | `common/GlobalExceptionHandler.java` | Um corpo JSON inválido é recusado pela framework com 400 antes de chegar ao serviço, por isso antes da verificação de acesso (DA17 põe o 403 antes do 400). Observado no script: o comentário com acento mal codificado deu 400. | A resposta é igual para qualquer recurso: não revela nada. | Confirmado | Nenhuma. Fica registado. | |
+| F15 | Informativo | Tratamento de erros | `common/GlobalExceptionHandler.java` | Incidente simulado da Ficha PL 05 (troubleshooting.md, incidente 001): com a base de dados parada, `POST /api/session` responde 500 com o corpo genérico do Spring (`timestamp`, `status`, `error`, `path`). A exceção de acesso à base de dados não é tratada e chega ao `dispatcherServlet`. | Resposta diferente do Problem Details em português das outras respostas de erro (DA16, RNF02). Não revela pormenores internos. Só acontece com a base de dados indisponível. | Confirmado | Tratar as falhas de acesso à base de dados com 503 em Problem Details ("Serviço temporariamente indisponível"); exige uma resposta nova no contrato (openapi.yaml). Fica pendente. | Teste de integração com a base de dados indisponível. |
 | F12 | Informativo | Segredos (falso positivo) | `db/changelog/demo/100-demo-data.xml` | O Semgrep encontra um hash bcrypt. | É o hash da palavra-passe de demonstração, fictícia e documentada no README (PRIV03). Só corre no perfil `demo`. | Falso positivo | Nenhuma. | |
 
 Revisão do diff sem outros findings em: validações e mensagens das contas e das equipas (RN03, RN04, RN29), último Administrador (RN18, exceto F5), eventos e regras automáticas (RN16, RN17, RN22, RN23), bloqueio otimista no estado e no gestor do projeto (DA05), transições de estado (RN07), "As minhas tarefas" (RN24, RN25).
@@ -124,6 +125,7 @@ Os testes que já existiam continuam a passar: o gestor e o Administrador contin
 | Finding | Decisão sem correção |
 |---------|----------------------|
 | F3, F7, F11, F12 | Risco aceite ou sem ação, com o motivo indicado na secção 3. |
+| F15 | Pendente: a correção muda o contrato da API e fica para depois da versão candidata. |
 | F5, F6 | Corrigidos na Ficha PL 05 (secção 6.1). |
 
 ---

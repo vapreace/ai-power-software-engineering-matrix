@@ -6,9 +6,9 @@ Instruções para agentes de IA que trabalham neste repositório.
 
 A Matriz é uma aplicação de gestão de projetos e tarefas para equipas.
 
-Fase atual: **Ficha PL 04** entregue (tag `ficha-pl04`): testes e revisão de qualidade e segurança (incremento I8). O MVP está completo (I0 a I7). Segue os incrementos de `docs/implementation-plan.md`, atualiza o estado do incremento no fim e regista as verificações e os bugs em `docs/verification.md`.
+Fase atual: **Ficha PL 05**, versão candidata `1.0.0-rc.1` (incremento I9): imagem Docker, Docker Compose, pipeline de integração contínua e ambiente publicado no Render. O MVP está completo (I0 a I7) e a Ficha PL 04 (testes e revisão de qualidade e segurança, I8) está na tag `ficha-pl04`. Segue os incrementos de `docs/implementation-plan.md`, atualiza o estado do incremento no fim e regista as verificações e os bugs em `docs/verification.md`.
 
-Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java com Spring Boot 4 e API REST; frontend em Vue 3 com TypeScript e Vite; base de dados PostgreSQL; autenticação com sessão no servidor.
+Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java com Spring Boot 4 e API REST; frontend em Vue 3 com TypeScript e Vite; base de dados PostgreSQL; autenticação com sessão no servidor. Entrega (DA38 a DA41): uma imagem Docker, Docker Compose, GitHub Actions, Render e Neon, Semantic Versioning.
 
 ## Antes de começar uma tarefa
 
@@ -27,6 +27,9 @@ Stack (`docs/architecture.md`, DA01 a DA04): monólito modular; backend em Java 
    | Cenários de teste, resultados esperados e testes associados | `docs/test-plan.md` |
    | Findings do Code Review e da Security Review e decisões | `docs/quality-security-review.md` |
    | Resultados das verificações, bugs encontrados e uso da IA | `docs/verification.md` |
+   | Ambiente publicado: configuração, entrega contínua e operação | `docs/deployment.md` |
+   | Diagnóstico de problemas e incidentes | `docs/troubleshooting.md` |
+   | Alterações de cada versão e notas da versão candidata | `CHANGELOG.md`, `RELEASE_NOTES.md` |
 
 2. Identifica os IDs relacionados com a tarefa (ex.: US05, RN11) e usa-os no plano e no relatório final.
 3. Se dois documentos se contradizem numa definição ou numa regra de negócio, aplica `docs/requirements.md`, reporta o conflito e não alteres os outros documentos para o resolver. Em qualquer outro conflito, para e pergunta.
@@ -58,7 +61,8 @@ Uma alteração é significativa quando:
 
 - afeta mais do que uma história;
 - muda comportamento descrito em `docs/user-stories.md`;
-- altera o modelo de dados ou a interface entre componentes.
+- altera o modelo de dados ou a interface entre componentes;
+- altera a imagem (`Dockerfile`), o `compose.yaml`, a pipeline (`.github/`) ou o ambiente publicado (`render.yaml`). A pipeline nunca se torna verde retirando testes ou verificações (DA39).
 
 Antes de uma alteração significativa, apresenta um plano com: objetivo, IDs relacionados, ficheiros a alterar, pressupostos e forma de verificar o resultado. Espera pela aprovação antes de executar.
 
@@ -97,6 +101,7 @@ Indica sempre:
 
 - Quando terminares uma história, indica que está "pronta para revisão". Só uma pessoa da equipa a marca como concluída (`docs/user-stories.md`, secção 4).
 - Antes de dar uma tarefa como pronta, corre os testes e indica o resultado real. Se não conseguires correr um comando, diz qual e porquê.
+- A pipeline (`.github/workflows/ci.yml`, DA39) corre os mesmos testes em cada push e pull request, e chumba se uma branch das regras de negócio ficar sem teste unitário. Uma alteração só está pronta com a pipeline aprovada.
 - A estratégia de testes está em `docs/architecture.md` (DA31, DA37). Os resultados esperados vêm dos requisitos e dos critérios de aceitação, não do comportamento atual do código. Cada teste novo fica associado a um cenário de `docs/test-plan.md`. Os testes unitários ficam em classes `*RulesTests`, com Mockito e sem Spring, e mantêm todas as branches das regras de negócio cobertas (DA37).
 
 ## Comandos
@@ -116,6 +121,8 @@ Stack e versões em `docs/architecture.md` (DA28, DA30, DA31). Os comandos são 
 | Testes E2E (com a base de dados e o backend demo a correr, README.md) | `npm run test:e2e` | `frontend/` |
 | Análise estática do frontend (ESLint) | `npm run lint` | `frontend/` |
 | Build do frontend (vai para `backend/src/main/resources/static`) | `npm run build` | `frontend/` |
+| Construir a imagem da aplicação | `docker build -t matriz:local .` | raiz |
+| E2E contra a aplicação do Compose ou contra o `.jar` | `MATRIZ_E2E_BASE_URL=http://localhost:8080 npm run test:e2e` | `frontend/` |
 | Arrancar o frontend em desenvolvimento | `npm run dev` | `frontend/` |
 
 Pacotes do backend: `pt.matriz`, com um subpacote por módulo (`access`, `accounts`, `teams`, `projects`, `tasks`, `tracking`) e `common`. A interface pública de cada módulo fica no pacote raiz do módulo; as camadas ficam em `api`, `application`, `domain` e `persistence`. As dependências permitidas estão no `package-info.java` de cada módulo.
@@ -130,4 +137,4 @@ O esquema da base de dados muda só com um changeset Liquibase novo em `backend/
 
 ## Manutenção deste ficheiro
 
-A stack e as convenções foram acrescentadas na Ficha PL 02. Os comandos e os pacotes foram acrescentados na Ficha PL 03 (incremento I0); os testes de regressão do frontend e `docs/verification.md` no incremento I6. Na Ficha PL 04 entraram a estratégia de testes (DA37), `docs/test-plan.md`, `docs/quality-security-review.md` e os comandos dos testes E2E e do ESLint.
+A stack e as convenções foram acrescentadas na Ficha PL 02. Os comandos e os pacotes foram acrescentados na Ficha PL 03 (incremento I0); os testes de regressão do frontend e `docs/verification.md` no incremento I6. Na Ficha PL 04 entraram a estratégia de testes (DA37), `docs/test-plan.md`, `docs/quality-security-review.md` e os comandos dos testes E2E e do ESLint. Na Ficha PL 05 entraram a entrega (DA38 a DA41), `docs/deployment.md`, `docs/troubleshooting.md`, `CHANGELOG.md`, `RELEASE_NOTES.md`, os comandos do Docker e as regras para alterar a pipeline e o ambiente publicado.
