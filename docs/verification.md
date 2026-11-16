@@ -1,7 +1,7 @@
 # Verificação da Matriz
 
 > **Versão:** 0.1 (Ficha PL 03, exercícios 8 e 9, incremento I6)
-> **Estado:** em curso. Os resultados marcados "Por confirmar" dependem de uma verificação manual ainda não feita.
+> **Estado:** concluído para a Ficha PL 03.
 
 Documentos relacionados:
 
@@ -15,8 +15,8 @@ Documentos relacionados:
 
 | Item | Valor |
 |------|-------|
-| Versão | Tag `ficha-pl03` no Git (última verificação completa antes do I6: commit `0a6687f`) |
-| Data | 15/11/2026 |
+| Versão | Tag `ficha-pl03` no Git. Testes no commit `ac4cc3c`; cópia limpa (M6, M7) no commit `eb9ca31` |
+| Data | 15/11/2026 e 16/11/2026 (M6 e M7) |
 | Sistema | Windows com Git Bash, Docker Desktop |
 | Backend | Java 21, Spring Boot 4.1.2, PostgreSQL 18 em Testcontainers (testes) e Docker Compose (execução) |
 | Frontend | Node 22, Vue 3.5, Vite 8 |
@@ -28,7 +28,7 @@ Documentos relacionados:
 
 | Comando | Onde | Resultado |
 |---------|------|-----------|
-| `./mvnw verify` | `backend/` | Verde em `0a6687f` (63 testes) e em `2b9bb8b`, com as correções do I6 (69 testes, 0 falhas). Depois da refatoração: os mesmos 69 testes, a confirmar. |
+| `./mvnw verify` | `backend/` | Verde em `0a6687f` (63 testes), em `2b9bb8b` com as correções do I6 (69 testes) e em `ac4cc3c` depois da refatoração (os mesmos 69 testes, 0 falhas). |
 | `npm run type-check` | `frontend/` | Sem erros. |
 | `npm run test:unit` | `frontend/` | 4 testes, 0 falhas. |
 | `npm run build` | `frontend/` | Build sem erros, para `backend/src/main/resources/static`. |
@@ -72,7 +72,7 @@ Resultado: **Passa**, **Falha** ou **Por confirmar**. A evidência indica o test
 |------|---------|----------|-----------|-----------|-----------|
 | 01 | Acesso à aplicação | Credenciais válidas entram. Inválidas dão a mesma mensagem, sem dizer qual está errada. Pedidos sem sessão dão 401. Sair termina a sessão. | Como esperado. Depois do bug B1 corrigido, a sessão terminada mostra a mensagem também ao recarregar. | A: `SessionApiTests` (13), `session.spec.ts`. M1, M5. | Passa |
 | 02 | Gestão de projetos | Criar, pesquisar, editar e eliminar de acordo com o papel e a equipa. | Como esperado. O Membro e o Observador não veem os botões e a API recusa com 403. Eliminar pede confirmação e esconde o projeto e as tarefas. | A: `ProjectApiTests`. M2 e o print [i2-projeto-criado.png](verification/i2-projeto-criado.png). | Passa |
-| 03 | Persistência de tarefas | A tarefa aparece na lista sem recarregar e mantém-se depois de reiniciar o backend. | Aparece sem recarregar e mantém-se depois de recarregar a página e noutro pedido. Falta reiniciar o backend. | A: `TaskApiTests.managerCreatesATaskThatCanBeReadLater`. M3. M6 por fazer. | Por confirmar |
+| 03 | Persistência de tarefas | A tarefa aparece na lista sem recarregar e mantém-se depois de reiniciar o backend. | Aparece sem recarregar e mantém-se depois de recarregar a página, noutro pedido e depois de reiniciar o backend. As contagens do painel mantêm-se e os dados de demonstração não se repetem. | A: `TaskApiTests.managerCreatesATaskThatCanBeReadLater`. M3, M6. | Passa |
 | 04 | Validação de dados | Obrigatórios vazios ou só com espaços e valores inválidos dão 400 com a mensagem no campo. | Como esperado no backend e no formulário. Parâmetros de filtro vazios davam 500 (bug B4), corrigido. | A: `validationRefusesAProjectNameWithOnlySpaces`, `invalidTitlesAreRefused`, `dueDateCannotBeInThePast`, `commentTextIsValidatedAndShownExactly`, `emptyStatusParameterUsesTheDefaultFilter`. M2, M3. | Passa |
 | 05 | Estado e prioridade | Editar atualiza a tarefa, a lista filtrada, o progresso e as contagens do painel. | Como esperado, sem recarregar a página. | A: `assigneesManagersAndAdministratorsChangeTheStatus`, `managerEditsAndOldVersionIsRefused`, `filtersApplyTogether`, `countsChangeAfterCreatingOrDeletingTasks`. M3, M5. | Passa |
 | 06 | Responsáveis | Associar e remover funciona. A mesma pessoa duas vezes dá 409 e não fica duplicada. | Como esperado. | A: `managerAssignsSeveralPeopleAndTheVersionIncreases`, `theSamePersonIsNotAssignedTwice`, `removingOneOfSeveralKeepsTheOthersAndRemovingTheLastLeavesNoAssignee`. M4. | Passa |
@@ -93,8 +93,8 @@ Feitas pela utilizadora, com o perfil `demo`, o backend real e `npm run dev`.
 | M3 | I3 | Criar uma tarefa e vê-la na lista sem recarregar, recarregar a página, dados inválidos no formulário, mudar o estado, editar, apagar. | Passa |
 | M4 | I4 | Associar dois responsáveis, tentar repetir, remover, comentar, filtrar por responsável; pedido direto à API com o identificador de uma tarefa de outra equipa. | Passa |
 | M5 | I5 | Painel do Rui e do Carlos; criar uma tarefa e ver "Por fazer" subir sem recarregar; sessão terminada com F5. | Passa |
-| M6 | I6 | Criar uma tarefa, parar e arrancar o backend, confirmar que a tarefa continua lá (caso 03). | Por fazer |
-| M7 | I6 | `git clone` para uma pasta nova e seguir só o README até entrar na aplicação. | Por fazer |
+| M6 | I6 | Na cópia limpa do M7: criar a tarefa "Teste de reinício", parar e arrancar o backend, recarregar a página. Aparece "A sessão terminou. Entre de novo." (bug B1); depois de entrar, a tarefa continua lá, o "Por fazer" do painel é o mesmo e as tarefas de demonstração não se repetem (caso 03). | Passa (16/11/2026) |
+| M7 | I6 | `git clone` do GitHub para uma pasta nova e seguir só o README: `.env`, Docker Compose, backend com o perfil `demo`, `npm install`, `npm run dev`, entrar como Rui e ver o painel com o Frota e o Novo armazém. | Passa (16/11/2026). Nenhum passo do README falhou. |
 
 ---
 
@@ -106,6 +106,7 @@ Percursos automáticos com Playwright (Chromium) contra uma simulação da API c
 |----|-----------------|-----------|
 | V1 | Todos os ecrãs para Rui, Pedro, Ana e Carlos a 360 e 1280 px: sem deslocamento horizontal e sem erros na consola. Estados a carregar, erro com "Tentar de novo", 401, 403 e 404 (ui/README.md, secção 10). | 30 verificações, todas passam |
 | V2 | Percursos de criar e editar projetos e tarefas, responsáveis, comentários e filtros (I2 a I4). | Passam. Duas falhas eram do próprio script, não da aplicação (dados apagados por "Abrir de novo" e um texto mudado). |
+| V3 | Cópia limpa (`git clone` do commit `ac4cc3c` para uma pasta nova): os ficheiros que o README usa estão no Git; no frontend, `npm ci`, `type-check`, `test:unit` e `build` passam. O esquema a partir do zero fica coberto pelos testes do backend (Testcontainers cria sempre uma base vazia). | Passa. Encontrou o `mvnw` sem permissão de execução no Git (falha em Linux e macOS); corrigido no commit `eb9ca31`. |
 
 ---
 
