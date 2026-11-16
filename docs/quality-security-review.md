@@ -44,6 +44,9 @@ Regras seguidas: cada finding indica ficheiro, evidência, impacto, severidade e
 | Injeção de SQL | Leitura de todas as consultas (`*Queries.java`) | Todas usam parâmetros. Onde o SQL é montado, só se juntam fragmentos constantes do próprio código. Sem findings. |
 | Segredos no repositório | `.gitignore`, histórico do Git (`git log --all -- .env`), `.env.example`, `application.yaml` | O `.env` nunca entrou no Git; o `.env.example` e a configuração só têm valores fictícios ou variáveis de ambiente. Sem findings. |
 | XSS | ESLint (`vue/no-v-html`) e pesquisa por `v-html` e `innerHTML` | Nenhum uso. O Vue escapa todo o texto mostrado. Sem findings. |
+| Dependências e imagem, na pipeline (Ficha PL 05, DA39) | Trivy 0.76.2 à imagem `matriz:local`, vulnerabilidades altas e críticas | 0 no sistema base (Alpine 3.24.4) e 0 no `matriz.jar`, que inclui as dependências do backend ([verification/trivy-image.txt](verification/trivy-image.txt)). A pipeline chumba com vulnerabilidades críticas que já tenham correção. |
+| Segredos e configuração, na pipeline (Ficha PL 05) | Trivy: `fs --scanners secret` e `config` | 0 segredos; 0 problemas no `Dockerfile` ([verification/trivy-config.txt](verification/trivy-config.txt)). |
+| Dependências do frontend, na pipeline (Ficha PL 05) | `npm audit --omit=dev --audit-level=high` em cada execução | Aprovado. As moderadas das ferramentas de desenvolvimento continuam como F7. |
 
 ---
 
@@ -95,7 +98,7 @@ Seguem a orientação da ficha: distinguir defeito da aplicação, problema do t
 
 | Verificação | Motivo |
 |-------------|--------|
-| Dependências do backend (Maven) | Não há ferramenta configurada. O OWASP Dependency-Check precisa da base de dados do NVD; fica para a pipeline da Ficha PL 05. |
+| Dependências do backend (Maven) | Resolvido na Ficha PL 05: o Trivy analisa os JAR dentro da imagem em cada execução da pipeline (secção 2). Antes: não havia ferramenta configurada. O OWASP Dependency-Check precisa da base de dados do NVD; fica para a pipeline da Ficha PL 05. |
 | F5 (concorrência no último Administrador) | Resolvido na Ficha PL 05: teste com pedidos em paralelo (secção 6.1). |
 | Cabeçalhos de segurança no ambiente publicado (CSP, HSTS) e F6 | Só fazem sentido com HTTPS (Ficha PL 05). |
 | F13 (endereço de quem entra atrás do proxy) | Só se reproduz no ambiente publicado (Ficha PL 05). |

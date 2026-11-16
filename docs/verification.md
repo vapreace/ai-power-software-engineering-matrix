@@ -1,7 +1,7 @@
 # Verificação da Matriz
 
-> **Versão:** 0.3 (Ficha PL 04 na secção 13; passo 2b na secção 14)
-> **Estado:** concluído para a Ficha PL 03. Ficha PL 04 em curso.
+> **Versão:** 0.4 (Ficha PL 05 na secção 15)
+> **Estado:** concluído para as Fichas PL 03 e PL 04. Ficha PL 05 em curso (secção 15).
 
 Documentos relacionados:
 
@@ -347,4 +347,81 @@ Com todos os testes, as instruções cobertas passaram de 95% para 99% e as linh
 | Os primeiros números "só com unitários" incluíam a integração | Problema da medição | O agente do JaCoCo acrescenta ao `target/jacoco.exec` anterior; depois de um `./mvnw verify`, as execuções seguintes somavam os dados dos testes de integração. O comando dos unitários passou a começar por `clean`, e os números desta secção vêm dessa execução. |
 | Três branches de regras sem teste unitário | Testes em falta | Filtrar por um responsável sem "Sem responsável", mudar o prazo para uma data futura e editar um projeto mudando só a data de fim. Acrescentados os testes. |
 | O relatório de texto do Surefire mostra "Tests run: 0" para `TaskServiceRulesTests` | Limitação da ferramenta | Acontece com as classes `@Nested`. O relatório XML tem os casos todos, e é dele que vêm os números. |
+
+---
+
+## 15. Ficha PL 05
+
+Resultados do incremento I9 ([implementation-plan.md](implementation-plan.md)): imagem Docker, Docker Compose, correções de segurança e pipeline. Decisões em DA38 a DA41. O ambiente publicado (passo 6) e a validação final (passo 8) entram no fim desta secção.
+
+Ambiente: Windows com Git Bash e Docker Desktop, Java 21, Node 24 e Chromium do Playwright 1.65.1; pipeline nos runners `ubuntu-latest` do GitHub Actions.
+
+### 15.1 Imagem Docker (exercício 2)
+
+| Verificação | Comando | Resultado |
+|-------------|---------|-----------|
+| Build | `docker build -t matriz:local .` | Imagem com 133 MB de conteúdo ([docker-build.txt](verification/docker-build.txt)). |
+| Utilizador e configuração | `docker image inspect` | Utilizador `10001:10001`; nas variáveis só as do Java e `JAVA_TOOL_OPTIONS`, sem credenciais ([docker-imagem.txt](verification/docker-imagem.txt)). |
+| Arranque | `docker run` com o `.env` e o perfil `demo`; `docker logs` | Arranque em 10,7 s; o Liquibase aplicou os 15 changesets. |
+| Saúde | `curl` a `/actuator/health/liveness` e `/readiness` | `{"status":"UP"}` nos dois; página inicial 200. |
+| Comportamento | `npm run test:e2e` com `MATRIZ_E2E_BASE_URL=http://localhost:8080` | 8 testes, 8 passam (computador e 360 px). |
+| Testes do backend | `./mvnw verify` | 418 testes, 0 falhas (os 416 de antes e os 2 de `HealthEndpointTests`, CT37). |
+
+### 15.2 Docker Compose (exercício 3)
+
+Evidências em [compose-validacao.txt](verification/compose-validacao.txt) e [persistencia-compose.txt](verification/persistencia-compose.txt).
+
+| Validação da ficha | Como | Resultado |
+|--------------------|------|-----------|
+| Configuração válida | `docker compose config -q` | Sem erros. |
+| A aplicação é acessível | `docker compose ps`; `curl -I /` | `matriz-app-1` e `matriz-postgres-1` a correr, a base de dados `healthy`; portas só em `127.0.0.1`; página inicial 200. |
+| Os componentes comunicam | Rede `matriz_data`; `nslookup postgres` dentro da aplicação; readiness (inclui a base de dados) | Os dois containers na rede; `postgres` resolvido para o endereço do container; readiness `UP`. |
+| As funcionalidades continuam a funcionar | 8 E2E contra o Compose | 8 passam. |
+| Os dados persistem depois de recriar | `persistencia-compose.sh`: o Rui cria um projeto, `docker compose down` (sem `-v`), `up`, o Rui volta a entrar | Projeto criado (201); 0 containers depois do `down` e o volume mantém-se; depois do `up`, `GET` 200 com o mesmo nome; limpeza com 204. |
+| Restrições de execução | `id`, `touch /app/teste`, `docker stats` | `uid=10001`; `Read-only file system`; 305 MiB de 512 MiB (o limite do ambiente publicado). |
+| Logs sem erros críticos | `docker compose logs` | Um `WARN` da aplicação (palavra-passe gerada, F14, corrigido no passo 4); avisos normais do primeiro arranque do PostgreSQL. |
+
+### 15.3 Correções de segurança (passo 4)
+
+Correções em [quality-security-review.md](quality-security-review.md), secção 6.1; cenários CT38 a CT42 em [test-plan.md](test-plan.md). Evidência em [compose-seguranca.txt](verification/compose-seguranca.txt), com o antes e o depois da correção dos cabeçalhos.
+
+| Verificação | Resultado |
+|-------------|-----------|
+| `./mvnw verify` | 423 testes, 0 falhas. `LastAdministratorConcurrencyTests` (10 rondas em paralelo), `ProxyConfigurationTests` e `SecurityConfigurationTests` passam. |
+| Logs do Compose depois de F14 | 0 `WARN` e 0 `ERROR` da aplicação; nenhuma palavra-passe gerada. |
+| Cabeçalhos com o Compose | `GET /`, `GET /projetos/1`, `GET /api/session` e `HEAD /` com `Content-Security-Policy`, `X-Frame-Options: DENY` e `X-Content-Type-Options: nosniff`. |
+| E2E com a CSP | 8 passam. |
+
+### 15.4 Pipeline (exercício 4)
+
+Pipeline em `.github/workflows/ci.yml` (DA39): blocos Build, Testes, Cobertura e Entrega, cada um só depois de todos os jobs do anterior passarem.
+
+| Execução | Gatilho | Resultado |
+|----------|---------|-----------|
+| Primeira, no `main` (`eef94c0`) | push | Build, Testes e Cobertura aprovados (com o quality gate da cobertura); na Entrega, imagem, Compose, smoke tests e análise da imagem aprovados. Falhou a procura de segredos do Trivy: o Maven Central respondeu 429 (secção 15.5). |
+| Segunda, no `main` (`ba68bbf`) | push | Falhou a análise do Dockerfile: opção inexistente no `trivy config` (secção 15.5). A procura de segredos, antes dela, passou. |
+| Terceira, no `main` (`71f4598`) | push | Aprovada; "Entrega: publicar" *skipped*, como previsto (só corre numa release). |
+| #11, pull request #8 (`1cb8a24`) | pull request | **Falha controlada**: um teste unitário de `TaskTitleRulesTests` passou a esperar o estado errado. "Testes: unitários" falhou; os outros três jobs de testes terminaram; Cobertura, Entrega: imagem e Entrega: publicar não correram ([ci-falha-controlada.png](verification/ci-falha-controlada.png)). |
+| #12, pull request #8 (`c44f14f`) | pull request | Teste reposto: todos os jobs aprovados, "Entrega: publicar" *skipped*, 5 min 44 s ([ci-corrigida.png](verification/ci-corrigida.png)). O pull request foi fechado sem merge. |
+
+| Análise na pipeline | Resultado |
+|---------------------|-----------|
+| `npm audit --omit=dev --audit-level=high` | Aprovado: nenhuma vulnerabilidade alta ou crítica nas dependências de produção. |
+| Quality gate da cobertura | Aprovado: todas as branches das regras de negócio cobertas pelos testes unitários. |
+| Trivy 0.76.2, vulnerabilidades altas e críticas da imagem | 0 no sistema base (Alpine 3.24.4) e 0 no `matriz.jar` ([trivy-image.txt](verification/trivy-image.txt)). |
+| Trivy, segredos no repositório | 0. |
+| Trivy, configuração do `Dockerfile` | 0 problemas ([trivy-config.txt](verification/trivy-config.txt)). |
+
+### 15.5 Problemas encontrados e soluções
+
+Segue a orientação da Ficha PL 04: distinguir defeito da aplicação, problema da verificação e limitação do ambiente.
+
+| Situação | Tipo | Causa e solução |
+|----------|------|-----------------|
+| O log da aplicação mostrava uma palavra-passe gerada | Defeito da configuração (desde o I1) | Sem `UserDetailsService` próprio, o Spring Boot criava um utilizador em memória. F14: auto-configuração excluída, com teste de regressão (CT42). A palavra-passe foi retirada das evidências. |
+| A contagem de avisos do Compose dava 0 com um `WARN` no log | Problema da verificação | O comando procurava `"log.level"`, mas o formato ECS escreve `"log":{"level":...}`. A evidência ficou anotada e a contagem certa repetiu-se no passo 4. |
+| A página inicial (`/`) saía sem a CSP e sem os outros cabeçalhos de segurança | Defeito da implementação, encontrado na validação | A página inicial é servida por reencaminhamento para o `index.html`, e a resposta fechava sem passar pelo filtro que escreve os cabeçalhos. O teste com MockMvc não o via, porque o MockMvc não executa reencaminhamentos. Os cabeçalhos passaram a ser escritos no início de cada pedido, e o CT41 passou a usar pedidos HTTP reais. |
+| O `git push` foi recusado com `Internal Server Error` | Limitação externa (GitHub) | Erro do servidor; o push repetido passou. |
+| O Trivy parou com `429 Too Many Requests` do Maven Central | Limitação do ambiente | Ao encontrar o `pom.xml`, o Trivy tentava resolver dependências no Maven Central, que limita os endereços partilhados dos runners. `--offline-scan` nas análises da imagem e do repositório: o Trivy não faz pedidos ao Maven Central e identifica os JAR pelos metadados que trazem. |
+| `unknown flag: --offline-scan` no `trivy config` | Erro do agente | A opção só existe para `image` e `fs`. Retirada do `trivy config`. |
 
